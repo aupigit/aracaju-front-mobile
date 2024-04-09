@@ -1,0 +1,53 @@
+import { View, Text, Image, Pressable, Linking, Button } from 'react-native'
+import React, { useState } from 'react'
+import { router } from 'expo-router'
+
+const Home = () => {
+  const [count, setCounter] = useState(0)
+
+  const handleCounter = () => {
+    setCounter(count + 1)
+    router.replace('login')
+  }
+
+  return (
+    <View className="flex-1 items-center justify-center gap-5">
+      <View className="size-32">
+        <Image
+          source={require('../public/aupi_logo.jpeg')}
+          alt=""
+          className="h-full w-full"
+        />
+      </View>
+
+      <View>
+        <Text className="text-center text-2xl font-bold">
+          Bem-vindo ao template padrão da
+        </Text>
+        <Pressable onPress={() => Linking.openURL('https://aupi.com.br')}>
+          <Text className="text-center text-xl font-bold text-[#5178be]">
+            Aupi Soluções em TI
+          </Text>
+        </Pressable>
+      </View>
+
+      <View>
+        <Button
+          color={'#5178be'}
+          title="CLIQUE AQUI"
+          onPress={handleCounter}
+        ></Button>
+
+        <View>
+          {count > 0 && (
+            <View className=" w-full items-center justify-center p-5">
+              <Text className="text-lg">{count}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  )
+}
+
+export default Home
