@@ -4,7 +4,6 @@ import {
   Text,
   Alert,
   ScrollView,
-  Button,
   Pressable,
   ActivityIndicator,
   TextInput,
@@ -12,12 +11,11 @@ import {
 import * as LocalAuthentication from 'expo-local-authentication'
 import NetInfo from '@react-native-community/netinfo'
 import { Link, router } from 'expo-router'
-// import { View, FormControl, Input, Stack, useToast } from 'native-base'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { useUser } from '@/contexts/UserContext'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { FontAwesome } from '@expo/vector-icons'
+import FormControl from './FormControl'
 
 const authSchema = z.object({
   email: z
@@ -26,7 +24,7 @@ const authSchema = z.object({
       invalid_type_error: 'Email precisa ser uma string',
     })
     .min(2, 'Email precisa ter pelo menos 2 caracteres')
-    .email(),
+    .email('Email precisa ser um email válido'),
 
   password: z
     .string({
@@ -51,8 +49,15 @@ const Login = () => {
   })
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log(data)
-    router.replace('/posts')
+    try {
+      setButtonLoading(true)
+      console.log(data)
+      router.replace('/posts')
+    } catch (error) {
+      setTimeout(() => setButtonLoading(false), 3000)
+    } finally {
+      setButtonLoading(false)
+    }
   })
 
   useEffect(() => {
@@ -95,54 +100,14 @@ const Login = () => {
             oferecer
           </Text>
 
-          <View className="gap-3">
-            <Controller
-              control={control}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  onBlur={onBlur}
-                  onChangeText={(value) => onChange(value)}
-                  value={value}
-                  placeholder="Email"
-                  className=" rounded-md border border-zinc-700/20 p-2"
-                />
-              )}
-              name="email"
-              rules={{ required: true }}
-              defaultValue=""
-            />
-            {errors.email && <Text>This is required.</Text>}
-
-            <Controller
-              control={control}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View className="relative">
-                  <TextInput
-                    onBlur={onBlur}
-                    onChangeText={(value) => onChange(value)}
-                    value={value}
-                    placeholder="Password"
-                    secureTextEntry={!showPassword}
-                    className=" rounded-md border border-zinc-700/20 p-2"
-                  />
-                  <Pressable className=" absolute right-5 top-3">
-                    <FontAwesome
-                      name={showPassword ? 'eye-slash' : 'eye'}
-                      size={24}
-                      color="black"
-                      onPress={() => setShowPassword(!showPassword)}
-                    />
-                  </Pressable>
-                </View>
-              )}
-              name="password"
-              rules={{ required: true }}
-              defaultValue=""
-            />
-            {errors.password && <Text>This is required.</Text>}
-
-            <Button title="Submit" onPress={onSubmit} />
-          </View>
+          <FormControl
+            buttonLoading={buttonLoading}
+            control={control}
+            errors={errors}
+            onSubmit={onSubmit}
+            setShowPassword={setShowPassword}
+            showPassword={showPassword}
+          />
         </View>
       </View>
     </ScrollView>

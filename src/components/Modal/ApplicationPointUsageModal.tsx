@@ -6,12 +6,14 @@ interface ApplicationPointUsageModalProps {
   modalVisible: boolean
   setModalVisible: (modalVisible: boolean) => void
   selectedPoint: IPoint
+  setModalApplicate: (modalApplicate: boolean) => void
 }
 
 const ApplicationPointUsageModal = ({
   modalVisible,
   setModalVisible,
   selectedPoint,
+  setModalApplicate,
 }: ApplicationPointUsageModalProps) => {
   return (
     <Modal
@@ -60,6 +62,7 @@ const ApplicationPointUsageModal = ({
           <Button
             onPress={() => {
               setModalVisible(!modalVisible)
+              setModalApplicate(true)
             }}
             title="APLICAR"
           ></Button>

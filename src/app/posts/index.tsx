@@ -37,6 +37,8 @@ import ApplicationPointsInformationModal from '@/components/Modal/ApplicationPoi
 import ApplicationConflictPointsModal from '@/components/Modal/ApplicationConflictPointsModal'
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
+import { difFakePoint, fakePoints } from './fakePoints'
+import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 
 const Posts = () => {
   const [posts, setPosts] = useState([])
@@ -48,6 +50,7 @@ const Posts = () => {
   const [showButton, setShowButton] = useState(false)
   const [modalConflict, setModalConflict] = useState(false)
   const [modalInfoPoints, setModalInfoPoints] = useState(false)
+  const [modalApplicate, setModalApplicate] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
 
@@ -161,8 +164,8 @@ const Posts = () => {
       unsubscribe = await watchPositionAsync(
         {
           accuracy: LocationAccuracy.Highest,
+          distanceInterval: 1,
           timeInterval: 1000,
-          // distanceInterval: 1,
         },
         async (newLocation) => {
           setLocation(newLocation)
@@ -178,134 +181,13 @@ const Posts = () => {
 
     startWatching()
 
-    return () => {
-      // Stop watching location when the component is unmounted
-      if (unsubscribe) {
-        unsubscribe.remove()
-      }
-    }
+    // return () => {
+    //   // Stop watching location when the component is unmounted
+    //   if (unsubscribe) {
+    //     unsubscribe.remove()
+    //   }
+    // }
   }, [])
-
-  const fakePoints = useMemo(
-    () => [
-      {
-        latitude: -26.329177 + 0.001,
-        longitude: -48.811036 + 0.001,
-        tipo: 'Tipo 1',
-        status: 'Status 1',
-        cliente: 'Cliente 1',
-        cidade: 'Cidade 1',
-        subRegiao: 'Sub-região 1',
-        dispositivo: 'Dispositivo 1',
-        utilizador: 'Utilizador 1',
-        altitude: 100,
-        acuracia: 1,
-        dataCriacao: new Date(),
-        dataTransmissao: new Date(),
-        dataModificacao: new Date(),
-        observacao: 'Observação 1',
-        distancia: 1,
-        imagem: 'URL da imagem 1',
-      },
-      {
-        latitude: -26.329177 - 0.001,
-        longitude: -48.811036 - 0.001,
-        tipo: 'Tipo 2',
-        status: 'Status 2',
-        cliente: 'Cliente 2',
-        cidade: 'Cidade 2',
-        subRegiao: 'Sub-região 2',
-        dispositivo: 'Dispositivo 2',
-        utilizador: 'Utilizador 2',
-        altitude: 200,
-        acuracia: 2,
-        dataCriacao: new Date(),
-        dataTransmissao: new Date(),
-        dataModificacao: new Date(),
-        observacao: 'Observação 2',
-        distancia: 2,
-        imagem: 'URL da imagem 2',
-      },
-      {
-        latitude: -26.329177 + 0.002,
-        longitude: -48.811036 + 0.002,
-        tipo: 'Tipo 3',
-        status: 'Status 3',
-        cliente: 'Cliente 3',
-        cidade: 'Cidade 3',
-        subRegiao: 'Sub-região 3',
-        dispositivo: 'Dispositivo 3',
-        utilizador: 'Utilizador 3',
-        altitude: 300,
-        acuracia: 3,
-        dataCriacao: new Date(),
-        dataTransmissao: new Date(),
-        dataModificacao: new Date(),
-        observacao: 'Observação 3',
-        distancia: 3,
-        imagem: 'URL da imagem 3',
-      },
-      {
-        latitude: -26.3290854,
-        longitude: -48.810933299999995,
-        tipo: 'Tipo 4',
-        status: 'Status 4',
-        cliente: 'Cliente 4',
-        cidade: 'Cidade 4',
-        subRegiao: 'Sub-região 4',
-        dispositivo: 'Dispositivo 4',
-        utilizador: 'Utilizador 4',
-        altitude: 400,
-        acuracia: 4,
-        dataCriacao: new Date(),
-        dataTransmissao: new Date(),
-        dataModificacao: new Date(),
-        observacao: 'Observação 4',
-        distancia: 4,
-        imagem: 'URL da imagem 4',
-      },
-      {
-        latitude: -26.3292564,
-        longitude: -48.8111455,
-        tipo: 'Tipo 5',
-        status: 'Status 5',
-        cliente: 'Cliente 5',
-        cidade: 'Cidade 5',
-        subRegiao: 'Sub-região 5',
-        dispositivo: 'Dispositivo 5',
-        utilizador: 'Utilizador 5',
-        altitude: 500,
-        acuracia: 5,
-        dataCriacao: new Date(),
-        dataTransmissao: new Date(),
-        dataModificacao: new Date(),
-        observacao: 'Observação 5',
-        distancia: 5,
-        imagem: 'URL da imagem 5',
-      },
-    ],
-    [location],
-  )
-
-  const difFakePoint = {
-    latitude: -26.329177 - 0.002,
-    longitude: -48.811036 - 0.002,
-    tipo: 'Tipo FAKE',
-    status: 'Status FAKE',
-    cliente: 'Cliente FAKE',
-    cidade: 'Cidade FAKE',
-    subRegiao: 'Sub-região FAKE',
-    dispositivo: 'Dispositivo FAKE',
-    utilizador: 'Utilizador FAKE',
-    altitude: 600,
-    acuracia: 6,
-    dataCriacao: new Date(),
-    dataTransmissao: new Date(),
-    dataModificacao: new Date(),
-    observacao: 'Observação FAKE',
-    distancia: 6,
-    imagem: 'URL da imagem FAKE',
-  }
 
   // Mostrar o botão de aplicação se estiver dentro do raio do ponto
   useEffect(() => {
@@ -333,29 +215,6 @@ const Posts = () => {
   console.log('ROTA ->', JSON.stringify(routes, null, 2))
   console.log('ROUTE POINTS ->', JSON.stringify(routePoints, null, 2))
   console.log('QUANTIDADE DE PONTOS DA ROTA ->', routes.length)
-
-  const saveToFile = async () => {
-    const fileUri = FileSystem.cacheDirectory + 'info.txt'
-
-    const content = `
-      ROTA: ${JSON.stringify(routes, null, 2)}
-      QUANTIDADE DE PONTOS DA ROTA: ${routes.length}
-    `
-
-    try {
-      await FileSystem.writeAsStringAsync(fileUri, content)
-      console.log('File written to', fileUri)
-
-      if (!(await Sharing.isAvailableAsync())) {
-        alert(`Uh oh, sharing isn't available on your platform`)
-        return
-      }
-
-      await Sharing.shareAsync(fileUri)
-    } catch (error) {
-      console.error(error)
-    }
-  }
 
   const handleMarkerPress = (point) => {
     setModalInfoPoints(true)
@@ -473,6 +332,7 @@ const Posts = () => {
           modalVisible={modalVisible}
           setModalVisible={setModalVisible}
           selectedPoint={selectedPoint}
+          setModalApplicate={setModalApplicate}
         />
 
         <ApplicationPointsInformationModal
@@ -489,6 +349,12 @@ const Posts = () => {
           setModalVisible={setModalVisible}
           setSelectedPoint={setSelectedPoint}
         />
+
+        <ApplicationApplicateModal
+          modalVisible={modalApplicate}
+          setModalVisible={setModalApplicate}
+          selectedPoint={selectedPoint}
+        />
       </View>
       <View className="items-center justify-center">
         {showButton && (
@@ -499,6 +365,8 @@ const Posts = () => {
               if (conflictPoints.length >= 2) {
                 setConflictPoints(conflictPoints)
                 setModalConflict(true)
+              } else {
+                setModalApplicate(true)
               }
             }}
             title="APLICACAO"
