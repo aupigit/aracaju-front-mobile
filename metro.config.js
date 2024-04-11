@@ -1,6 +1,9 @@
-const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require("nativewind/metro");
+const { getDefaultConfig } = require('expo/metro-config')
+const { withNativeWind } = require('nativewind/metro')
 
-const config = getDefaultConfig(__dirname);
+const defaultConfig = getDefaultConfig(__dirname)
 
-module.exports = withNativeWind(config, { input: "./src/global.css" });
+// Adicione 'db' à lista de extensões de ativos
+defaultConfig.resolver.assetExts.push('db')
+
+module.exports = withNativeWind(defaultConfig, { input: './src/global.css' })

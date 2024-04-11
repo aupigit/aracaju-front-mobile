@@ -1,8 +1,6 @@
 import { UserProvider } from '@/contexts/UserContext'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import {
-  SafeAreaProvider,
-} from 'react-native-safe-area-context'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { LogBox } from 'react-native'
 const queryClient = new QueryClient()
 
@@ -15,9 +13,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         insets: { top: 0, left: 0, right: 0, bottom: 0 },
       }}
     >
-        <QueryClientProvider client={queryClient}>
-          <UserProvider>{children}</UserProvider>
-        </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>{children}</UserProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   )
 }
