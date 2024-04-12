@@ -16,6 +16,8 @@ import { Controller, useForm } from 'react-hook-form'
 import { useUser } from '@/contexts/UserContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import FormControl from './FormControl'
+import { doLogin } from '@/services/authenticate'
+import { Snackbar } from 'react-native-paper'
 
 const authSchema = z.object({
   email: z
@@ -39,6 +41,8 @@ export type AuthFormData = z.infer<typeof authSchema>
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [buttonLoading, setButtonLoading] = useState(false)
+  const [visibleOK, setVisibleOK] = useState(false)
+  const [visibleERROR, setVisibleERROR] = useState(false)
 
   const {
     control,
@@ -48,13 +52,38 @@ const Login = () => {
     resolver: zodResolver(authSchema),
   })
 
+  const onDismissSnackBarOK = () => setVisibleOK(false)
+  const onDismissSnackBarERROR = () => setVisibleERROR(false)
+
   const onSubmit = handleSubmit(async (data) => {
     try {
       setButtonLoading(true)
-      console.log(data)
-      router.replace('/posts')
+      // console.log(data)
+
+      const response = await doLogin(data.email, data.password)
+      // console.log(response)
+
+      if (response && response.user) {
+        setVisibleOK(!visibleOK)
+
+        setTimeout(() => {
+          setVisibleOK(!visibleOK)
+          router.replace('/posts')
+        }, 1000)
+      } else {
+        setVisibleERROR(!visibleERROR)
+
+        setTimeout(() => {
+          setVisibleERROR(!visibleERROR)
+        }, 3000)
+      }
     } catch (error) {
       setTimeout(() => setButtonLoading(false), 3000)
+      setVisibleERROR(!visibleERROR)
+
+      setTimeout(() => {
+        setVisibleERROR(!visibleERROR)
+      }, 3000)
     } finally {
       setButtonLoading(false)
     }
@@ -110,6 +139,34 @@ const Login = () => {
           />
         </View>
       </View>
+      <Snackbar
+        visible={visibleOK}
+        onDismiss={onDismissSnackBarOK}
+        action={{
+          textColor: '#00ff00',
+          label: 'Fechar',
+          onPress: () => {
+            setVisibleOK(false)
+          },
+        }}
+      >
+        <Text className="text-[#00ff00]">Usuário logado com sucesso.</Text>
+      </Snackbar>
+      <Snackbar
+        visible={visibleERROR}
+        onDismiss={onDismissSnackBarERROR}
+        action={{
+          textColor: '#ff0000',
+          label: 'Fechar',
+          onPress: () => {
+            setVisibleOK(false)
+          },
+        }}
+      >
+        <Text className="text-[#ff0000]">
+          Login falhou. Verifique suas credenciais
+        </Text>
+      </Snackbar>
     </ScrollView>
   )
 }
