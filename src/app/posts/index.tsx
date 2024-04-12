@@ -213,15 +213,15 @@ const Posts = () => {
     return
   }
 
-  console.log(
-    'LOCALIZAÇÃO ATUAL ->',
-    location.coords.latitude,
-    location.coords.longitude,
-  )
+  // console.log(
+  //   'LOCALIZAÇÃO ATUAL ->',
+  //   location.coords.latitude,
+  //   location.coords.longitude,
+  // )
 
-  console.log('ROTA ->', JSON.stringify(routes, null, 2))
-  console.log('ROUTE POINTS ->', JSON.stringify(routePoints, null, 2))
-  console.log('QUANTIDADE DE PONTOS DA ROTA ->', routes.length)
+  // console.log('ROTA ->', JSON.stringify(routes, null, 2))
+  // console.log('ROUTE POINTS ->', JSON.stringify(routePoints, null, 2))
+  // console.log('QUANTIDADE DE PONTOS DA ROTA ->', routes.length)
 
   const handleMarkerPress = (point) => {
     setSelectedPoint(point)
@@ -232,6 +232,8 @@ const Posts = () => {
     setModalVisible(true)
     setSelectedPoint(point)
   }
+
+  const userLocation = [location.coords.latitude, location.coords.longitude]
 
   return (
     <ScrollView style={{ paddingTop: insets.top }}>
@@ -367,6 +369,7 @@ const Posts = () => {
           setModalVisible={setModalApplicate}
           selectedPoint={selectedPoint}
           setSelectedPoint={setSelectedPoint}
+          userLocation={userLocation}
         />
       </View>
       <View className="absolute bottom-0 left-0 items-center justify-center">
