@@ -37,9 +37,11 @@ import * as Sharing from 'expo-sharing'
 import { difFakePoint, fakePoints } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { findManyPointsReferences } from '@/services/points'
+import { IPoint } from '@/interfaces/IPoint'
+import { Tooltip } from 'react-native-paper'
 
 const Posts = () => {
-  const [posts, setPosts] = useState([])
   const [isSynced, setIsSynced] = useState(true)
   const [location, setLocation] = useState<LocationObject | null>(null)
   const [routes, setRoutes] = useState([])
@@ -51,6 +53,22 @@ const Posts = () => {
   const [modalApplicate, setModalApplicate] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
+  const [tooltipVisible, setTooltipVisible] = useState(false)
+
+  const [points, setPoints] = useState<IPoint[]>([])
+
+  useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const pointsData = await findManyPointsReferences()
+        setPoints(pointsData)
+      } catch (error) {
+        console.error('Error fetching events:', error)
+      }
+    }
+    fetchPoints()
+  }, [location])
+  console.log(points)
 
   const insets = useSafeAreaInsets()
 
@@ -216,8 +234,13 @@ const Posts = () => {
   console.log('QUANTIDADE DE PONTOS DA ROTA ->', routes.length)
 
   const handleMarkerPress = (point) => {
-    setModalInfoPoints(true)
     setSelectedPoint(point)
+    setModalInfoPoints(false)
+    setTooltipVisible(true)
+  }
+
+  const handleCloseTooltip = () => {
+    setTooltipVisible(false)
   }
 
   const handleDifferntMarkerPress = (point) => {
@@ -255,6 +278,7 @@ const Posts = () => {
             loadingBackgroundColor={'#fff'}
             toolbarEnabled={false}
             mapPadding={{ top: 10, right: 20, bottom: 60, left: 20 }}
+            mapType="satellite"
           >
             <Polyline
               strokeColor="#0000ff"
@@ -262,7 +286,7 @@ const Posts = () => {
               coordinates={routes.map((loc) => loc.coords)}
             />
 
-            {fakePoints
+            {points
               .filter((point) => isPointInRegion(point, region))
               .map((point, index) => {
                 const conflictIndex = conflictPoints.findIndex(
@@ -288,6 +312,7 @@ const Posts = () => {
                 return (
                   <React.Fragment key={index}>
                     <Marker
+                      title={`${point.name} || ${point.volumebti}`}
                       coordinate={{
                         latitude: point.latitude,
                         longitude: point.longitude,
@@ -295,6 +320,7 @@ const Posts = () => {
                       pinColor={pinColor}
                       onPress={() => handleMarkerPress(point)}
                     />
+
                     <Circle
                       center={{
                         latitude: point.latitude,

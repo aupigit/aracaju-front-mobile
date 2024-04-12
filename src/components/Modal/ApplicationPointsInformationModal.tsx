@@ -41,23 +41,8 @@ const ApplicationPointsInformationModal = ({
 
           {selectedPoint && (
             <View>
-              <Text>{selectedPoint.tipo}</Text>
-              <Text>{selectedPoint.status}</Text>
-              <Text>{selectedPoint.cliente}</Text>
-              <Text>{selectedPoint.cidade}</Text>
-              <Text>{selectedPoint.subRegiao}</Text>
-              <Text>{selectedPoint.dispositivo}</Text>
-              <Text>{selectedPoint.utilizador}</Text>
-              <Text>{selectedPoint.latitude}</Text>
-              <Text>{selectedPoint.longitude}</Text>
-              <Text>{selectedPoint.altitude}</Text>
-              <Text>{selectedPoint.acuracia}</Text>
-              <Text>{selectedPoint.dataCriacao?.toString()}</Text>
-              <Text>{selectedPoint.dataTransmissao?.toString()}</Text>
-              <Text>{selectedPoint.dataModificacao?.toString()}</Text>
-              <Text>{selectedPoint.observacao}</Text>
-              <Text>{selectedPoint.distancia}</Text>
-              <Text>{selectedPoint.imagem}</Text>
+              <Text>{selectedPoint.name}</Text>
+              <Text>{selectedPoint.volumebti}</Text>
             </View>
           )}
         </View>

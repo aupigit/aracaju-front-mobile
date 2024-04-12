@@ -15,6 +15,7 @@ import { AntDesign, Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as Crypto from 'expo-crypto'
 import RNPickerSelect from 'react-native-picker-select'
+import { useUser } from '@/contexts/UserContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -29,12 +30,15 @@ const ApplicationApplicateModal = ({
   selectedPoint,
   setSelectedPoint,
 }: ApplicationApplicateModalProps) => {
+  const { user } = useUser()
   const [base64ImageValue, setBase64ImageValue] = useState('')
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)
 
   const [images, setImages] = useState<IImagesProps[]>([])
+
+  console.log('Usuáriooooooo', user)
 
   const handleImagePick = async (title) => {
     try {
