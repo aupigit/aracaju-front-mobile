@@ -5,7 +5,7 @@ export const findUserById = async (
   userId: string | undefined,
   token: string,
 ): Promise<IUser> => {
-  const result = await get(`management/user/${userId}`, {
+  const result = await get(`operation/user/${userId}`, {
     extraHeaders: {
       Authorization: `Bearer ${token}`,
     },
