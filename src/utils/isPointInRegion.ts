@@ -6,10 +6,9 @@ function isPointInRegion(point, region) {
 
   const { latitude, longitude } = region
 
-  // Convert degrees to radians
   const deg2rad = (deg) => deg * (Math.PI / 180)
 
-  const R = 6371 // Radius of the earth in km
+  const R = 6371
   const dLat = deg2rad(point.latitude - latitude)
   const dLon = deg2rad(point.longitude - longitude)
 
@@ -21,9 +20,8 @@ function isPointInRegion(point, region) {
       Math.sin(dLon / 2)
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  const distance = R * c // Distance in km
-
-  return distance <= 1
+  const distance = R * c
+  return distance <= 100
 }
 
 export default isPointInRegion

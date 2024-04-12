@@ -37,9 +37,10 @@ import * as Sharing from 'expo-sharing'
 import { difFakePoint, fakePoints } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { findManyPointsReferences } from '@/services/points'
+import { useQuery } from 'react-query'
 
 const Posts = () => {
-  const [posts, setPosts] = useState([])
   const [isSynced, setIsSynced] = useState(true)
   const [location, setLocation] = useState<LocationObject | null>(null)
   const [routes, setRoutes] = useState([])
@@ -51,6 +52,13 @@ const Posts = () => {
   const [modalApplicate, setModalApplicate] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
+
+  const { data: pointsData, isLoading: pointsLoading } = useQuery(
+    ['application/pointreference'],
+    async () => {
+      return await findManyPointsReferences().then((response) => response)
+    },
+  )
 
   const insets = useSafeAreaInsets()
 
@@ -191,7 +199,7 @@ const Posts = () => {
 
   useEffect(() => {
     if (location) {
-      for (const point of fakePoints) {
+      for (const point of pointsData) {
         if (calculateDistance(location.coords, point) <= 15) {
           setShowButton(true)
           return
@@ -199,7 +207,7 @@ const Posts = () => {
       }
       setShowButton(false)
     }
-  }, [location, fakePoints])
+  }, [location, pointsData])
 
   if (!location) {
     return
@@ -216,8 +224,8 @@ const Posts = () => {
   console.log('QUANTIDADE DE PONTOS DA ROTA ->', routes.length)
 
   const handleMarkerPress = (point) => {
-    setModalInfoPoints(true)
     setSelectedPoint(point)
+    setModalInfoPoints(false)
   }
 
   const handleDifferntMarkerPress = (point) => {
@@ -255,6 +263,7 @@ const Posts = () => {
             loadingBackgroundColor={'#fff'}
             toolbarEnabled={false}
             mapPadding={{ top: 10, right: 20, bottom: 60, left: 20 }}
+            mapType="satellite"
           >
             <Polyline
               strokeColor="#0000ff"
@@ -262,7 +271,7 @@ const Posts = () => {
               coordinates={routes.map((loc) => loc.coords)}
             />
 
-            {fakePoints
+            {pointsData
               .filter((point) => isPointInRegion(point, region))
               .map((point, index) => {
                 const conflictIndex = conflictPoints.findIndex(
@@ -288,6 +297,7 @@ const Posts = () => {
                 return (
                   <React.Fragment key={index}>
                     <Marker
+                      title={`${point.name} || ${point.volumebti}`}
                       coordinate={{
                         latitude: point.latitude,
                         longitude: point.longitude,
@@ -295,6 +305,7 @@ const Posts = () => {
                       pinColor={pinColor}
                       onPress={() => handleMarkerPress(point)}
                     />
+
                     <Circle
                       center={{
                         latitude: point.latitude,
