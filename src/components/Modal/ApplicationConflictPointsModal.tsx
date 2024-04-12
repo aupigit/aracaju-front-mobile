@@ -8,7 +8,7 @@ interface ApplicationConflictPointsModalProps {
   modalVisible: boolean
   setModalVisible: (modalVisible: boolean) => void
   conflictPoints: number[]
-  setSelectedPoint: (point: number) => void
+  setSelectedPoint: (point: number | null) => void
 }
 
 const ApplicationConflictPointsModal = ({
@@ -36,6 +36,7 @@ const ApplicationConflictPointsModal = ({
             <Pressable
               onPress={() => {
                 setModalConflict(!modalConflict)
+                setSelectedPoint(null)
               }}
             >
               <Text>Fechar</Text>

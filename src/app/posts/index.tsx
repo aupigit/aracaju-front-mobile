@@ -1,13 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
   ScrollView,
-  Button,
   Alert,
   StyleSheet,
-  TouchableHighlight,
-  Modal,
   Pressable,
 } from 'react-native'
 import NetInfo from '@react-native-community/netinfo'
@@ -39,6 +36,7 @@ import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
 import { difFakePoint, fakePoints } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const Posts = () => {
   const [posts, setPosts] = useState([])
@@ -53,6 +51,8 @@ const Posts = () => {
   const [modalApplicate, setModalApplicate] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
+
+  const insets = useSafeAreaInsets()
 
   const mapRef = useRef(null)
 
@@ -189,7 +189,6 @@ const Posts = () => {
     // }
   }, [])
 
-  // Mostrar o botão de aplicação se estiver dentro do raio do ponto
   useEffect(() => {
     if (location) {
       for (const point of fakePoints) {
@@ -227,7 +226,7 @@ const Posts = () => {
   }
 
   return (
-    <ScrollView>
+    <ScrollView style={{ paddingTop: insets.top }}>
       <View className="h-screen flex-1 items-center justify-center">
         {location && (
           <MapView
@@ -255,7 +254,7 @@ const Posts = () => {
             loadingEnabled={true}
             loadingBackgroundColor={'#fff'}
             toolbarEnabled={false}
-            mapPadding={{ top: 40, right: 20, bottom: 20, left: 20 }}
+            mapPadding={{ top: 10, right: 20, bottom: 60, left: 20 }}
           >
             <Polyline
               strokeColor="#0000ff"
@@ -333,12 +332,14 @@ const Posts = () => {
           setModalVisible={setModalVisible}
           selectedPoint={selectedPoint}
           setModalApplicate={setModalApplicate}
+          setSelectedPoint={setSelectedPoint}
         />
 
         <ApplicationPointsInformationModal
           modalInfoPoints={modalInfoPoints}
           setModalInfoPoints={setModalInfoPoints}
           selectedPoint={selectedPoint}
+          setSelectedPoint={setSelectedPoint}
         />
 
         <ApplicationConflictPointsModal
@@ -354,11 +355,13 @@ const Posts = () => {
           modalVisible={modalApplicate}
           setModalVisible={setModalApplicate}
           selectedPoint={selectedPoint}
+          setSelectedPoint={setSelectedPoint}
         />
       </View>
-      <View className="items-center justify-center">
+      <View className="absolute bottom-0 left-0 items-center justify-center">
         {showButton && (
-          <Button
+          <Pressable
+            className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
             onPress={() => {
               // Verifique se há conflito (usuário dentro do raio de dois pontos)
               const conflictPoints = getConflictPoints(location, fakePoints)
@@ -369,9 +372,11 @@ const Posts = () => {
                 setModalApplicate(true)
               }
             }}
-            title="APLICACAO"
-            color={'#5178be'}
-          />
+          >
+            <Text className="text-center text-lg font-bold text-white">
+              APLICAÇÃO
+            </Text>
+          </Pressable>
         )}
 
         {isSynced ? null : <Text>Dados desincronizados</Text>}
@@ -413,6 +418,7 @@ export default Posts
 
 const styles = StyleSheet.create({
   map: {
+    flex: 1,
     width: '100%',
     height: '100%',
   },
