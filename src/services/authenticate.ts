@@ -37,7 +37,7 @@ export const doLogin = async (
 
 export const doLogout = async () => {
   try {
-    await post('management/logout/')
+    await post('operation/logout/')
   } catch (error) {
     console.error(error)
     throw error
@@ -51,7 +51,7 @@ export const doLogout = async () => {
 export const doRecoveryPasswordEmail = async (
   email: string,
 ): Promise<IRecoveryPassword> => {
-  const result = await post(`management/password_reset/`, {
+  const result = await post(`operation/password_reset/`, {
     body: {
       email,
     },
@@ -63,7 +63,7 @@ export const doResetConfirmPassword = async (
   token: string,
   newPassword: string,
 ): Promise<IRecoveryPassword> => {
-  const result = await post(`management/password_reset/confirm/`, {
+  const result = await post(`operation/password_reset/confirm/`, {
     body: {
       token,
       password: newPassword,
@@ -78,7 +78,7 @@ export const updatePassword = async (
   confirmPassword: string,
   userId: string,
 ) => {
-  const result = await put(`management/change_password/${userId}/`, {
+  const result = await put(`operation/change_password/${userId}/`, {
     body: {
       old_password: oldPassword,
       password,

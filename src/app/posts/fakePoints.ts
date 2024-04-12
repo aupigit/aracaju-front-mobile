@@ -76,8 +76,8 @@ export const fakePoints = [
     imagem: 'URL da imagem 4',
   },
   {
-    latitude: -26.3292564,
-    longitude: -48.8111455,
+    latitude: -26.10938743,
+    longitude: -48.8914489,
     tipo: 'Tipo 5',
     status: 'Status 5',
     cliente: 'Cliente 5',

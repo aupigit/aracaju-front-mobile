@@ -19,6 +19,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { doApplication } from '@/services/applications'
+import { useUser } from '@/contexts/UserContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -56,6 +57,7 @@ const ApplicationApplicateModal = ({
   setSelectedPoint,
   userLocation,
 }: ApplicationApplicateModalProps) => {
+  const { user } = useUser()
   const [base64ImageValue, setBase64ImageValue] = useState('')
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
@@ -70,6 +72,8 @@ const ApplicationApplicateModal = ({
   } = useForm({
     // resolver: zodResolver(applicationSchema),
   })
+  
+  console.log('Usuáriooooooo', user)
 
   const handleImagePick = async (title) => {
     try {
