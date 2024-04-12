@@ -38,8 +38,7 @@ import { difFakePoint, fakePoints } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { findManyPointsReferences } from '@/services/points'
-import { IPoint } from '@/interfaces/IPoint'
-import { Tooltip } from 'react-native-paper'
+import { useQuery } from 'react-query'
 
 const Posts = () => {
   const [isSynced, setIsSynced] = useState(true)
@@ -53,22 +52,13 @@ const Posts = () => {
   const [modalApplicate, setModalApplicate] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
-  const [tooltipVisible, setTooltipVisible] = useState(false)
 
-  const [points, setPoints] = useState<IPoint[]>([])
-
-  useEffect(() => {
-    const fetchPoints = async () => {
-      try {
-        const pointsData = await findManyPointsReferences()
-        setPoints(pointsData)
-      } catch (error) {
-        console.error('Error fetching events:', error)
-      }
-    }
-    fetchPoints()
-  }, [location])
-  console.log(points)
+  const { data: pointsData, isLoading: pointsLoading } = useQuery(
+    ['application/pointreference'],
+    async () => {
+      return await findManyPointsReferences().then((response) => response)
+    },
+  )
 
   const insets = useSafeAreaInsets()
 
@@ -209,7 +199,7 @@ const Posts = () => {
 
   useEffect(() => {
     if (location) {
-      for (const point of fakePoints) {
+      for (const point of pointsData) {
         if (calculateDistance(location.coords, point) <= 15) {
           setShowButton(true)
           return
@@ -217,7 +207,7 @@ const Posts = () => {
       }
       setShowButton(false)
     }
-  }, [location, fakePoints])
+  }, [location, pointsData])
 
   if (!location) {
     return
@@ -236,11 +226,6 @@ const Posts = () => {
   const handleMarkerPress = (point) => {
     setSelectedPoint(point)
     setModalInfoPoints(false)
-    setTooltipVisible(true)
-  }
-
-  const handleCloseTooltip = () => {
-    setTooltipVisible(false)
   }
 
   const handleDifferntMarkerPress = (point) => {
@@ -286,7 +271,7 @@ const Posts = () => {
               coordinates={routes.map((loc) => loc.coords)}
             />
 
-            {points
+            {pointsData
               .filter((point) => isPointInRegion(point, region))
               .map((point, index) => {
                 const conflictIndex = conflictPoints.findIndex(
