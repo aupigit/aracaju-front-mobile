@@ -7,6 +7,7 @@ interface ApplicationPointUsageModalProps {
   setModalVisible: (modalVisible: boolean) => void
   selectedPoint: IPoint
   setModalApplicate: (modalApplicate: boolean) => void
+  setSelectedPoint: (point: number | null) => void
 }
 
 const ApplicationPointUsageModal = ({
@@ -14,6 +15,7 @@ const ApplicationPointUsageModal = ({
   setModalVisible,
   selectedPoint,
   setModalApplicate,
+  setSelectedPoint,
 }: ApplicationPointUsageModalProps) => {
   return (
     <Modal
@@ -32,6 +34,7 @@ const ApplicationPointUsageModal = ({
             <Pressable
               onPress={() => {
                 setModalVisible(!modalVisible)
+                setSelectedPoint(null)
               }}
             >
               <Text>Fechar</Text>

@@ -6,12 +6,14 @@ interface ApplicationPointsInformationModalProps {
   modalInfoPoints: boolean
   setModalInfoPoints: (modalInfoPoints: boolean) => void
   selectedPoint: IPoint
+  setSelectedPoint: (point: number | null) => void
 }
 
 const ApplicationPointsInformationModal = ({
   modalInfoPoints,
   setModalInfoPoints,
   selectedPoint,
+  setSelectedPoint,
 }: ApplicationPointsInformationModalProps) => {
   return (
     <Modal
@@ -30,6 +32,7 @@ const ApplicationPointsInformationModal = ({
             <Pressable
               onPress={() => {
                 setModalInfoPoints(!modalInfoPoints)
+                setSelectedPoint(null)
               }}
             >
               <Text>Fechar</Text>
