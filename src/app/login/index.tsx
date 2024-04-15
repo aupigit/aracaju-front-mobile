@@ -52,6 +52,8 @@ const Login = () => {
     resolver: zodResolver(authSchema),
   })
 
+  const { loginUser } = useUser()
+
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
@@ -70,6 +72,8 @@ const Login = () => {
           setVisibleOK(!visibleOK)
           router.replace('/posts')
         }, 1000)
+
+        loginUser(response.user)
       } else {
         setVisibleERROR(!visibleERROR)
 

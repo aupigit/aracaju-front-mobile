@@ -2,14 +2,24 @@ import { View, Text, Image, Pressable, Linking, Button } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { router } from 'expo-router'
 import * as SQLite from 'expo-sqlite'
+import { useUser } from '@/contexts/UserContext'
 
 const Home = () => {
   const [count, setCounter] = useState(0)
+  const { user, isAuthenticated, logoutUser } = useUser()
   // const [data, setData] = useState([])
 
   const handleCounter = () => {
     setCounter(count + 1)
-    router.replace('login')
+    if (isAuthenticated) {
+      router.replace('posts')
+    } else {
+      router.replace('login')
+    }
+  }
+
+  const handleLogout = () => {
+    logoutUser()
   }
 
   const db = SQLite.openDatabase('db.name')
@@ -86,6 +96,14 @@ const Home = () => {
           title="CLIQUE AQUI"
           onPress={handleCounter}
         ></Button>
+        {isAuthenticated && (
+          <Button
+            color={'#5178be'}
+            title="LOGOUT"
+            onPress={handleLogout}
+          ></Button>
+        )}
+
         {/* <Button
           color={'#5178be'}
           title="RETORNE AQUI"

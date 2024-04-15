@@ -35,7 +35,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
       const userId = await AsyncStorage.getItem('userId')
       console.log(token)
       console.log(userId)
-      if (token) {
+      if (token && userId) {
         const response = await findUserById(userId, token)
         console.log(response)
         return response

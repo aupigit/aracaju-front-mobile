@@ -273,53 +273,54 @@ const Posts = () => {
               coordinates={routes.map((loc) => loc.coords)}
             />
 
-            {pointsData
-              .filter((point) => isPointInRegion(point, region))
-              .map((point, index) => {
-                const conflictIndex = conflictPoints.findIndex(
-                  (conflictPoint) =>
-                    conflictPoint.latitude === point.latitude &&
-                    conflictPoint.longitude === point.longitude,
-                )
+            {pointsData &&
+              pointsData
+                .filter((point) => isPointInRegion(point, region))
+                .map((point, index) => {
+                  const conflictIndex = conflictPoints.findIndex(
+                    (conflictPoint) =>
+                      conflictPoint.latitude === point.latitude &&
+                      conflictPoint.longitude === point.longitude,
+                  )
 
-                let pinColor = 'red'
-                let strokeColor = 'red'
-                let fillColor = 'rgba(255,0,0,0.1)'
+                  let pinColor = 'red'
+                  let strokeColor = 'red'
+                  let fillColor = 'rgba(255,0,0,0.1)'
 
-                if (conflictIndex === 0) {
-                  pinColor = 'yellow'
-                  strokeColor = 'yellow'
-                  fillColor = 'rgba(255,255,0,0.1)'
-                } else if (conflictIndex === 1) {
-                  pinColor = 'purple'
-                  strokeColor = 'purple'
-                  fillColor = 'rgba(128,0,128,0.1)'
-                }
+                  if (conflictIndex === 0) {
+                    pinColor = 'yellow'
+                    strokeColor = 'yellow'
+                    fillColor = 'rgba(255,255,0,0.1)'
+                  } else if (conflictIndex === 1) {
+                    pinColor = 'purple'
+                    strokeColor = 'purple'
+                    fillColor = 'rgba(128,0,128,0.1)'
+                  }
 
-                return (
-                  <React.Fragment key={index}>
-                    <Marker
-                      title={`${point.name} || ${point.volumebti}`}
-                      coordinate={{
-                        latitude: point.latitude,
-                        longitude: point.longitude,
-                      }}
-                      pinColor={pinColor}
-                      onPress={() => handleMarkerPress(point)}
-                    />
+                  return (
+                    <React.Fragment key={index}>
+                      <Marker
+                        title={`${point.name} || ${point.volumebti}`}
+                        coordinate={{
+                          latitude: point.latitude,
+                          longitude: point.longitude,
+                        }}
+                        pinColor={pinColor}
+                        onPress={() => handleMarkerPress(point)}
+                      />
 
-                    <Circle
-                      center={{
-                        latitude: point.latitude,
-                        longitude: point.longitude,
-                      }}
-                      radius={15}
-                      strokeColor={strokeColor}
-                      fillColor={fillColor}
-                    />
-                  </React.Fragment>
-                )
-              })}
+                      <Circle
+                        center={{
+                          latitude: point.latitude,
+                          longitude: point.longitude,
+                        }}
+                        radius={15}
+                        strokeColor={strokeColor}
+                        fillColor={fillColor}
+                      />
+                    </React.Fragment>
+                  )
+                })}
             <Marker
               coordinate={{
                 latitude: difFakePoint.latitude,
