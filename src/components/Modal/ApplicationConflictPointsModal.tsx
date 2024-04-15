@@ -32,7 +32,7 @@ const ApplicationConflictPointsModal = ({
       <View className="flex-1 items-center justify-center bg-black/20 p-5">
         <View className="w-full bg-white p-5">
           <View className="w-full flex-row items-center justify-between">
-            <Text className="text-lg font-bold">Ponto</Text>
+            <Text className="text-lg font-bold">Selecione um ponto</Text>
 
             <Pressable
               onPress={() => {
@@ -52,7 +52,9 @@ const ApplicationConflictPointsModal = ({
                 setModalVisible(!modalVisible)
               }}
             >
-              <Text>Ponto {getConflictPointColor(index)}</Text>
+              <Text className="text-lg font-semibold">
+                Ponto {getConflictPointColor(index)}
+              </Text>
             </Pressable>
           ))}
         </View>
