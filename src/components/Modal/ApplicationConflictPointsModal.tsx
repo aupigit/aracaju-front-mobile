@@ -1,6 +1,7 @@
 import { View, Text, Modal, Pressable } from 'react-native'
 import React from 'react'
 import getConflictPointColor from '@/utils/getConflictPointColor'
+import { Divider } from 'react-native-paper'
 
 interface ApplicationConflictPointsModalProps {
   modalConflict: boolean
@@ -31,7 +32,7 @@ const ApplicationConflictPointsModal = ({
       <View className="flex-1 items-center justify-center bg-black/20 p-5">
         <View className="w-full bg-white p-5">
           <View className="w-full flex-row items-center justify-between">
-            <Text>Selecione um ponto</Text>
+            <Text className="text-lg font-bold">Ponto</Text>
 
             <Pressable
               onPress={() => {
@@ -42,7 +43,7 @@ const ApplicationConflictPointsModal = ({
               <Text>Fechar</Text>
             </Pressable>
           </View>
-
+          <Divider className="my-3" />
           {conflictPoints.map((point, index) => (
             <Pressable
               key={index}

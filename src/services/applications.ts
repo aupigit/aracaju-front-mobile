@@ -12,17 +12,18 @@ export const doApplication = async (
   plate: boolean,
   observation: string,
   image: string,
+  pointreference: number,
 ) => {
   const body = {
     marker: {
       type: 'Point',
-      coordinates, // COORDENADAS DO USUÁRIO
+      coordinates,
     },
-    from_txt: 'string',
     latitude,
     longitude,
     altitude,
     acuracia,
+    from_txt: `${longitude},${latitude},${0} `,
     volumebti,
     container,
     card,
@@ -30,9 +31,9 @@ export const doApplication = async (
     observation,
     status: 'Em dia',
     image,
-    pointreference: 0,
-    device: 0,
-    applicator: 0,
+    pointreference,
+    device: 1,
+    applicator: 1,
   }
 
   try {

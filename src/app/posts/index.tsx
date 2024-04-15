@@ -35,7 +35,7 @@ import ApplicationPointsInformationModal from '@/components/Modal/ApplicationPoi
 import ApplicationConflictPointsModal from '@/components/Modal/ApplicationConflictPointsModal'
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
-import { difFakePoint, fakePoints } from './fakePoints'
+import { difFakePoint } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { findManyPointsReferences } from '@/services/points'
@@ -345,7 +345,7 @@ const Posts = () => {
               loadingBackgroundColor={'#fff'}
               toolbarEnabled={false}
               mapPadding={{ top: 10, right: 20, bottom: 60, left: 20 }}
-              mapType="satellite"
+              mapType="hybrid"
             >
               <Polyline
                 strokeColor="#0000ff"
@@ -466,7 +466,7 @@ const Posts = () => {
               className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
               onPress={() => {
                 // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                const conflictPoints = getConflictPoints(location, fakePoints)
+                const conflictPoints = getConflictPoints(location, pointsData)
                 if (conflictPoints.length >= 2) {
                   setConflictPoints(conflictPoints)
                   setModalConflict(true)
