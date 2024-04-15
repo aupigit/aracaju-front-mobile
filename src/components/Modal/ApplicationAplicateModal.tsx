@@ -72,7 +72,7 @@ const ApplicationApplicateModal = ({
   } = useForm({
     // resolver: zodResolver(applicationSchema),
   })
-  
+
   console.log('Usuáriooooooo', user)
 
   const handleImagePick = async (title) => {
