@@ -39,6 +39,7 @@ import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateMod
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { findManyPointsReferences } from '@/services/points'
 import { useQuery } from 'react-query'
+import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
 
 const Posts = () => {
   const [isSynced, setIsSynced] = useState(true)
@@ -50,6 +51,7 @@ const Posts = () => {
   const [modalConflict, setModalConflict] = useState(false)
   const [modalInfoPoints, setModalInfoPoints] = useState(false)
   const [modalApplicate, setModalApplicate] = useState(false)
+  const [modalAdultCollection, setModalAdultCollection] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
 
@@ -274,7 +276,7 @@ const Posts = () => {
             />
 
             {pointsData
-              .filter((point) => isPointInRegion(point, region))
+              ?.filter((point) => isPointInRegion(point, region))
               .map((point, index) => {
                 const conflictIndex = conflictPoints.findIndex(
                   (conflictPoint) =>
@@ -371,8 +373,26 @@ const Posts = () => {
           setSelectedPoint={setSelectedPoint}
           userLocation={userLocation}
         />
+        <AdultCollectionModal
+          modalVisible={modalAdultCollection}
+          setModalVisible={setModalAdultCollection}
+          selectedPoint={selectedPoint}
+          setSelectedPoint={setSelectedPoint}
+          userLocation={userLocation}
+        />
       </View>
+
       <View className="absolute bottom-0 left-0 items-center justify-center">
+        <Pressable
+          className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+          onPress={() => {
+            setModalAdultCollection(true)
+          }}
+        >
+          <Text className="text-center text-lg font-bold text-white">
+            REALIZAR COLETA ADULTO
+          </Text>
+        </Pressable>
         {showButton && (
           <Pressable
             className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
