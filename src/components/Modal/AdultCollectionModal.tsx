@@ -100,6 +100,7 @@ const AdultCollectionModal = ({
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
+          reset()
           setModalVisible(!modalVisible)
         }}
       >
