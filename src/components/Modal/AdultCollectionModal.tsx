@@ -187,7 +187,7 @@ const AdultCollectionModal = ({
                   <Text>Fechar</Text>
                 </Pressable>
               </View>
-              <Divider className="mb-5 mt-2" />
+              <Divider className="my-3" />
               <View>
                 <Text className="text-md mb-2 font-bold ">Vento:</Text>
                 <Controller

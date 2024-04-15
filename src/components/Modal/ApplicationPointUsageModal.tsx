@@ -1,6 +1,7 @@
 import { View, Text, Modal, Pressable, Button } from 'react-native'
 import React from 'react'
 import { IPoint } from '@/interfaces/IPoint'
+import { Divider } from 'react-native-paper'
 
 interface ApplicationPointUsageModalProps {
   modalVisible: boolean
@@ -40,35 +41,41 @@ const ApplicationPointUsageModal = ({
               <Text>Fechar</Text>
             </Pressable>
           </View>
-
+          <Divider className="my-3" />
           {selectedPoint && (
-            <View>
-              <Text>{selectedPoint.tipo}</Text>
-              <Text>{selectedPoint.status}</Text>
-              <Text>{selectedPoint.cliente}</Text>
-              <Text>{selectedPoint.cidade}</Text>
-              <Text>{selectedPoint.subRegiao}</Text>
-              <Text>{selectedPoint.dispositivo}</Text>
-              <Text>{selectedPoint.utilizador}</Text>
-              <Text>{selectedPoint.latitude}</Text>
-              <Text>{selectedPoint.longitude}</Text>
-              <Text>{selectedPoint.altitude}</Text>
-              <Text>{selectedPoint.acuracia}</Text>
-              <Text>{selectedPoint.dataCriacao?.toString()}</Text>
-              <Text>{selectedPoint.dataTransmissao?.toString()}</Text>
-              <Text>{selectedPoint.dataModificacao?.toString()}</Text>
-              <Text>{selectedPoint.observacao}</Text>
-              <Text>{selectedPoint.distancia}</Text>
-              <Text>{selectedPoint.imagem}</Text>
+            <View className="gap-4">
+              <Text className="text-lg font-semibold">
+                Nome: {selectedPoint?.name}
+              </Text>
+              <View className="flex-row">
+                <Text className="text-lg font-semibold">
+                  Lat: {selectedPoint?.latitude}
+                  {'  '}
+                </Text>
+
+                <Text className="text-lg font-semibold">
+                  Long: {selectedPoint?.longitude}
+                </Text>
+              </View>
+
+              <Text className="text-lg font-semibold">
+                Altitude: {selectedPoint?.altitude}
+              </Text>
+
+              <Text className="text-lg font-semibold">
+                Acuracia: {selectedPoint?.accuracy}
+              </Text>
             </View>
           )}
-          <Button
+          <Pressable
+            className="mt-4 items-center justify-center rounded-md bg-purple-500 p-3"
             onPress={() => {
               setModalVisible(!modalVisible)
               setModalApplicate(true)
             }}
-            title="APLICAR"
-          ></Button>
+          >
+            <Text className="text-lg font-bold text-white">APLICAR</Text>
+          </Pressable>
         </View>
       </View>
     </Modal>
