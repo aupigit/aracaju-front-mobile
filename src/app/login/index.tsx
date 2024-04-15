@@ -150,7 +150,7 @@ const Login = () => {
           },
         }}
       >
-        <Text className="text-[#00ff00]">Usuário logado com sucesso.</Text>
+        <Text className="text-lime-500">Usuário logado com sucesso.</Text>
       </Snackbar>
       <Snackbar
         visible={visibleERROR}
@@ -163,7 +163,7 @@ const Login = () => {
           },
         }}
       >
-        <Text className="text-[#ff0000]">
+        <Text className="text-red-500">
           Login falhou. Verifique suas credenciais
         </Text>
       </Snackbar>

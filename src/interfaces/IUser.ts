@@ -1,5 +1,6 @@
-export interface IUser {
-  id: string
+import { IBase } from './IBase'
+
+export interface IUser extends IBase {
   email: string
   name?: string
   last_name?: string

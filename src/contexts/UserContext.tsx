@@ -29,13 +29,15 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
   const isAuthenticated = !!user
 
   const { data: userData } = useQuery<IUser | null>(
-    'management/user',
+    'operation/user',
     async () => {
       const token = await AsyncStorage.getItem('token')
       const userId = await AsyncStorage.getItem('userId')
-
+      console.log(token)
+      console.log(userId)
       if (token) {
         const response = await findUserById(userId, token)
+        console.log(response)
         return response
       } else {
         router.replace('/login')
@@ -46,6 +48,8 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
       initialData: null,
     },
   )
+
+  console.log(userData)
 
   useEffect(() => {
     setUser(userData)
