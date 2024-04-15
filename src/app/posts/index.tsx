@@ -43,6 +43,7 @@ import { useQuery } from 'react-query'
 import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
 import { Feather } from '@expo/vector-icons'
 import { Divider } from 'react-native-paper'
+import { findOneConfigApp } from '@/services/configApp'
 
 const Posts = () => {
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
@@ -72,6 +73,17 @@ const Posts = () => {
       return await findManyPointsReferences().then((response) => response)
     },
   )
+
+  const { data: radiusProximityConfigAppData, isLoading: configAppLoading } =
+    useQuery(['operation/config_apps/raio_do_ponto'], async () => {
+      return await findOneConfigApp('raio_do_ponto').then(
+        (response) => response,
+      )
+    })
+
+  const radiusProximity =
+    radiusProximityConfigAppData &&
+    Number(radiusProximityConfigAppData[0]?.data_config)
 
   const insets = useSafeAreaInsets()
 
@@ -213,7 +225,7 @@ const Posts = () => {
   useEffect(() => {
     if (location) {
       for (const point of pointsData) {
-        if (calculateDistance(location.coords, point) <= 15) {
+        if (calculateDistance(location.coords, point) <= radiusProximity) {
           setShowButton(true)
           return
         }
@@ -381,7 +393,7 @@ const Posts = () => {
                           latitude: point.latitude,
                           longitude: point.longitude,
                         }}
-                        radius={15}
+                        radius={Number(radiusProximity)}
                         strokeColor={strokeColor}
                         fillColor={fillColor}
                       />
@@ -401,7 +413,7 @@ const Posts = () => {
                   latitude: difFakePoint.latitude,
                   longitude: difFakePoint.longitude,
                 }}
-                radius={15}
+                radius={radiusProximity}
                 strokeColor="green"
                 fillColor="rgba(0,255,0,0.1)"
               />

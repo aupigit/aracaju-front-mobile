@@ -117,7 +117,7 @@ export interface IPoint extends IBase {
   applications: string[]
   name: string
   marker: Marker
-
+  altitude: number
   from_txt: string
   latitude: number
   longitude: number

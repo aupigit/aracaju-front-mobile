@@ -20,6 +20,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { doApplication } from '@/services/applications'
 import { useUser } from '@/contexts/UserContext'
+import { useQuery } from 'react-query'
+import { findOneConfigApp } from '@/services/configApp'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -64,6 +66,18 @@ const ApplicationApplicateModal = ({
   const [placaChecked, setPlacaChecked] = useState(false)
   const [images, setImages] = useState<IImagesProps[]>([])
 
+  const {
+    data: collectsVolumeBtiConfigAppData,
+    isLoading: collectsClimateLoading,
+  } = useQuery(['operation/config_apps/volume_bti'], async () => {
+    return await findOneConfigApp('volume_bti').then((response) => response)
+  })
+
+  const volumeBtiOptions =
+    (collectsVolumeBtiConfigAppData &&
+      collectsVolumeBtiConfigAppData[0].data_config?.split(';')) ??
+    []
+  console.log(volumeBtiOptions)
   const {
     control,
     handleSubmit,
@@ -124,7 +138,7 @@ const ApplicationApplicateModal = ({
         selectedPoint.latitude,
         selectedPoint.longitude,
         selectedPoint.altitude,
-        selectedPoint.acuracia,
+        selectedPoint.accuracy,
         data.volumebti,
         recipienteChecked,
         fichaChecked,
@@ -243,12 +257,10 @@ const ApplicationApplicateModal = ({
                       onChange(value)
                     }}
                     value={value}
-                    items={[
-                      { label: '10', value: 10 },
-                      { label: '50', value: 50 },
-                      { label: '100', value: 100 },
-                      { label: '200', value: 200 },
-                    ]}
+                    items={volumeBtiOptions?.map((option) => ({
+                      label: option,
+                      value: option.toLowerCase().replace(' ', '-'),
+                    }))}
                   />
                 </View>
               )}

@@ -14,6 +14,8 @@ import { Controller, useForm } from 'react-hook-form'
 import { doAdultCollection } from '@/services/doAdultCollection'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery } from 'react-query'
+import { findOneConfigApp } from '@/services/configApp'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -43,6 +45,27 @@ const AdultCollectionModal = ({
   const [visibleERROR, setVisibleERROR] = useState(false)
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
+  const { data: collectsWindConfigAppData, isLoading: collectsWindLoading } =
+    useQuery(['operation/config_apps/coleta_vento'], async () => {
+      return await findOneConfigApp('coleta_vento').then((response) => response)
+    })
+
+  const {
+    data: collectsClimateConfigAppData,
+    isLoading: collectsClimateLoading,
+  } = useQuery(['operation/config_apps/coleta_clima'], async () => {
+    return await findOneConfigApp('coleta_clima').then((response) => response)
+  })
+
+  const windOptions =
+    (collectsWindConfigAppData &&
+      collectsWindConfigAppData[0].data_config?.split(';')) ??
+    []
+
+  const climateOptions =
+    (collectsClimateConfigAppData &&
+      collectsClimateConfigAppData[0].data_config?.split(';')) ??
+    []
 
   const {
     control,
@@ -178,12 +201,10 @@ const AdultCollectionModal = ({
                           onChange(value)
                         }}
                         value={value}
-                        items={[
-                          { label: 'Item 1', value: 'item-1' },
-                          { label: 'Item 2', value: 'item-2' },
-                          { label: 'Item 3', value: 'item-3' },
-                          { label: 'Item 4', value: 'item-4' },
-                        ]}
+                        items={windOptions?.map((option) => ({
+                          label: option,
+                          value: option.toLowerCase().replace(' ', '-'),
+                        }))}
                       />
                     </View>
                   )}
@@ -208,12 +229,10 @@ const AdultCollectionModal = ({
                           onChange(value)
                         }}
                         value={value}
-                        items={[
-                          { label: 'Item 1', value: 'item-1' },
-                          { label: 'Item 2', value: 'item-2' },
-                          { label: 'Item 3', value: 'item-3' },
-                          { label: 'Item 4', value: 'item-4' },
-                        ]}
+                        items={climateOptions?.map((option) => ({
+                          label: option,
+                          value: option.toLowerCase().replace(' ', '-'),
+                        }))}
                       />
                     </View>
                   )}
