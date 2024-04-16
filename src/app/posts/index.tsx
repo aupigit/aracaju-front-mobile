@@ -43,6 +43,8 @@ import { useQuery } from 'react-query'
 import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
 import { Feather } from '@expo/vector-icons'
 import { Divider } from 'react-native-paper'
+import { findManyPointsReferencesOffline } from '@/services/offlineServices/points'
+import ApplicationEditPointModal from '@/components/Modal/ApplicationEditPointModal'
 
 const Posts = () => {
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
@@ -65,11 +67,30 @@ const Posts = () => {
   const [modalAdultCollection, setModalAdultCollection] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
+  const [isOnline, setIsOnline] = useState(false)
+  const [modalEditPoint, setModalEditPoint] = useState(false)
+  console.log(modalEditPoint)
+  useEffect(() => {
+    const checkConnectivity = async () => {
+      const netInfo = await NetInfo.fetch()
+      setIsOnline(netInfo.isConnected && netInfo.isInternetReachable)
+    }
+
+    checkConnectivity()
+  }, [])
+
+  console.log(isOnline)
 
   const { data: pointsData, isLoading: pointsLoading } = useQuery(
     ['application/pointreference'],
     async () => {
+      // if (isOnline) {
       return await findManyPointsReferences().then((response) => response)
+      // } else {
+      //   return await findManyPointsReferencesOffline().then(
+      //     (response) => response,
+      //   )
+      // }
     },
   )
 
@@ -212,10 +233,12 @@ const Posts = () => {
 
   useEffect(() => {
     if (location) {
-      for (const point of pointsData) {
-        if (calculateDistance(location.coords, point) <= 15) {
-          setShowButton(true)
-          return
+      if (pointsData) {
+        for (const point of pointsData) {
+          if (calculateDistance(location.coords, point) <= 15) {
+            setShowButton(true)
+            return
+          }
         }
       }
       setShowButton(false)
@@ -283,6 +306,14 @@ const Posts = () => {
     </View>
   )
 
+  if (pointsLoading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Carregando...</Text>
+      </View>
+    )
+  }
+
   return (
     <DrawerLayoutAndroid
       ref={drawerRef}
@@ -333,7 +364,7 @@ const Posts = () => {
               loadingBackgroundColor={'#fff'}
               toolbarEnabled={false}
               mapPadding={{ top: 10, right: 20, bottom: 60, left: 20 }}
-              mapType="satellite"
+              mapType="hybrid"
             >
               <Polyline
                 strokeColor="#0000ff"
@@ -446,27 +477,55 @@ const Posts = () => {
             setSelectedPoint={setSelectedPoint}
             userLocation={userLocation}
           />
+
+          <ApplicationEditPointModal
+            modalVisible={modalEditPoint}
+            setModalVisible={setModalEditPoint}
+            selectedPoint={selectedPoint}
+            setSelectedPoint={setSelectedPoint}
+            userLocation={userLocation}
+          />
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
           {showButton && (
-            <Pressable
-              className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
-              onPress={() => {
-                // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                const conflictPoints = getConflictPoints(location, fakePoints)
-                if (conflictPoints.length >= 2) {
-                  setConflictPoints(conflictPoints)
-                  setModalConflict(true)
-                } else {
-                  setModalApplicate(true)
-                }
-              }}
-            >
-              <Text className="text-center text-lg font-bold text-white">
-                APLICAÇÃO
-              </Text>
-            </Pressable>
+            <React.Fragment>
+              <Pressable
+                className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+                onPress={() => {
+                  // Verifique se há conflito (usuário dentro do raio de dois pontos)
+                  const conflictPoints = getConflictPoints(location, fakePoints)
+                  if (conflictPoints.length >= 2) {
+                    setConflictPoints(conflictPoints)
+                    setModalConflict(true)
+                  } else {
+                    setModalApplicate(true)
+                  }
+                }}
+              >
+                <Text className="text-center text-lg font-bold text-white">
+                  APLICAÇÃO
+                </Text>
+              </Pressable>
+
+              <Pressable
+                className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+                onPress={() => {
+                  // Verifique se há conflito (usuário dentro do raio de dois pontos)
+                  const conflictPoints = getConflictPoints(location, fakePoints)
+                  if (conflictPoints.length >= 2) {
+                    setConflictPoints(conflictPoints)
+                    setModalConflict(true)
+                  } else {
+                    setModalEditPoint(true)
+                  }
+                }}
+              >
+                <Text className="text-center text-lg font-bold text-white">
+                  EDITAR PONTO
+                </Text>
+              </Pressable>
+            </React.Fragment>
           )}
 
           {isSynced ? null : <Text>Dados desincronizados</Text>}
