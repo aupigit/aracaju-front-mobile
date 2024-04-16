@@ -1,8 +1,8 @@
 import { View, Text, Image, Pressable, Linking, Button } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { router } from 'expo-router'
-import * as SQLite from 'expo-sqlite'
 import { useUser } from '@/contexts/UserContext'
+import { offlineDatabase } from './offlineDatabase'
 
 const Home = () => {
   const [count, setCounter] = useState(0)
@@ -22,23 +22,8 @@ const Home = () => {
     logoutUser()
   }
 
-  const db = SQLite.openDatabase('db.name')
   useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS MyModel (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT,
-      description TEXT
-    );`,
-        [],
-        () => console.log('Table created successfully'),
-        (_, error) => {
-          console.log('Error creating table: ', error)
-          return true
-        },
-      )
-    })
+    offlineDatabase()
   })
 
   // const handleClick = () => {

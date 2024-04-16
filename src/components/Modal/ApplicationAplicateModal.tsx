@@ -20,6 +20,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { doApplication } from '@/services/applications'
 import { useUser } from '@/contexts/UserContext'
+import { doApplicationOffline } from '@/services/offlineServices/application'
+import NetInfo from '@react-native-community/netinfo'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -73,7 +75,7 @@ const ApplicationApplicateModal = ({
     // resolver: zodResolver(applicationSchema),
   })
 
-  console.log('Usuáriooooooo', user)
+  // console.log('Usuáriooooooo', user)
 
   const handleImagePick = async (title) => {
     try {
@@ -119,20 +121,39 @@ const ApplicationApplicateModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await doApplication(
-        userLocation,
-        selectedPoint.latitude,
-        selectedPoint.longitude,
-        selectedPoint.altitude,
-        selectedPoint.acuracia,
-        data.volumebti,
-        recipienteChecked,
-        fichaChecked,
-        placaChecked,
-        data.observation,
-        data.image,
-      )
-      console.log(response)
+      const netInfo = await NetInfo.fetch()
+
+      if (netInfo.isConnected && netInfo.isInternetReachable) {
+        const response = await doApplication(
+          userLocation,
+          selectedPoint.latitude,
+          selectedPoint.longitude,
+          selectedPoint.altitude,
+          selectedPoint.acuracia,
+          data.volumebti,
+          recipienteChecked,
+          fichaChecked,
+          placaChecked,
+          data.observation,
+          data.image,
+        )
+        console.log(response)
+      } else {
+        const offlineResponse = await doApplicationOffline(
+          userLocation,
+          selectedPoint.latitude,
+          selectedPoint.longitude,
+          selectedPoint.altitude,
+          selectedPoint.acuracia,
+          data.volumebti,
+          recipienteChecked,
+          fichaChecked,
+          placaChecked,
+          data.observation,
+          data.image,
+        )
+        console.log(offlineResponse)
+      }
     } catch (error) {
       console.error(error)
       throw error

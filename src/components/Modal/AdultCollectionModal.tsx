@@ -14,6 +14,8 @@ import { Controller, useForm } from 'react-hook-form'
 import { doAdultCollection } from '@/services/doAdultCollection'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import NetInfo from '@react-native-community/netinfo'
+import { doAdultCollectionOffline } from '@/services/offlineServices/doAdultCollection'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -52,7 +54,7 @@ const AdultCollectionModal = ({
   } = useForm({
     resolver: zodResolver(adultCollectionSchema),
   })
-  console.log(errors)
+  // console.log(errors)
 
   const showSnackbar = (type: 'success' | 'error') => {
     if (type === 'success') {
@@ -72,21 +74,41 @@ const AdultCollectionModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await doAdultCollection(
-        userLocation,
-        userLocation[0],
-        userLocation[1],
-        0,
-        5,
-        data.wind,
-        data.climate,
-        data.temperature,
-        data.humidity,
-        data.insects_number,
-        data.observation,
-      )
-      console.log(response)
-      showSnackbar('success')
+      const netInfo = await NetInfo.fetch()
+
+      if (netInfo.isConnected && netInfo.isInternetReachable) {
+        const response = await doAdultCollection(
+          userLocation,
+          userLocation[0],
+          userLocation[1],
+          0,
+          5,
+          data.wind,
+          data.climate,
+          data.temperature,
+          data.humidity,
+          data.insects_number,
+          data.observation,
+        )
+        console.log(response)
+        showSnackbar('success')
+      } else {
+        const offlineResponse = await doAdultCollectionOffline(
+          userLocation,
+          userLocation[0],
+          userLocation[1],
+          0,
+          5,
+          data.wind,
+          data.climate,
+          data.temperature,
+          data.humidity,
+          data.insects_number,
+          data.observation,
+        )
+        console.log(offlineResponse)
+        showSnackbar('success')
+      }
     } catch (error) {
       console.error(error)
       showSnackbar('error')

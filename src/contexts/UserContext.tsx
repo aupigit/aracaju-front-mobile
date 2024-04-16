@@ -10,6 +10,8 @@ import {
 } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useQuery } from 'react-query'
+import NetInfo from '@react-native-community/netinfo'
+import { findUserByIdOffline } from '@/services/offlineServices/user'
 
 interface UserContextProps {
   children: ReactNode
@@ -33,12 +35,17 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
     async () => {
       const token = await AsyncStorage.getItem('token')
       const userId = await AsyncStorage.getItem('userId')
-      console.log(token)
-      console.log(userId)
+
       if (token && userId) {
-        const response = await findUserById(userId, token)
-        console.log(response)
-        return response
+        const netInfo = await NetInfo.fetch()
+
+        if (netInfo.isConnected && netInfo.isInternetReachable) {
+          const response = await findUserById(userId, token)
+          return response
+        } else {
+          const offlineResponse = await findUserByIdOffline(userId)
+          return offlineResponse
+        }
       } else {
         router.replace('/login')
         return null
