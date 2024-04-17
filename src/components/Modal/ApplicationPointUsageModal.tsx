@@ -43,32 +43,40 @@ const ApplicationPointUsageModal = ({
 
           {selectedPoint && (
             <View>
-              <Text>{selectedPoint.tipo}</Text>
-              <Text>{selectedPoint.status}</Text>
-              <Text>{selectedPoint.cliente}</Text>
-              <Text>{selectedPoint.cidade}</Text>
-              <Text>{selectedPoint.subRegiao}</Text>
-              <Text>{selectedPoint.dispositivo}</Text>
-              <Text>{selectedPoint.utilizador}</Text>
               <Text>{selectedPoint.latitude}</Text>
               <Text>{selectedPoint.longitude}</Text>
-              <Text>{selectedPoint.altitude}</Text>
-              <Text>{selectedPoint.acuracia}</Text>
-              <Text>{selectedPoint.dataCriacao?.toString()}</Text>
-              <Text>{selectedPoint.dataTransmissao?.toString()}</Text>
-              <Text>{selectedPoint.dataModificacao?.toString()}</Text>
-              <Text>{selectedPoint.observacao}</Text>
-              <Text>{selectedPoint.distancia}</Text>
-              <Text>{selectedPoint.imagem}</Text>
+              <Text>{selectedPoint.accuracy}</Text>
+              <Text>{selectedPoint.created_at?.toString()}</Text>
+              <Text>{selectedPoint.created_ondevice_at?.toString()}</Text>
+              <Text>{selectedPoint.updated_at?.toString()}</Text>
+              <Text>{selectedPoint.observation}</Text>
+              <Text>{selectedPoint.distance}</Text>
             </View>
           )}
-          <Button
+
+          <Pressable
+            className="mt-2 h-auto w-auto rounded-sm bg-blue-500 p-2"
             onPress={() => {
               setModalVisible(!modalVisible)
               setModalApplicate(true)
             }}
-            title="APLICAR"
-          ></Button>
+          >
+            <Text className="w-auto text-center text-lg font-bold text-white">
+              APLICAR
+            </Text>
+          </Pressable>
+
+          <Pressable className="mt-2 h-auto w-auto rounded-sm bg-[#7c58d6] p-2">
+            <Text className="w-auto text-center text-lg font-bold text-white">
+              MOVER PONTO
+            </Text>
+          </Pressable>
+
+          <Pressable className="mt-2 h-auto w-auto rounded-sm bg-red-500 p-2">
+            <Text className="w-auto text-center text-lg font-bold text-white">
+              DESATIVAR PONTO
+            </Text>
+          </Pressable>
         </View>
       </View>
     </Modal>

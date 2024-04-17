@@ -176,19 +176,19 @@ const AdultCollectionModal = ({
                   justifyContent: 'space-between',
                 }}
               >
-                <Text className="text-xl font-bold">Coleta inseto adulto</Text>
+                <Text className="text-2xl font-bold">Coleta inseto adulto</Text>
                 <Pressable
                   onPress={() => {
                     setModalVisible(!modalVisible)
                     setSelectedPoint(null)
                   }}
                 >
-                  <Text>Fechar</Text>
+                  <Text className="text-xl">Fechar</Text>
                 </Pressable>
               </View>
               <Divider className="mb-5 mt-2" />
               <View>
-                <Text className="text-md mb-2 font-bold ">Vento:</Text>
+                <Text className="mb-2 text-xl font-bold ">Vento:</Text>
                 <Controller
                   control={control}
                   name="wind"
@@ -218,7 +218,7 @@ const AdultCollectionModal = ({
                 )}
               </View>
               <View>
-                <Text className="text-md mb-2 font-bold ">Clima:</Text>
+                <Text className="mb-2 text-xl font-bold ">Clima:</Text>
                 <Controller
                   control={control}
                   name="climate"
@@ -249,7 +249,7 @@ const AdultCollectionModal = ({
               </View>
 
               <View>
-                <Text className="text-md mb-2 font-bold ">Temp. (°C):</Text>
+                <Text className="mb-2 text-xl font-bold ">Temp. (°C):</Text>
                 <Controller
                   control={control}
                   name="temperature"
@@ -274,7 +274,7 @@ const AdultCollectionModal = ({
               </View>
 
               <View>
-                <Text className="text-md mb-2 font-bold ">Umidade:</Text>
+                <Text className="mb-2 text-xl font-bold ">Umidade:</Text>
                 <Controller
                   control={control}
                   name="humidity"
@@ -299,7 +299,7 @@ const AdultCollectionModal = ({
               </View>
 
               <View>
-                <Text className="text-md mb-2 font-bold ">Num. Insetos:</Text>
+                <Text className="mb-2 text-xl font-bold ">Num. Insetos:</Text>
                 <Controller
                   control={control}
                   name="insects_number"
@@ -324,7 +324,7 @@ const AdultCollectionModal = ({
               </View>
 
               <View>
-                <Text className="text-md mb-2 font-bold ">Observação:</Text>
+                <Text className="mb-2 text-xl font-bold ">Observação:</Text>
                 <Controller
                   control={control}
                   name="observation"
@@ -347,10 +347,10 @@ const AdultCollectionModal = ({
               </View>
 
               <Pressable
-                className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-2 "
+                className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
                 onPress={onSubmit}
               >
-                <Text className="text-lg font-bold text-white">
+                <Text className="text-2xl font-bold text-white">
                   Salvar coleta
                 </Text>
               </Pressable>
