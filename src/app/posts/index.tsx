@@ -38,13 +38,32 @@ import * as Sharing from 'expo-sharing'
 import { difFakePoint, fakePoints } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { findManyPointsReferences } from '@/services/points'
-import { useQuery } from 'react-query'
+import {
+  adjustPointReferenceCoordinates,
+  findManyPointsReferences,
+} from '@/services/points'
+import { useQuery, useMutation, useQueryClient } from 'react-query'
 import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
 import { Feather } from '@expo/vector-icons'
 import { Divider } from 'react-native-paper'
 import { findManyPointsReferencesOffline } from '@/services/offlineServices/points'
 import ApplicationEditPointModal from '@/components/Modal/ApplicationEditPointModal'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import ApplicationAdjustPointCoordinatesModal from '@/components/Modal/ApplicationAdjustPointCoordinatesModal'
+
+const editPointCoordinateSchema = z.object({
+  longitude: z.number(),
+  latitude: z.number(),
+  description: z.string({
+    required_error: 'Justificativa é obrigatória',
+  }),
+})
+
+export type EditPointCoordinateFormData = z.infer<
+  typeof editPointCoordinateSchema
+>
 
 const Posts = () => {
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
@@ -69,7 +88,21 @@ const Posts = () => {
   const [conflictPoints, setConflictPoints] = useState([])
   const [isOnline, setIsOnline] = useState(false)
   const [modalEditPoint, setModalEditPoint] = useState(false)
-  console.log(modalEditPoint)
+  const [pointIsEditable, setPointIsEditable] = useState(false)
+  const [coordinateModal, setCoordinateModal] = useState(false)
+  const [description, setDescription] = useState('')
+  const [previewCoordinate, setPreviewCoordinate] = useState(null)
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<EditPointCoordinateFormData>({
+    resolver: zodResolver(editPointCoordinateSchema),
+  })
+
   useEffect(() => {
     const checkConnectivity = async () => {
       const netInfo = await NetInfo.fetch()
@@ -79,20 +112,39 @@ const Posts = () => {
     checkConnectivity()
   }, [])
 
-  console.log(isOnline)
+  const {
+    data: pointsData,
+    isLoading: pointsLoading,
+    refetch,
+  } = useQuery(['application/pointreference'], async () => {
+    // if (isOnline) {
+    return await findManyPointsReferences().then((response) => response)
+    // } else {
+    //   return await findManyPointsReferencesOffline().then(
+    //     (response) => response,
+    //   )
+    // }
+  })
 
-  const { data: pointsData, isLoading: pointsLoading } = useQuery(
-    ['application/pointreference'],
-    async () => {
-      // if (isOnline) {
-      return await findManyPointsReferences().then((response) => response)
-      // } else {
-      //   return await findManyPointsReferencesOffline().then(
-      //     (response) => response,
-      //   )
-      // }
-    },
-  )
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      const response = await adjustPointReferenceCoordinates(
+        data.longitude,
+        data.latitude,
+        description,
+        Number(selectedPoint.id),
+      )
+      console.log(response)
+      setPointIsEditable(false)
+      setCoordinateModal(false)
+      refetch()
+      reset()
+      setPreviewCoordinate(null)
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
+  })
 
   const insets = useSafeAreaInsets()
 
@@ -270,6 +322,7 @@ const Posts = () => {
   }
 
   const userLocation = [location.coords.latitude, location.coords.longitude]
+
   const navigationView = () => (
     <View
       className="flex-col justify-between gap-2 p-5"
@@ -281,13 +334,13 @@ const Posts = () => {
           justifyContent: 'space-between',
         }}
       >
-        <Text className="text-xl font-bold">Menu</Text>
+        <Text className="text-2xl font-bold">Menu</Text>
         <Pressable
           onPress={() => {
             closeDrawer()
           }}
         >
-          <Text>Fechar</Text>
+          <Text className="text-xl">Fechar</Text>
         </Pressable>
       </View>
       <Divider className="mb-5 mt-2" />
@@ -351,6 +404,17 @@ const Posts = () => {
                 longitude: location.coords.longitude,
                 latitudeDelta: 0.0005,
                 longitudeDelta: 0.0005,
+              }}
+              onPress={(e) => {
+                if (pointIsEditable) {
+                  const { latitude, longitude } = e.nativeEvent.coordinate
+                  // handlePress({ latitude, longitude })
+                  console.log('COORDENADAS ->', latitude, longitude)
+                  setValue('latitude', latitude)
+                  setValue('longitude', longitude)
+                  setCoordinateModal(true)
+                  setPreviewCoordinate({ latitude, longitude })
+                }
               }}
               showsUserLocation={true} // mostra a localização do usuário
               showsCompass={true} // mostra a bússola
@@ -436,6 +500,10 @@ const Posts = () => {
                 strokeColor="green"
                 fillColor="rgba(0,255,0,0.1)"
               />
+
+              {previewCoordinate && (
+                <Marker coordinate={previewCoordinate} pinColor={'blue'} />
+              )}
             </MapView>
           )}
 
@@ -484,6 +552,18 @@ const Posts = () => {
             selectedPoint={selectedPoint}
             setSelectedPoint={setSelectedPoint}
             userLocation={userLocation}
+            setPointIsEditable={setPointIsEditable}
+            refetch={refetch}
+          />
+
+          <ApplicationAdjustPointCoordinatesModal
+            modalVisible={coordinateModal}
+            setModalVisible={setCoordinateModal}
+            setSelectedPoint={setSelectedPoint}
+            onSubmit={onSubmit}
+            control={control}
+            setPreviewCoordinate={setPreviewCoordinate}
+            errors={errors}
           />
         </View>
 
@@ -499,7 +579,17 @@ const Posts = () => {
                     setConflictPoints(conflictPoints)
                     setModalConflict(true)
                   } else {
-                    setModalApplicate(true)
+                    if (location) {
+                      if (pointsData) {
+                        for (const point of pointsData) {
+                          if (calculateDistance(location.coords, point) <= 15) {
+                            setModalApplicate(true)
+                            setSelectedPoint(point)
+                            return
+                          }
+                        }
+                      }
+                    }
                   }
                 }}
               >
@@ -517,12 +607,22 @@ const Posts = () => {
                     setConflictPoints(conflictPoints)
                     setModalConflict(true)
                   } else {
-                    setModalEditPoint(true)
+                    if (location) {
+                      if (pointsData) {
+                        for (const point of pointsData) {
+                          if (calculateDistance(location.coords, point) <= 15) {
+                            setModalEditPoint(true)
+                            setSelectedPoint(point)
+                            return
+                          }
+                        }
+                      }
+                    }
                   }
                 }}
               >
                 <Text className="text-center text-lg font-bold text-white">
-                  EDITAR PONTO
+                  VER DETALHES DO PONTO
                 </Text>
               </Pressable>
             </React.Fragment>

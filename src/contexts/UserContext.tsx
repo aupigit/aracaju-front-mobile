@@ -56,8 +56,6 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
     },
   )
 
-  console.log(userData)
-
   useEffect(() => {
     setUser(userData)
   }, [userData])

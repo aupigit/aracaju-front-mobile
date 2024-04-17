@@ -182,19 +182,19 @@ const ApplicationApplicateModal = ({
             <View
               style={{ flexDirection: 'row', justifyContent: 'space-between' }}
             >
-              <Text className="text-xl font-bold">Executar aplicação</Text>
+              <Text className="text-2xl font-bold">Executar aplicação</Text>
               <Pressable
                 onPress={() => {
                   setModalVisible(!modalVisible)
                   setSelectedPoint(null)
                 }}
               >
-                <Text>Fechar</Text>
+                <Text className="text-xl">Fechar</Text>
               </Pressable>
             </View>
             <Divider className="mb-5 mt-2" />
             <View className="mb-2 flex-col items-center">
-              <Text className="text-md font-bold">Tem Recipiente?</Text>
+              <Text className="text-xl font-bold">Tem Recipiente?</Text>
 
               <RadioButton.Group
                 onValueChange={(value) =>
@@ -210,7 +210,7 @@ const ApplicationApplicateModal = ({
             </View>
 
             <View className="mb-2 mt-2 flex-col items-center">
-              <Text className="text-md font-bold">Tem Ficha?</Text>
+              <Text className="text-xl font-bold">Tem Ficha?</Text>
               <RadioButton.Group
                 onValueChange={(value) =>
                   setFichaChecked(handleBooleanToStr(value))
@@ -224,7 +224,7 @@ const ApplicationApplicateModal = ({
               </RadioButton.Group>
             </View>
             <View className="mb-2 mt-2 flex-col items-center">
-              <Text className="text-md font-bold">Tem Placa?</Text>
+              <Text className="text-xl font-bold">Tem Placa?</Text>
               <RadioButton.Group
                 onValueChange={(value) =>
                   setPlacaChecked(handleBooleanToStr(value))
@@ -276,12 +276,12 @@ const ApplicationApplicateModal = ({
             />
 
             <Pressable
-              className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-2"
+              className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-4"
               onPress={handleImagePick}
               disabled={images.length !== 0}
             >
               <View className="flex-row items-center justify-center gap-2">
-                <Text className="text-lg font-bold text-white">
+                <Text className="text-2xl font-bold text-white">
                   Adicionar foto
                 </Text>
                 <AntDesign name="camerao" size={24} color="white" />
@@ -313,10 +313,10 @@ const ApplicationApplicateModal = ({
               </View>
             )}
             <Pressable
-              className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-2 "
+              className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
               onPress={onSubmit}
             >
-              <Text className="text-lg font-bold text-white">Finalizar</Text>
+              <Text className="text-2xl font-bold text-white">Finalizar</Text>
             </Pressable>
           </View>
         </ScrollView>

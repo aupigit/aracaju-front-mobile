@@ -31,7 +31,7 @@ const ApplicationConflictPointsModal = ({
       <View className="flex-1 items-center justify-center bg-black/20 p-5">
         <View className="w-full bg-white p-5">
           <View className="w-full flex-row items-center justify-between">
-            <Text>Selecione um ponto</Text>
+            <Text className="text-bold text-2xl">Selecione um ponto</Text>
 
             <Pressable
               onPress={() => {
@@ -39,7 +39,7 @@ const ApplicationConflictPointsModal = ({
                 setSelectedPoint(null)
               }}
             >
-              <Text>Fechar</Text>
+              <Text className="text-xl">Fechar</Text>
             </Pressable>
           </View>
 
