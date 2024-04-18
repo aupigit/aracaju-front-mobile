@@ -54,7 +54,7 @@ const ApplicationApplicateModal = ({
   setSelectedPoint,
   userLocation,
 }: ApplicationApplicateModalProps) => {
-  const { user } = useUser()
+  const { applicator } = useUser()
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)
@@ -74,7 +74,21 @@ const ApplicationApplicateModal = ({
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
-
+  const showSnackbar = (type: 'success' | 'error') => {
+    if (type === 'success') {
+      setVisibleOK(true)
+      setTimeout(() => {
+        setVisibleOK(false)
+        reset()
+        setModalVisible(false)
+      }, 4000)
+    } else if (type === 'error') {
+      setVisibleERROR(true)
+      setTimeout(() => {
+        setVisibleERROR(false)
+      }, 4000)
+    }
+  }
   const handleImagePick = async (title) => {
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -137,14 +151,10 @@ const ApplicationApplicateModal = ({
           data.image,
           selectedPoint.contract,
           Number(selectedPoint.id),
+          Number(applicator.id),
         )
         console.log(response)
-        setVisibleOK(true)
-        setTimeout(() => {
-          setVisibleOK(!visibleOK)
-          setModalVisible(false)
-          reset()
-        }, 3000)
+        showSnackbar('success')
       } else {
         const offlineResponse = await doApplicationOffline(
           userLocation,
@@ -160,16 +170,13 @@ const ApplicationApplicateModal = ({
           data.image,
           selectedPoint.contract,
           Number(selectedPoint.id),
+          Number(applicator.id),
         )
         console.log(offlineResponse)
       }
     } catch (error) {
       console.error(error)
-      setVisibleERROR(!visibleERROR)
-
-      setTimeout(() => {
-        setVisibleERROR(!visibleERROR)
-      }, 3000)
+      showSnackbar('error')
     }
   })
 
@@ -196,7 +203,7 @@ const ApplicationApplicateModal = ({
           },
         }}
       >
-        <Text className="text-lime-500">Aplicação realizada com sucesso.</Text>
+        <Text className="text-zinc-700">Aplicação realizada com sucesso.</Text>
       </Snackbar>
       <Snackbar
         visible={visibleERROR}

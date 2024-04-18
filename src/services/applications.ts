@@ -14,6 +14,7 @@ export const doApplication = async (
   image: string,
   contract: number,
   pointreference: number,
+  applicator: number,
 ) => {
   const body = {
     marker: {
@@ -34,7 +35,7 @@ export const doApplication = async (
     image,
     pointreference,
     device: 1,
-    applicator: 1,
+    applicator,
     contract,
   }
 
