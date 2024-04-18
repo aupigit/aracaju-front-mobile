@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
-import { Divider, RadioButton } from 'react-native-paper'
+import { Divider, RadioButton, Snackbar } from 'react-native-paper'
 import { IImagesProps } from '../PhonePhotos'
 import { AntDesign, Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
@@ -31,26 +31,20 @@ interface ApplicationApplicateModalProps {
   userLocation: number[]
 }
 
-// export const applicationSchema = z.object({
-//   marker: z.object({ type: z.string(), coordinates: z.array(z.number()) }),
-//   from_txt: z.string(),
-//   latitude: z.number(),
-//   longitude: z.number(),
-//   altitude: z.number(),
-//   acuracia: z.number(),
-//   volumebti: z.number(),
-//   container: z.boolean(),
-//   card: z.boolean(),
-//   plate: z.boolean(),
-//   observation: z.string(),
-//   status: z.string(),
-//   image: z.string(),
-//   pointreference: z.number(),
-//   device: z.number(),
-//   applicator: z.number(),
-// })
+export const applicationSchema = z.object({
+  volumebti: z.number({
+    required_error: 'Volume BTI é obrigatório',
+  }),
+  container: z.boolean().optional(),
+  card: z.boolean().optional(),
+  plate: z.boolean().optional(),
+  observation: z.string().optional(),
+  image: z.string({
+    required_error: 'Imagem é obrigatória',
+  }),
+})
 
-// export type ApplicationFormData = z.infer<typeof applicationSchema>
+export type ApplicationFormData = z.infer<typeof applicationSchema>
 
 const ApplicationApplicateModal = ({
   modalVisible,
@@ -60,22 +54,25 @@ const ApplicationApplicateModal = ({
   userLocation,
 }: ApplicationApplicateModalProps) => {
   const { user } = useUser()
-  const [base64ImageValue, setBase64ImageValue] = useState('')
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)
   const [images, setImages] = useState<IImagesProps[]>([])
+  const [visibleOK, setVisibleOK] = useState(false)
+  const [visibleERROR, setVisibleERROR] = useState(false)
 
   const {
     control,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
-  } = useForm({
-    // resolver: zodResolver(applicationSchema),
+  } = useForm<ApplicationFormData>({
+    resolver: zodResolver(applicationSchema),
   })
 
-  // console.log('Usuáriooooooo', user)
+  const onDismissSnackBarOK = () => setVisibleOK(false)
+  const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
   const handleImagePick = async (title) => {
     try {
@@ -100,7 +97,7 @@ const ApplicationApplicateModal = ({
           },
         ])
 
-        setBase64ImageValue(result.assets[0].base64)
+        setValue('image', result.assets[0].base64)
       }
     } catch (error) {
       console.error('Error picking image:', error)
@@ -118,45 +115,60 @@ const ApplicationApplicateModal = ({
         return false
     }
   }
+  console.log('selectedPoint', selectedPoint)
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       const netInfo = await NetInfo.fetch()
-
+      console.log('---------------', data.image)
       if (netInfo.isConnected && netInfo.isInternetReachable) {
         const response = await doApplication(
           userLocation,
           selectedPoint.latitude,
           selectedPoint.longitude,
           selectedPoint.altitude,
-          selectedPoint.acuracia,
+          selectedPoint.accuracy,
           data.volumebti,
           recipienteChecked,
           fichaChecked,
           placaChecked,
           data.observation,
           data.image,
+          selectedPoint.contract,
+          Number(selectedPoint.id),
         )
         console.log(response)
+        setVisibleOK(true)
+        setTimeout(() => {
+          setVisibleOK(!visibleOK)
+          setModalVisible(false)
+          reset()
+        }, 3000)
       } else {
         const offlineResponse = await doApplicationOffline(
           userLocation,
           selectedPoint.latitude,
           selectedPoint.longitude,
           selectedPoint.altitude,
-          selectedPoint.acuracia,
+          selectedPoint.accuracy,
           data.volumebti,
           recipienteChecked,
           fichaChecked,
           placaChecked,
           data.observation,
           data.image,
+          selectedPoint.contract,
+          Number(selectedPoint.id),
         )
         console.log(offlineResponse)
       }
     } catch (error) {
       console.error(error)
-      throw error
+      setVisibleERROR(!visibleERROR)
+
+      setTimeout(() => {
+        setVisibleERROR(!visibleERROR)
+      }, 3000)
     }
   })
 
@@ -169,6 +181,35 @@ const ApplicationApplicateModal = ({
         setModalVisible(!modalVisible)
       }}
     >
+      <Snackbar
+        style={{
+          zIndex: 9999,
+        }}
+        visible={visibleOK}
+        onDismiss={onDismissSnackBarOK}
+        action={{
+          textColor: '#00ff00',
+          label: 'Fechar',
+          onPress: () => {
+            setVisibleOK(false)
+          },
+        }}
+      >
+        <Text className="text-lime-500">Aplicação realizada com sucesso.</Text>
+      </Snackbar>
+      <Snackbar
+        visible={visibleERROR}
+        onDismiss={onDismissSnackBarERROR}
+        action={{
+          textColor: '#ff0000',
+          label: 'Fechar',
+          onPress: () => {
+            setVisibleOK(false)
+          },
+        }}
+      >
+        <Text className="text-red-500">Algo deu errado. Tente novamente.</Text>
+      </Snackbar>
       <View
         style={{
           flex: 1,
@@ -194,48 +235,71 @@ const ApplicationApplicateModal = ({
             </View>
             <Divider className="mb-5 mt-2" />
             <View className="mb-2 flex-col items-center">
-              <Text className="text-xl font-bold">Tem Recipiente?</Text>
-
-              <RadioButton.Group
-                onValueChange={(value) =>
-                  setRecipienteChecked(handleBooleanToStr(value))
-                }
-                value={recipienteChecked.toString()}
-              >
-                <View style={{ flexDirection: 'row', marginLeft: 10 }}>
-                  <RadioButton.Item label="SIM" value="true" />
-                  <RadioButton.Item label="NÃO " value="false" />
-                </View>
-              </RadioButton.Group>
+              <Controller
+                control={control}
+                name="container"
+                render={({ field }) => (
+                  <View style={{ marginBottom: 10 }}>
+                    <Text>Tem Recipiente?</Text>
+                    <RadioButton.Group
+                      onValueChange={(value) =>
+                        setRecipienteChecked(handleBooleanToStr(value))
+                      }
+                      value={recipienteChecked.toString()}
+                    >
+                      <View style={{ flexDirection: 'row', marginLeft: 10 }}>
+                        <RadioButton.Item label="SIM" value="true" />
+                        <RadioButton.Item label="NÃO" value="false" />
+                      </View>
+                    </RadioButton.Group>
+                  </View>
+                )}
+              />
             </View>
 
             <View className="mb-2 mt-2 flex-col items-center">
-              <Text className="text-xl font-bold">Tem Ficha?</Text>
-              <RadioButton.Group
-                onValueChange={(value) =>
-                  setFichaChecked(handleBooleanToStr(value))
-                }
-                value={fichaChecked.toString()}
-              >
-                <View style={{ flexDirection: 'row', marginLeft: 10 }}>
-                  <RadioButton.Item label="SIM" value="true" />
-                  <RadioButton.Item label="NÃO" value="false" />
-                </View>
-              </RadioButton.Group>
+              <Controller
+                control={control}
+                name="card"
+                render={({ field }) => (
+                  <View style={{ marginBottom: 10 }}>
+                    <Text>Tem Ficha?</Text>
+                    <RadioButton.Group
+                      onValueChange={(value) =>
+                        setFichaChecked(handleBooleanToStr(value))
+                      }
+                      value={fichaChecked.toString()}
+                    >
+                      <View style={{ flexDirection: 'row', marginLeft: 10 }}>
+                        <RadioButton.Item label="SIM" value="true" />
+                        <RadioButton.Item label="NÃO" value="false" />
+                      </View>
+                    </RadioButton.Group>
+                  </View>
+                )}
+              />
             </View>
             <View className="mb-2 mt-2 flex-col items-center">
-              <Text className="text-xl font-bold">Tem Placa?</Text>
-              <RadioButton.Group
-                onValueChange={(value) =>
-                  setPlacaChecked(handleBooleanToStr(value))
-                }
-                value={placaChecked.toString()}
-              >
-                <View style={{ flexDirection: 'row', marginLeft: 10 }}>
-                  <RadioButton.Item label="SIM " value="true" />
-                  <RadioButton.Item label="NÃO " value="false" />
-                </View>
-              </RadioButton.Group>
+              <Controller
+                control={control}
+                name="plate"
+                render={({ field }) => (
+                  <View style={{ marginBottom: 10 }}>
+                    <Text>Tem Placa?</Text>
+                    <RadioButton.Group
+                      onValueChange={(value) =>
+                        setPlacaChecked(handleBooleanToStr(value))
+                      }
+                      value={placaChecked.toString()}
+                    >
+                      <View style={{ flexDirection: 'row', marginLeft: 10 }}>
+                        <RadioButton.Item label="SIM" value="true" />
+                        <RadioButton.Item label="NÃO" value="false" />
+                      </View>
+                    </RadioButton.Group>
+                  </View>
+                )}
+              />
             </View>
 
             <Controller
@@ -274,7 +338,11 @@ const ApplicationApplicateModal = ({
                 </View>
               )}
             />
-
+            {errors.volumebti && (
+              <Text className="p-2 text-red-500">
+                {errors.volumebti ? errors.volumebti.message : null}
+              </Text>
+            )}
             <Pressable
               className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-4"
               onPress={handleImagePick}
@@ -287,6 +355,12 @@ const ApplicationApplicateModal = ({
                 <AntDesign name="camerao" size={24} color="white" />
               </View>
             </Pressable>
+            {errors.image && (
+              <Text className=" p-2 text-red-500">
+                {errors.image ? errors.image.message : null}
+              </Text>
+            )}
+
             {images && images.length > 0 && (
               <View className="items-start justify-between rounded-md border border-zinc-700/20 p-3">
                 <Image

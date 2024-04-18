@@ -1,18 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import {
-  View,
-  Text,
-  Alert,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-  TextInput,
-} from 'react-native'
+import { View, Text, Alert, ScrollView } from 'react-native'
 import * as LocalAuthentication from 'expo-local-authentication'
 import NetInfo from '@react-native-community/netinfo'
-import { Link, router } from 'expo-router'
+import { router } from 'expo-router'
 import { z } from 'zod'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useUser } from '@/contexts/UserContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import FormControl from './FormControl'

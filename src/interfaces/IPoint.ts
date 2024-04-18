@@ -113,11 +113,28 @@ export interface IApplication extends IBase {
   applicator: IApplicator
 }
 
+export interface IContract extends IBase {
+  name: string
+  periodicity: string
+  start_date: string
+  end_date: string
+  point_limit: number
+  point_overload: number
+  volume_bti: string
+  volume_bti_overload: string
+  on_time_start: number
+  on_time_end: number
+  observation: string
+  customer: number
+  contract_status: number
+}
+
 export interface IPoint extends IBase {
   applications: string[]
   name: string
   marker: Marker
-
+  altitude: number
+  contract: number
   from_txt: string
   latitude: number
   longitude: number
