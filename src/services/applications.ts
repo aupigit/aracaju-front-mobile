@@ -12,6 +12,8 @@ export const doApplication = async (
   plate: boolean,
   observation: string,
   image: string,
+  contract: number,
+  pointreference: number,
 ) => {
   const body = {
     marker: {
@@ -30,10 +32,10 @@ export const doApplication = async (
     observation,
     status: 'Em dia',
     image,
-    contract: 1,
-    pointreference: 3,
+    pointreference,
     device: 1,
     applicator: 1,
+    contract,
   }
 
   try {
