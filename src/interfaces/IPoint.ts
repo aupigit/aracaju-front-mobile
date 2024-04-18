@@ -130,7 +130,7 @@ export interface IPoint extends IBase {
   image: URL | string
   device: IDevices
   applicator: IApplicator
-  pointtype: IPointType
+  pointtype: string
   status: IPointStatus
   client: ICustomer
   city: ICity

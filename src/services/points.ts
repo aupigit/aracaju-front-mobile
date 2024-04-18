@@ -1,9 +1,18 @@
 import { IPoint } from '@/interfaces/IPoint'
 import { get, patch } from '@/providers/api'
 
-export const findManyPointsReferences = async (): Promise<IPoint[]> => {
-  const result = await get(`applications/pointreference/?is_active=`)
-  return result as unknown as Promise<IPoint[]>
+export const findManyPointsReferences = async (
+  point_type: string,
+): Promise<IPoint[]> => {
+  if (point_type === '') {
+    const result = await get(`applications/pointreference/?is_active=true`)
+    return result as unknown as Promise<IPoint[]>
+  } else {
+    const result = await get(
+      `applications/pointreference/?is_active=true&pointtype=${point_type}`,
+    )
+    return result as unknown as Promise<IPoint[]>
+  }
 }
 
 export const adjustPointReferenceName = async (
