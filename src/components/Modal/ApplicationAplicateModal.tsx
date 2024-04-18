@@ -22,6 +22,7 @@ import { doApplication } from '@/services/applications'
 import { useUser } from '@/contexts/UserContext'
 import { doApplicationOffline } from '@/services/offlineServices/application'
 import NetInfo from '@react-native-community/netinfo'
+import { db } from '@/lib/database'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean

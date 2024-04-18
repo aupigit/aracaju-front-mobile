@@ -76,39 +76,39 @@ const AdultCollectionModal = ({
     try {
       const netInfo = await NetInfo.fetch()
 
-      if (netInfo.isConnected && netInfo.isInternetReachable) {
-        const response = await doAdultCollection(
-          userLocation,
-          userLocation[0],
-          userLocation[1],
-          0,
-          5,
-          data.wind,
-          data.climate,
-          data.temperature,
-          data.humidity,
-          data.insects_number,
-          data.observation,
-        )
-        console.log(response)
-        showSnackbar('success')
-      } else {
-        const offlineResponse = await doAdultCollectionOffline(
-          userLocation,
-          userLocation[0],
-          userLocation[1],
-          0,
-          5,
-          data.wind,
-          data.climate,
-          data.temperature,
-          data.humidity,
-          data.insects_number,
-          data.observation,
-        )
-        console.log(offlineResponse)
-        showSnackbar('success')
-      }
+      // if (netInfo.isConnected && netInfo.isInternetReachable) {
+      //   const response = await doAdultCollection(
+      //     userLocation,
+      //     userLocation[0],
+      //     userLocation[1],
+      //     0,
+      //     5,
+      //     data.wind,
+      //     data.climate,
+      //     data.temperature,
+      //     data.humidity,
+      //     data.insects_number,
+      //     data.observation,
+      //   )
+      //   console.log(response)
+      //   showSnackbar('success')
+      // } else {
+      const offlineResponse = await doAdultCollectionOffline(
+        userLocation,
+        userLocation[0],
+        userLocation[1],
+        0,
+        5,
+        data.wind,
+        data.climate,
+        data.temperature,
+        data.humidity,
+        data.insects_number,
+        data.observation,
+      )
+      console.log(offlineResponse)
+      showSnackbar('success')
+      // }
     } catch (error) {
       console.error(error)
       showSnackbar('error')

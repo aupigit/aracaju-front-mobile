@@ -3,6 +3,22 @@ import { db } from '@/lib/database'
 export const offlineDatabase = () => {
   db.transaction((tx) => {
     tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS MyModal (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        description TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );`,
+      [],
+      () => console.log('Table MyModal created successfully'),
+      (_, error) => {
+        console.log('Error creating table MyModal: ', error)
+        return true
+      },
+    )
+
+    tx.executeSql(
       `CREATE TABLE IF NOT EXISTS Region (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
