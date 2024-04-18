@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
 import { offlineDatabase } from './offlineDatabase'
+import { syncApplication } from '@/services/syncServices/application'
 
 const Home = () => {
   const [count, setCounter] = useState(0)

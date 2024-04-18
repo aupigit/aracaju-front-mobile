@@ -22,6 +22,7 @@ import { doApplication } from '@/services/applications'
 import { useUser } from '@/contexts/UserContext'
 import { doApplicationOffline } from '@/services/offlineServices/application'
 import NetInfo from '@react-native-community/netinfo'
+import { db } from '@/lib/database'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -122,38 +123,36 @@ const ApplicationApplicateModal = ({
   const onSubmit = handleSubmit(async (data) => {
     try {
       const netInfo = await NetInfo.fetch()
-
-      if (netInfo.isConnected && netInfo.isInternetReachable) {
-        const response = await doApplication(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.acuracia,
-          data.volumebti,
-          recipienteChecked,
-          fichaChecked,
-          placaChecked,
-          data.observation,
-          data.image,
-        )
-        console.log(response)
-      } else {
-        const offlineResponse = await doApplicationOffline(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.acuracia,
-          data.volumebti,
-          recipienteChecked,
-          fichaChecked,
-          placaChecked,
-          data.observation,
-          data.image,
-        )
-        console.log(offlineResponse)
-      }
+      // if (netInfo.isConnected && netInfo.isInternetReachable) {
+      // const response = await doApplication(
+      //   userLocation,
+      //   selectedPoint.latitude,
+      //   selectedPoint.longitude,
+      //   selectedPoint.altitude,
+      //   selectedPoint.accuracy,
+      //   data.volumebti,
+      //   recipienteChecked,
+      //   fichaChecked,
+      //   placaChecked,
+      //   data.observation,
+      //   base64ImageValue,
+      // )
+      // console.log('online', response)
+      // } else {
+      await doApplicationOffline(
+        userLocation,
+        selectedPoint.latitude,
+        selectedPoint.longitude,
+        selectedPoint.altitude,
+        selectedPoint.accuracy,
+        data.volumebti,
+        recipienteChecked,
+        fichaChecked,
+        placaChecked,
+        data.observation,
+        base64ImageValue,
+      )
+      // }
     } catch (error) {
       console.error(error)
       throw error

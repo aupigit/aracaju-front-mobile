@@ -52,6 +52,9 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import ApplicationAdjustPointCoordinatesModal from '@/components/Modal/ApplicationAdjustPointCoordinatesModal'
+import { findManyApplicationsOffline } from '@/services/offlineServices/application'
+import { db } from '@/lib/database'
+import { syncApplication } from '@/services/syncServices/application'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -80,6 +83,7 @@ const Posts = () => {
   const [region, setRegion] = useState(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [showButton, setShowButton] = useState(false)
+  const [showCollectButton, setShowCollectButton] = useState(false)
   const [modalConflict, setModalConflict] = useState(false)
   const [modalInfoPoints, setModalInfoPoints] = useState(false)
   const [modalApplicate, setModalApplicate] = useState(false)
@@ -118,7 +122,7 @@ const Posts = () => {
     refetch,
   } = useQuery(['application/pointreference'], async () => {
     // if (isOnline) {
-    return await findManyPointsReferences().then((response) => response)
+    return await findManyPointsReferences('2').then((response) => response)
     // } else {
     //   return await findManyPointsReferencesOffline().then(
     //     (response) => response,
@@ -297,6 +301,11 @@ const Posts = () => {
     }
   }, [location, pointsData])
 
+  useEffect(() => {
+    console.log('Sincronizando dados...')
+    syncApplication()
+  }, [])
+
   if (!location) {
     return
   }
@@ -358,6 +367,10 @@ const Posts = () => {
       </View>
     </View>
   )
+
+  // console.log(JSON.stringify(selectedPoint, null, 2))
+
+  // console.log(data)
 
   if (pointsLoading) {
     return (
@@ -568,16 +581,44 @@ const Posts = () => {
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
+          {showCollectButton && (
+            <Pressable
+              className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+              onPress={() => {
+                setModalAdultCollection(true)
+              }}
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                COLETA ADULTO
+              </Text>
+            </Pressable>
+          )}
           {showButton && (
             <React.Fragment>
               <Pressable
                 className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
                 onPress={() => {
                   // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                  const conflictPoints = getConflictPoints(location, fakePoints)
+                  const conflictPoints = getConflictPoints(location, pointsData)
                   if (conflictPoints.length >= 2) {
-                    setConflictPoints(conflictPoints)
-                    setModalConflict(true)
+                    if (location) {
+                      // Calcule a distância entre a localização atual e cada ponto de conflito
+                      const distances = conflictPoints.map((point) =>
+                        calculateDistance(location.coords, point),
+                      )
+
+                      // Encontre o índice do ponto com a menor distância
+                      const closestPointIndex = distances.indexOf(
+                        Math.min(...distances),
+                      )
+
+                      // Use o índice para encontrar o ponto mais próximo
+                      const closestPoint = conflictPoints[closestPointIndex]
+
+                      // Abra o modal com o ponto mais próximo
+                      setModalApplicate(true)
+                      setSelectedPoint(closestPoint)
+                    }
                   } else {
                     if (location) {
                       if (pointsData) {
@@ -602,10 +643,29 @@ const Posts = () => {
                 className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
                 onPress={() => {
                   // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                  const conflictPoints = getConflictPoints(location, fakePoints)
+                  const conflictPoints = getConflictPoints(location, pointsData)
                   if (conflictPoints.length >= 2) {
-                    setConflictPoints(conflictPoints)
-                    setModalConflict(true)
+                    // setConflictPoints(conflictPoints)
+                    // setModalConflict(true)
+
+                    if (location) {
+                      // Calcule a distância entre a localização atual e cada ponto de conflito
+                      const distances = conflictPoints.map((point) =>
+                        calculateDistance(location.coords, point),
+                      )
+
+                      // Encontre o índice do ponto com a menor distância
+                      const closestPointIndex = distances.indexOf(
+                        Math.min(...distances),
+                      )
+
+                      // Use o índice para encontrar o ponto mais próximo
+                      const closestPoint = conflictPoints[closestPointIndex]
+
+                      // Abra o modal com o ponto mais próximo
+                      setModalEditPoint(true)
+                      setSelectedPoint(closestPoint)
+                    }
                   } else {
                     if (location) {
                       if (pointsData) {

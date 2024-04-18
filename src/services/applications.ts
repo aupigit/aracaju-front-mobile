@@ -30,9 +30,10 @@ export const doApplication = async (
     observation,
     status: 'Em dia',
     image,
+    contract: 1,
     pointreference: 3,
     device: 1,
-    applicator: 2,
+    applicator: 1,
   }
 
   try {
