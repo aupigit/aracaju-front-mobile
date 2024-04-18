@@ -5,6 +5,7 @@ import {
   Pressable,
   TextInput,
   ScrollView,
+  Image,
 } from 'react-native'
 import React, { useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
@@ -16,6 +17,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import NetInfo from '@react-native-community/netinfo'
 import { doAdultCollectionOffline } from '@/services/offlineServices/doAdultCollection'
+import { AntDesign, Feather } from '@expo/vector-icons'
+import * as ImagePicker from 'expo-image-picker'
+import * as Crypto from 'expo-crypto'
+import { IImagesProps } from '../PhonePhotos'
+import { useUser } from '@/contexts/UserContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -32,7 +38,12 @@ export const adultCollectionSchema = z.object({
   humidity: z.string(),
   insects_number: z.string(),
   observation: z.string().optional(),
+  image: z.string({
+    required_error: 'Imagem é obrigatória',
+  }),
 })
+
+export type AdultCollectionFormData = z.infer<typeof adultCollectionSchema>
 
 const AdultCollectionModal = ({
   modalVisible,
@@ -41,8 +52,11 @@ const AdultCollectionModal = ({
   setSelectedPoint,
   userLocation,
 }: ApplicationApplicateModalProps) => {
+  const { applicator } = useUser()
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
+  const [images, setImages] = useState<IImagesProps[]>([])
+
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
@@ -50,12 +64,44 @@ const AdultCollectionModal = ({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<AdultCollectionFormData>({
     resolver: zodResolver(adultCollectionSchema),
   })
   // console.log(errors)
+  const handleImagePick = async (title) => {
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [9, 16],
+        quality: 1,
+        base64: true,
+      })
 
+      if (!result.canceled) {
+        const updatedImages = images.filter((image) => image.title !== title)
+        setImages((prevImages) => [
+          ...updatedImages,
+          {
+            title: Crypto.randomUUID(),
+            uri: result.assets[0].uri,
+            base64: result.assets[0].base64,
+            size: result.assets[0].fileSize,
+            type: result.assets[0].mimeType,
+          },
+        ])
+
+        setValue('image', result.assets[0].base64)
+      }
+    } catch (error) {
+      console.error('Error picking image:', error)
+    }
+  }
+  const handleClearImageToSend = () => {
+    setImages([])
+  }
   const showSnackbar = (type: 'success' | 'error') => {
     if (type === 'success') {
       setVisibleOK(true)
@@ -63,6 +109,7 @@ const AdultCollectionModal = ({
         setVisibleOK(false)
         reset()
         setModalVisible(false)
+        handleClearImageToSend()
       }, 4000)
     } else if (type === 'error') {
       setVisibleERROR(true)
@@ -76,39 +123,47 @@ const AdultCollectionModal = ({
     try {
       const netInfo = await NetInfo.fetch()
 
-      // if (netInfo.isConnected && netInfo.isInternetReachable) {
-      //   const response = await doAdultCollection(
-      //     userLocation,
-      //     userLocation[0],
-      //     userLocation[1],
-      //     0,
-      //     5,
-      //     data.wind,
-      //     data.climate,
-      //     data.temperature,
-      //     data.humidity,
-      //     data.insects_number,
-      //     data.observation,
-      //   )
-      //   console.log(response)
-      //   showSnackbar('success')
-      // } else {
-      const offlineResponse = await doAdultCollectionOffline(
-        userLocation,
-        userLocation[0],
-        userLocation[1],
-        0,
-        5,
-        data.wind,
-        data.climate,
-        data.temperature,
-        data.humidity,
-        data.insects_number,
-        data.observation,
-      )
-      console.log(offlineResponse)
-      showSnackbar('success')
-      // }
+      if (netInfo.isConnected && netInfo.isInternetReachable) {
+        const response = await doAdultCollection(
+          userLocation,
+          selectedPoint.latitude,
+          selectedPoint.longitude,
+          selectedPoint.altitude,
+          selectedPoint.accuracy,
+          data.wind,
+          data.climate,
+          data.temperature,
+          data.humidity,
+          Number(data.insects_number),
+          data.observation,
+          selectedPoint.contract,
+          data.image,
+          Number(applicator.id),
+          Number(selectedPoint.id),
+        )
+        console.log(response)
+        showSnackbar('success')
+      } else {
+        const offlineResponse = await doAdultCollectionOffline(
+          userLocation,
+          selectedPoint.latitude,
+          selectedPoint.longitude,
+          selectedPoint.altitude,
+          selectedPoint.accuracy,
+          data.wind,
+          data.climate,
+          data.temperature,
+          data.humidity,
+          Number(data.insects_number),
+          data.observation,
+          selectedPoint.contract,
+          data.image,
+          Number(applicator.id),
+          Number(selectedPoint.id),
+        )
+        console.log(offlineResponse)
+        showSnackbar('success')
+      }
     } catch (error) {
       console.error(error)
       showSnackbar('error')
@@ -345,7 +400,49 @@ const AdultCollectionModal = ({
                   </Text>
                 )}
               </View>
+              <Pressable
+                className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-4"
+                onPress={handleImagePick}
+                disabled={images.length !== 0}
+              >
+                <View className="flex-row items-center justify-center gap-2">
+                  <Text className="text-2xl font-bold text-white">
+                    Adicionar foto
+                  </Text>
+                  <AntDesign name="camerao" size={24} color="white" />
+                </View>
+              </Pressable>
+              {errors.image && (
+                <Text className=" p-2 text-red-500">
+                  {errors.image ? errors.image.message : null}
+                </Text>
+              )}
 
+              {images && images.length > 0 && (
+                <View className="items-start justify-between rounded-md border border-zinc-700/20 p-3">
+                  <Image
+                    source={{ uri: images[0].uri }}
+                    className="h-[150px] w-full"
+                    alt=""
+                  ></Image>
+                  <View className="w-full flex-row items-center justify-between bg-zinc-700 p-3">
+                    <View>
+                      <Feather name="image" size={30} color="rgb(242 90 56)" />
+                    </View>
+                    <View>
+                      <Text className="text-zinc-200/50">
+                        {`${images[0].title.slice(0, images[0].title.length / 3)}...${images[0].type}`}
+                      </Text>
+                    </View>
+                    <Pressable
+                      className="bg-transparent"
+                      onPress={handleClearImageToSend}
+                    >
+                      <Feather name="x-circle" size={24} color="white" />
+                    </Pressable>
+                  </View>
+                </View>
+              )}
               <Pressable
                 className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
                 onPress={onSubmit}
