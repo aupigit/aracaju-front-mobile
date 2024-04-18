@@ -1,20 +1,4 @@
-// AdultCollection
-
 import { db } from '@/lib/database'
-
-// const handleClick = () => {
-//   db.transaction((tx) => {
-//     tx.executeSql(
-//       `INSERT INTO MyModel (name, description) VALUES (?, ?);`,
-//       ['Test Name 1', 'Test Description 1'],
-//       () => console.log('Data inserted successfully'),
-//       (_, error) => {
-//         console.log('Error inserting data: ', error)
-//         return true
-//       },
-//     )
-//   })
-// }
 
 export const doAdultCollectionOffline = (
   coordinates: number[],
@@ -34,10 +18,7 @@ export const doAdultCollectionOffline = (
   pointreference: number,
 ) => {
   const body = {
-    marker: {
-      type: 'Point',
-      coordinates,
-    },
+    coordinates,
     from_txt: 'string',
     latitude,
     longitude,
@@ -60,9 +41,42 @@ export const doAdultCollectionOffline = (
   try {
     const data = db.transaction((tx) => {
       tx.executeSql(
-        `INSERT INTO AdultCollection (body) VALUES (?);`,
-        [JSON.stringify(body)],
-        () => console.log('Data inserted successfully'),
+        `INSERT INTO AdultCollection (
+          pointreference,
+          device,
+          applicator,
+          marker,
+          from_txt,
+          latitude,
+          longitude,
+          altitude,
+          accuracy,
+          wind,
+          climate,
+          temperature,
+          humidity,
+          insects_number,
+          transmition
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          body.pointreference,
+          body.device,
+          body.applicator,
+          JSON.stringify(body.coordinates),
+          body.from_txt,
+          body.latitude,
+          body.longitude,
+          body.altitude,
+          body.accuracy,
+          body.wind,
+          body.climate ? 1 : 0,
+          body.temperature ? 1 : 0,
+          body.humidity,
+          body.insects_number,
+          'offline',
+        ],
+        () =>
+          console.log('Data inserted successfully in Adult Collection table'),
         (_, error) => {
           console.log('Error inserting data: ', error)
           return true

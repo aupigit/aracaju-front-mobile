@@ -43,13 +43,13 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
       if (token && userId) {
         const netInfo = await NetInfo.fetch()
 
-        if (netInfo.isConnected && netInfo.isInternetReachable) {
-          const response = await findUserById(userId, token)
-          return response
-        } else {
-          const offlineResponse = await findUserByIdOffline(userId)
-          return offlineResponse
-        }
+        // if (netInfo.isConnected && netInfo.isInternetReachable) {
+        const response = await findUserById(userId, token)
+        return response
+        // } else {
+        //   const offlineResponse = await findUserByIdOffline(userId)
+        //   return offlineResponse
+        // }
       } else {
         router.replace('/login')
         return null

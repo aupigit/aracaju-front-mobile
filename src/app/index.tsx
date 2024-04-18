@@ -8,7 +8,6 @@ import { syncApplication } from '@/services/syncServices/application'
 const Home = () => {
   const [count, setCounter] = useState(0)
   const { user, isAuthenticated, logoutUser } = useUser()
-  // const [data, setData] = useState([])
 
   const handleCounter = () => {
     setCounter(count + 1)
@@ -26,34 +25,6 @@ const Home = () => {
   useEffect(() => {
     offlineDatabase()
   })
-
-  // const handleClick = () => {
-  //   db.transaction((tx) => {
-  //     tx.executeSql(
-  //       `INSERT INTO MyModel (name, description) VALUES (?, ?);`,
-  //       ['Test Name 1', 'Test Description 1'],
-  //       () => console.log('Data inserted successfully'),
-  //       (_, error) => {
-  //         console.log('Error inserting data: ', error)
-  //         return true
-  //       },
-  //     )
-  //   })
-  // }
-
-  // const handleRetrieve = () => {
-  //   db.transaction((tx) => {
-  //     tx.executeSql(
-  //       `SELECT * FROM MyModel;`,
-  //       [],
-  //       (_, { rows: { _array } }) => setData(_array),
-  //       (_, error) => {
-  //         console.log('Error retrieving data: ', error)
-  //         return true
-  //       },
-  //     )
-  //   })
-  // }
 
   return (
     <View className="flex-1 items-center justify-center gap-5">
@@ -89,17 +60,6 @@ const Home = () => {
             onPress={handleLogout}
           ></Button>
         )}
-
-        {/* <Button
-          color={'#5178be'}
-          title="RETORNE AQUI"
-          onPress={handleRetrieve}
-        ></Button> */}
-        {/* {data?.map((data) => (
-          <Text key={data.id}>
-            {data.name} - {data.description}
-          </Text>
-        ))} */}
 
         <View>
           {count > 0 && (

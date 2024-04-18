@@ -55,6 +55,7 @@ import ApplicationAdjustPointCoordinatesModal from '@/components/Modal/Applicati
 import { findManyApplicationsOffline } from '@/services/offlineServices/application'
 import { db } from '@/lib/database'
 import { syncApplication } from '@/services/syncServices/application'
+import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
 import { useUser } from '@/contexts/UserContext'
 
 const editPointCoordinateSchema = z.object({
@@ -124,13 +125,7 @@ const Posts = () => {
     isLoading: pointsLoading,
     refetch,
   } = useQuery(['application/pointreference'], async () => {
-    // if (isOnline) {
-    return await findManyPointsReferences('').then((response) => response)
-    // } else {
-    //   return await findManyPointsReferencesOffline().then(
-    //     (response) => response,
-    //   )
-    // }
+    return await findManyPointsReferences('2').then((response) => response)
   })
 
   const onSubmit = handleSubmit(async (data) => {
@@ -141,14 +136,13 @@ const Posts = () => {
         description,
         Number(selectedPoint.id),
       )
-      console.log(response)
       setPointIsEditable(false)
       setCoordinateModal(false)
       refetch()
       reset()
       setPreviewCoordinate(null)
     } catch (error) {
-      console.log(error)
+      console.error(error)
       throw error
     }
   })
@@ -157,92 +151,7 @@ const Posts = () => {
 
   const mapRef = useRef(null)
 
-  // ADICIONAR ITENS NO MOCKAPI
-  // const addPost = async () => {
-  //   const newPost = {
-  //     name: 'foo',
-  //     email: 'bar',
-  //     ponto_long: -180 + Math.random() * 360,
-  //     ponto_lati: -90 + Math.random() * 180,
-  //   }
-
-  //   const netInfo = await NetInfo.fetch()
-
-  //   if (netInfo.isConnected && netInfo.isInternetReachable) {
-  //     const response = await fetch(
-  //       'https://66156f0fb8b8e32ffc7af00b.mockapi.io/api/v1/users',
-  //       {
-  //         method: 'POST',
-  //         body: JSON.stringify(newPost),
-  //         headers: {
-  //           'Content-type': 'application/json; charset=UTF-8',
-  //         },
-  //       },
-  //     )
-
-  //     const json = await response.json()
-
-  //     // Add the new post to the list of posts
-  //     setPosts([...posts, json])
-  //   } else {
-  //     // Save the post to AsyncStorage if the user is offline
-  //     const offlinePosts = (await AsyncStorage.getItem('offlinePosts')) || '[]'
-  //     await AsyncStorage.setItem(
-  //       'offlinePosts',
-  //       JSON.stringify([...JSON.parse(offlinePosts), newPost]),
-  //     )
-  //   }
-  // }
-
-  // BUSCAR ITENS DO MOCKAPI
-  // const fetchPosts = async () => {
-  //   const response = await axios.get(
-  //     'https://66156f0fb8b8e32ffc7af00b.mockapi.io/api/v1/users',
-  //   )
-  //   setPosts(response.data)
-  // }
-
   const routePoints = []
-
-  // SINCRONIZAR ALTERAÇÕES OFFLINE COM A ONLINE
-  // const handleSync = async () => {
-  //   const netInfo = await NetInfo.fetch()
-  //   if (netInfo.isConnected && netInfo.isInternetReachable) {
-  //     // Get the offline posts from AsyncStorage
-  //     const offlinePosts = JSON.parse(
-  //       (await AsyncStorage.getItem('offlinePosts')) || '[]',
-  //     )
-
-  //     // Send each offline post to the API
-  //     for (const post of offlinePosts) {
-  //       await fetch(
-  //         'https://66156f0fb8b8e32ffc7af00b.mockapi.io/api/v1/users',
-  //         {
-  //           method: 'POST',
-  //           body: JSON.stringify(post),
-  //           headers: {
-  //             'Content-type': 'application/json; charset=UTF-8',
-  //           },
-  //         },
-  //       )
-  //     }
-
-  //     // Clear the offline posts from AsyncStorage
-  //     await AsyncStorage.setItem('offlinePosts', JSON.stringify([]))
-
-  //     // Fetch the latest posts from the API
-  //     await fetchPosts()
-  //     setIsSynced(true)
-  //     Alert.alert('Sincronização', 'Dados sincronizados com sucesso!')
-  //   } else {
-  //     setIsSynced(false)
-  //     addPost()
-  //     Alert.alert(
-  //       'Sincronização',
-  //       'Você está offline. Os dados não puderam ser sincronizados.',
-  //     )
-  //   }
-  // }
 
   // PEDIR PERMISSÃO PARA ACESSAR A LOCALIZAÇÃO
   async function requestLocationPermissions() {
@@ -314,24 +223,27 @@ const Posts = () => {
   }, [location, pointsData])
   console.log('asadadakdakda', showCollectButton)
 
+  const showUserConectivitySituation = () => {
+    if (isOnline) {
+      setIsSynced(true)
+    } else {
+      setIsSynced(false)
+    }
+  }
+
   useEffect(() => {
     console.log('Sincronizando dados...')
+    showUserConectivitySituation()
+
     syncApplication()
+    syncDoAdultCollection()
   }, [])
 
   if (!location) {
     return
   }
 
-  // console.log(
-  //   'LOCALIZAÇÃO ATUAL ->',
-  //   location.coords.latitude,
-  //   location.coords.longitude,
-  // )
-
-  // console.log('ROTA ->', JSON.stringify(routes, null, 2))
-  // console.log('ROUTE POINTS ->', JSON.stringify(routePoints, null, 2))
-  // console.log('QUANTIDADE DE PONTOS DA ROTA ->', routes.length)
+  console.log(location.coords.latitude, location.coords.longitude)
 
   const handleMarkerPress = (point) => {
     setSelectedPoint(point)
@@ -380,10 +292,6 @@ const Posts = () => {
       </View>
     </View>
   )
-
-  // console.log(JSON.stringify(selectedPoint, null, 2))
-
-  // console.log(data)
 
   if (pointsLoading) {
     return (
@@ -437,7 +345,6 @@ const Posts = () => {
                 if (pointIsEditable) {
                   const { latitude, longitude } = e.nativeEvent.coordinate
                   // handlePress({ latitude, longitude })
-                  console.log('COORDENADAS ->', latitude, longitude)
                   setValue('latitude', latitude)
                   setValue('longitude', longitude)
                   setCoordinateModal(true)
@@ -541,6 +448,10 @@ const Posts = () => {
             selectedPoint={selectedPoint}
             setModalApplicate={setModalApplicate}
             setSelectedPoint={setSelectedPoint}
+            refetch={refetch}
+            setPointIsEditable={setPointIsEditable}
+            userLocation={userLocation}
+            modalApplicate={modalApplicate}
           />
 
           <ApplicationPointsInformationModal
@@ -729,37 +640,6 @@ const Posts = () => {
               </Text>
             </Pressable>
           )}
-
-          {isSynced ? null : <Text>Dados desincronizados</Text>}
-
-          {/* <Text>Posts</Text>
- 
-
-        {posts.map((post) => (
-          <View
-            key={post.id}
-            className=" w-full flex-row items-center justify-between"
-          >
-            <Text>{post.id}</Text>
-            <Text>{post.name}</Text>
-          </View>
-        ))} */}
-
-          {/* <Button title="SAVE FILE" onPress={saveToFile}></Button> */}
-
-          {/* <ScrollView className="max-h-[200px] overflow-scroll">
-          <Text>{routes.length}</Text>
-
-          {routes.length > 0 ? (
-            routes.map((point, index) => (
-              <Text key={index}>
-                {point.coords.latitude} / {point.coords.longitude}
-              </Text>
-            ))
-          ) : (
-            <Text>Rotas: 0</Text>
-          )}
-        </ScrollView> */}
         </View>
       </ScrollView>
     </DrawerLayoutAndroid>

@@ -43,15 +43,13 @@ const ApplicationConfirmInactivePointModal = ({
         Number(selectedPoint.id),
         data.description,
       )
-      console.log(JSON.stringify(response, null, 2))
       refetch()
       setModalVisible(!modalVisible)
       reset()
     } catch (error) {
-      console.log(error)
+      console.error(error)
       throw error
     }
-    console.log(data)
   })
 
   return (

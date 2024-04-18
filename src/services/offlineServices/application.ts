@@ -18,10 +18,7 @@ export const doApplicationOffline = async (
   applicator: number,
 ) => {
   const body = {
-    marker: {
-      type: 'Point',
-      coordinates,
-    },
+    coordinates, // COORDENADAS DO USUÁRIO
     from_txt: 'string',
     latitude,
     longitude,
@@ -67,7 +64,7 @@ export const doApplicationOffline = async (
           body.pointreference,
           body.device,
           body.applicator,
-          JSON.stringify(body.marker),
+          JSON.stringify(body.coordinates), // Convert array to string
           body.from_txt,
           body.latitude,
           body.longitude,
