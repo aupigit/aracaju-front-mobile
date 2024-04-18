@@ -21,7 +21,7 @@ interface ApplicationEditPointModalProps {
   refetch: () => void
 }
 
-const editPointSchema = z.object({
+export const editPointSchema = z.object({
   name: z.string({
     required_error: 'Nome do ponto é obrigatório',
   }),
@@ -68,15 +68,13 @@ const ApplicationEditPointModal = ({
         data.description,
         Number(selectedPoint.id),
       )
-      console.log(response)
       setChangeNameModal(false)
       refetch()
       reset()
     } catch (error) {
-      console.log(error)
+      console.error(error)
       throw error
     }
-    console.log(data)
   })
 
   return (

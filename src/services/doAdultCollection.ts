@@ -13,7 +13,6 @@ export const doAdultCollection = async (
   insects_number: number,
   observation: string,
 ) => {
-  // console.log(insects_number)
   const body = {
     marker: {
       type: 'Point',

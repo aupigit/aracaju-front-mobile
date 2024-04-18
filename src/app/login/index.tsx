@@ -52,10 +52,8 @@ const Login = () => {
   const onSubmit = handleSubmit(async (data) => {
     try {
       setButtonLoading(true)
-      // console.log(data)
 
       const response = await doLogin(data.email, data.password)
-      // console.log(response)
 
       if (response && response.user) {
         setVisibleOK(!visibleOK)

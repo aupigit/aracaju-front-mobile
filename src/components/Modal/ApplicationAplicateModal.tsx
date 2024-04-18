@@ -116,12 +116,10 @@ const ApplicationApplicateModal = ({
         return false
     }
   }
-  console.log('selectedPoint', selectedPoint)
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       const netInfo = await NetInfo.fetch()
-      console.log('---------------', data.image)
       if (netInfo.isConnected && netInfo.isInternetReachable) {
         const response = await doApplication(
           userLocation,
@@ -138,7 +136,6 @@ const ApplicationApplicateModal = ({
           selectedPoint.contract,
           Number(selectedPoint.id),
         )
-        console.log(response)
         setVisibleOK(true)
         setTimeout(() => {
           setVisibleOK(!visibleOK)
@@ -161,7 +158,6 @@ const ApplicationApplicateModal = ({
           selectedPoint.contract,
           Number(selectedPoint.id),
         )
-        console.log(offlineResponse)
       }
     } catch (error) {
       console.error(error)
@@ -241,7 +237,9 @@ const ApplicationApplicateModal = ({
                 name="container"
                 render={({ field }) => (
                   <View style={{ marginBottom: 10 }}>
-                    <Text>Tem Recipiente?</Text>
+                    <Text className="text-center text-2xl font-bold">
+                      Tem Recipiente?
+                    </Text>
                     <RadioButton.Group
                       onValueChange={(value) =>
                         setRecipienteChecked(handleBooleanToStr(value))
@@ -264,7 +262,9 @@ const ApplicationApplicateModal = ({
                 name="card"
                 render={({ field }) => (
                   <View style={{ marginBottom: 10 }}>
-                    <Text>Tem Ficha?</Text>
+                    <Text className="text-center text-2xl font-bold">
+                      Tem Ficha?
+                    </Text>
                     <RadioButton.Group
                       onValueChange={(value) =>
                         setFichaChecked(handleBooleanToStr(value))
@@ -286,7 +286,9 @@ const ApplicationApplicateModal = ({
                 name="plate"
                 render={({ field }) => (
                   <View style={{ marginBottom: 10 }}>
-                    <Text>Tem Placa?</Text>
+                    <Text className="text-center text-2xl font-bold">
+                      Tem Placa?
+                    </Text>
                     <RadioButton.Group
                       onValueChange={(value) =>
                         setPlacaChecked(handleBooleanToStr(value))

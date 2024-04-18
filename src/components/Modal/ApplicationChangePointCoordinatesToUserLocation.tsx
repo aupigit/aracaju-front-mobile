@@ -49,12 +49,11 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
         data.description,
         Number(selectedPoint.id),
       )
-      console.log(response)
       setModalVisible(false)
       refetch()
       reset()
     } catch (error) {
-      console.log(error)
+      console.error(error)
       throw error
     }
   })
