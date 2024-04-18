@@ -1,15 +1,9 @@
+import { IApplicator } from './IApplicator'
 import { IBase } from './IBase'
 
 export interface Marker {
   type: string
   coordinates: number[]
-}
-export interface IApplicator extends IBase {
-  name: string
-  status: boolean
-  new_marker: boolean
-  edit_marker: boolean
-  description: string
 }
 
 export interface IPointType extends IBase {

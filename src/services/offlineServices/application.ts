@@ -15,6 +15,7 @@ export const doApplicationOffline = async (
   image: string,
   contract: number,
   pointreference: number,
+  applicator: number,
 ) => {
   const body = {
     coordinates, // COORDENADAS DO USUÁRIO
@@ -32,7 +33,7 @@ export const doApplicationOffline = async (
     image,
     pointreference,
     device: 1,
-    applicator: 2,
+    applicator,
     contract,
   }
 

@@ -56,6 +56,7 @@ import { findManyApplicationsOffline } from '@/services/offlineServices/applicat
 import { db } from '@/lib/database'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
+import { useUser } from '@/contexts/UserContext'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -85,6 +86,7 @@ const Posts = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [showButton, setShowButton] = useState(false)
   const [showCollectButton, setShowCollectButton] = useState(false)
+  const [showPointDetails, setShowPointDetails] = useState(false)
   const [modalConflict, setModalConflict] = useState(false)
   const [modalInfoPoints, setModalInfoPoints] = useState(false)
   const [modalApplicate, setModalApplicate] = useState(false)
@@ -97,6 +99,7 @@ const Posts = () => {
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [description, setDescription] = useState('')
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
+  const { applicator } = useUser()
 
   const {
     control,
@@ -201,14 +204,24 @@ const Posts = () => {
       if (pointsData) {
         for (const point of pointsData) {
           if (calculateDistance(location.coords, point) <= 15) {
-            setShowButton(true)
+            setShowPointDetails(true)
+            if (Number(point.pointtype) === 4) {
+              setShowCollectButton(true)
+            }
+            if (Number(point.pointtype) === 2) {
+              setShowButton(true)
+            }
+
             return
           }
         }
       }
       setShowButton(false)
+      setShowCollectButton(false)
+      setShowPointDetails(false)
     }
   }, [location, pointsData])
+  console.log('asadadakdakda', showCollectButton)
 
   const showUserConectivitySituation = () => {
     if (isOnline) {
@@ -301,13 +314,15 @@ const Posts = () => {
       absolute
       right-9 top-20 z-10 items-center justify-center"
         >
-          <Pressable
-            className="
-          w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-            onPress={openDrawer}
-          >
-            <Feather name="menu" size={24} color="gray" />
-          </Pressable>
+          {applicator.is_leader && (
+            <Pressable
+              className="
+        w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
+              onPress={openDrawer}
+            >
+              <Feather name="menu" size={24} color="gray" />
+            </Pressable>
+          )}
         </View>
 
         <View className="h-screen flex-1 items-center justify-center">
@@ -492,11 +507,39 @@ const Posts = () => {
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
-          {showCollectButton && (
+          {showCollectButton && applicator.is_leader && (
             <Pressable
-              className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+              className="w-screen rounded-md border border-zinc-700/20 bg-red-500 p-5"
               onPress={() => {
-                setModalAdultCollection(true)
+                const conflictPoints = getConflictPoints(location, pointsData)
+                if (conflictPoints.length >= 2) {
+                  if (location) {
+                    const distances = conflictPoints.map((point) =>
+                      calculateDistance(location.coords, point),
+                    )
+
+                    const closestPointIndex = distances.indexOf(
+                      Math.min(...distances),
+                    )
+
+                    const closestPoint = conflictPoints[closestPointIndex]
+                    console.log('ponto mais próximo', closestPoint)
+                    setModalAdultCollection(true)
+                    setSelectedPoint(closestPoint)
+                  }
+                } else {
+                  if (location) {
+                    if (pointsData) {
+                      for (const point of pointsData) {
+                        if (calculateDistance(location.coords, point) <= 15) {
+                          setModalAdultCollection(true)
+                          setSelectedPoint(point)
+                          return
+                        }
+                      }
+                    }
+                  }
+                }
               }}
             >
               <Text className="text-center text-lg font-bold text-white">
@@ -505,109 +548,97 @@ const Posts = () => {
             </Pressable>
           )}
           {showButton && (
-            <React.Fragment>
-              <Pressable
-                className="w-screen border border-zinc-700/20 bg-[#7c58d6] p-5"
-                onPress={() => {
-                  // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                  const conflictPoints = getConflictPoints(location, pointsData)
-                  if (conflictPoints.length >= 2) {
-                    if (location) {
-                      // Calcule a distância entre a localização atual e cada ponto de conflito
-                      const distances = conflictPoints.map((point) =>
-                        calculateDistance(location.coords, point),
-                      )
+            <Pressable
+              className="w-screen rounded-md border border-zinc-700/20 bg-green-500 p-5"
+              onPress={() => {
+                // Verifique se há conflito (usuário dentro do raio de dois pontos)
+                const conflictPoints = getConflictPoints(location, pointsData)
+                if (conflictPoints.length >= 2) {
+                  if (location) {
+                    // Calcule a distância entre a localização atual e cada ponto de conflito
+                    const distances = conflictPoints.map((point) =>
+                      calculateDistance(location.coords, point),
+                    )
 
-                      // Encontre o índice do ponto com a menor distância
-                      const closestPointIndex = distances.indexOf(
-                        Math.min(...distances),
-                      )
+                    // Encontre o índice do ponto com a menor distância
+                    const closestPointIndex = distances.indexOf(
+                      Math.min(...distances),
+                    )
 
-                      // Use o índice para encontrar o ponto mais próximo
-                      const closestPoint = conflictPoints[closestPointIndex]
-
-                      // Abra o modal com o ponto mais próximo
-                      setModalApplicate(true)
-                      setSelectedPoint(closestPoint)
-                    }
-                  } else {
-                    if (location) {
-                      if (pointsData) {
-                        for (const point of pointsData) {
-                          if (calculateDistance(location.coords, point) <= 15) {
-                            setModalApplicate(true)
-                            setSelectedPoint(point)
-                            return
-                          }
+                    // Use o índice para encontrar o ponto mais próximo
+                    const closestPoint = conflictPoints[closestPointIndex]
+                    console.log('ponto mais próximo', closestPoint)
+                    // Abra o modal com o ponto mais próximo
+                    setModalApplicate(true)
+                    setSelectedPoint(closestPoint)
+                  }
+                } else {
+                  if (location) {
+                    if (pointsData) {
+                      for (const point of pointsData) {
+                        if (calculateDistance(location.coords, point) <= 15) {
+                          setModalApplicate(true)
+                          setSelectedPoint(point)
+                          return
                         }
                       }
                     }
                   }
-                }}
-              >
-                <Text className="text-center text-lg font-bold text-white">
-                  APLICAÇÃO
-                </Text>
-              </Pressable>
+                }
+              }}
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                APLICAÇÃO
+              </Text>
+            </Pressable>
+          )}
+          {showPointDetails && (
+            <Pressable
+              className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+              onPress={() => {
+                // Verifique se há conflito (usuário dentro do raio de dois pontos)
+                const conflictPoints = getConflictPoints(location, pointsData)
+                if (conflictPoints.length >= 2) {
+                  // setConflictPoints(conflictPoints)
+                  // setModalConflict(true)
 
-              {/* <Pressable onPress={handlePress}>
-                <Text>CLique aq</Text>
-              </Pressable> */}
+                  if (location) {
+                    // Calcule a distância entre a localização atual e cada ponto de conflito
+                    const distances = conflictPoints.map((point) =>
+                      calculateDistance(location.coords, point),
+                    )
 
-              <Pressable
-                className="w-screen border border-zinc-700/20 bg-[#7c58d6] p-5"
-                onPress={() => {
-                  // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                  const conflictPoints = getConflictPoints(location, pointsData)
-                  if (conflictPoints.length >= 2) {
-                    // setConflictPoints(conflictPoints)
-                    // setModalConflict(true)
+                    // Encontre o índice do ponto com a menor distância
+                    const closestPointIndex = distances.indexOf(
+                      Math.min(...distances),
+                    )
 
-                    if (location) {
-                      // Calcule a distância entre a localização atual e cada ponto de conflito
-                      const distances = conflictPoints.map((point) =>
-                        calculateDistance(location.coords, point),
-                      )
+                    // Use o índice para encontrar o ponto mais próximo
+                    const closestPoint = conflictPoints[closestPointIndex]
 
-                      // Encontre o índice do ponto com a menor distância
-                      const closestPointIndex = distances.indexOf(
-                        Math.min(...distances),
-                      )
-
-                      // Use o índice para encontrar o ponto mais próximo
-                      const closestPoint = conflictPoints[closestPointIndex]
-
-                      // Abra o modal com o ponto mais próximo
-                      setModalEditPoint(true)
-                      setSelectedPoint(closestPoint)
-                    }
-                  } else {
-                    if (location) {
-                      if (pointsData) {
-                        for (const point of pointsData) {
-                          if (calculateDistance(location.coords, point) <= 15) {
-                            setModalEditPoint(true)
-                            setSelectedPoint(point)
-                            return
-                          }
+                    // Abra o modal com o ponto mais próximo
+                    setModalEditPoint(true)
+                    setSelectedPoint(closestPoint)
+                  }
+                } else {
+                  if (location) {
+                    if (pointsData) {
+                      for (const point of pointsData) {
+                        if (calculateDistance(location.coords, point) <= 15) {
+                          setModalEditPoint(true)
+                          setSelectedPoint(point)
+                          return
                         }
                       }
                     }
                   }
-                }}
-              >
-                <Text className="text-center text-lg font-bold text-white">
-                  VER DETALHES DO PONTO
-                </Text>
-              </Pressable>
-              <>
-                {isSynced ? null : (
-                  <Text className="w-full bg-white text-center">
-                    Dados desincronizados
-                  </Text>
-                )}
-              </>
-            </React.Fragment>
+                }
+              }}
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                VER DETALHES DO PONTO
+              </Text>
+            </Pressable>
           )}
         </View>
       </ScrollView>

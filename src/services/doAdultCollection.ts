@@ -6,12 +6,16 @@ export const doAdultCollection = async (
   longitude: number,
   altitude: number,
   accuracy: number,
-  wind: number,
-  climate: boolean,
-  temperature: boolean,
+  wind: string,
+  climate: string,
+  temperature: string,
   humidity: string,
   insects_number: number,
   observation: string,
+  contract: number,
+  image: string,
+  applicator: number,
+  pointreference: number,
 ) => {
   const body = {
     marker: {
@@ -30,9 +34,11 @@ export const doAdultCollection = async (
     status: 'Em dia',
     observation,
     insects_number,
-    pointreference: 1,
+    pointreference,
     device: 1,
-    applicator: 1,
+    applicator,
+    image,
+    contract,
   }
 
   try {
