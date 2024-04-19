@@ -176,7 +176,11 @@ export const offlineDatabase = () => {
         temperature TEXT,
         humidity REAL,
         insects_number INTEGER,
+        observation TEXT,
+        image TEXT,
+        contract INTEGER,
         transmition TEXT,
+        created_ondevice_at TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       );`,
@@ -191,6 +195,7 @@ export const offlineDatabase = () => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS Trails (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contract INTEGER,
         device INTEGER,
         applicator INTEGER,
         created_ondevice_at TEXT,

@@ -35,6 +35,11 @@ export const syncDoAdultCollection = async () => {
           item.humidity,
           item.insects_number,
           item.observation,
+          item.contract,
+          item.image,
+          item.applicator,
+          item.pointreference,
+          item.created_ondevice_at,
         )
         await db.transaction((tx) => {
           tx.executeSql(

@@ -57,6 +57,9 @@ import { db } from '@/lib/database'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
 import { useUser } from '@/contexts/UserContext'
+import { doTrails } from '@/services/trails'
+import { doTrailsOffline } from '@/services/offlineServices/trails'
+import { syncTrails } from '@/services/syncServices/trail'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -151,8 +154,6 @@ const Posts = () => {
 
   const mapRef = useRef(null)
 
-  const routePoints = []
-
   // PEDIR PERMISSÃO PARA ACESSAR A LOCALIZAÇÃO
   async function requestLocationPermissions() {
     const { granted } = await requestForegroundPermissionsAsync()
@@ -179,9 +180,6 @@ const Posts = () => {
         },
         async (newLocation) => {
           setLocation(newLocation)
-
-          routePoints.push(newLocation)
-
           await AsyncStorage.setItem('location', JSON.stringify(newLocation))
 
           setRoutes((currentLocations) => [...currentLocations, newLocation])
@@ -190,14 +188,42 @@ const Posts = () => {
     }
 
     startWatching()
-
-    // return () => {
-    //   // Stop watching location when the component is unmounted
-    //   if (unsubscribe) {
-    //     unsubscribe.remove()
-    //   }
-    // }
   }, [])
+
+  useEffect(() => {
+    const postTrails = async () => {
+      const lastLocation = routes[routes.length - 1]
+      if (!lastLocation) {
+        return
+      }
+
+      if (isOnline) {
+        await doTrails(
+          [lastLocation.coords.latitude, lastLocation.coords.longitude],
+          lastLocation.coords.latitude,
+          lastLocation.coords.longitude,
+          lastLocation.coords.altitude,
+          lastLocation.coords.accuracy,
+          Number(applicator.id),
+          1, // CONTRATO
+        )
+      } else {
+        await doTrailsOffline(
+          [lastLocation.coords.latitude, lastLocation.coords.longitude],
+          lastLocation.coords.latitude,
+          lastLocation.coords.longitude,
+          lastLocation.coords.altitude,
+          lastLocation.coords.accuracy,
+          Number(applicator.id),
+          1, // CONTRATO
+        )
+      }
+    }
+
+    if (routes.length > 0) {
+      postTrails()
+    }
+  }, [routes])
 
   useEffect(() => {
     if (location) {
@@ -205,7 +231,7 @@ const Posts = () => {
         for (const point of pointsData) {
           if (calculateDistance(location.coords, point) <= 15) {
             setShowPointDetails(true)
-            if (Number(point.pointtype) === 4) {
+            if (Number(point.pointtype) === 3) {
               setShowCollectButton(true)
             }
             if (Number(point.pointtype) === 2) {
@@ -221,7 +247,6 @@ const Posts = () => {
       setShowPointDetails(false)
     }
   }, [location, pointsData])
-  console.log('asadadakdakda', showCollectButton)
 
   const showUserConectivitySituation = () => {
     if (isOnline) {
@@ -237,13 +262,14 @@ const Posts = () => {
 
     syncApplication()
     syncDoAdultCollection()
+    syncTrails()
   }, [])
 
   if (!location) {
     return
   }
 
-  console.log(location.coords.latitude, location.coords.longitude)
+  const userLocation = [location.coords.latitude, location.coords.longitude]
 
   const handleMarkerPress = (point) => {
     setSelectedPoint(point)
@@ -254,8 +280,6 @@ const Posts = () => {
     setModalVisible(true)
     setSelectedPoint(point)
   }
-
-  const userLocation = [location.coords.latitude, location.coords.longitude]
 
   const navigationView = () => (
     <View
@@ -523,7 +547,6 @@ const Posts = () => {
                     )
 
                     const closestPoint = conflictPoints[closestPointIndex]
-                    console.log('ponto mais próximo', closestPoint)
                     setModalAdultCollection(true)
                     setSelectedPoint(closestPoint)
                   }
@@ -567,7 +590,6 @@ const Posts = () => {
 
                     // Use o índice para encontrar o ponto mais próximo
                     const closestPoint = conflictPoints[closestPointIndex]
-                    console.log('ponto mais próximo', closestPoint)
                     // Abra o modal com o ponto mais próximo
                     setModalApplicate(true)
                     setSelectedPoint(closestPoint)

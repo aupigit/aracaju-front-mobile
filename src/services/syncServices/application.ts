@@ -28,7 +28,7 @@ export const syncApplication = async () => {
           item.latitude,
           item.longitude,
           item.altitude,
-          item.accuracy,
+          item.acuracia,
           item.volumebti,
           item.container,
           item.card,
@@ -37,6 +37,8 @@ export const syncApplication = async () => {
           item.image,
           1,
           1,
+          1,
+          item.created_ondevice_at,
         )
         await db.transaction((tx) => {
           tx.executeSql(

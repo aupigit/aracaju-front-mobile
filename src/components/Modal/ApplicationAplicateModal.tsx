@@ -176,6 +176,7 @@ const ApplicationApplicateModal = ({
           Number(selectedPoint.id),
           Number(applicator.id),
         )
+        console.log(offlineResponse)
       }
     } catch (error) {
       console.error(error)
