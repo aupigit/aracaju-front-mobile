@@ -113,7 +113,7 @@ const Posts = () => {
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [description, setDescription] = useState('')
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
-
+  console.log('aplicadoresada', applicator)
   const {
     control,
     handleSubmit,
@@ -464,15 +464,13 @@ const Posts = () => {
     >
       <ScrollView style={{ paddingTop: insets.top }}>
         <View className=" absolute right-9 top-20 z-10 items-center justify-center">
-          {applicator.is_leader && (
-            <Pressable
-              className="
+          <Pressable
+            className="
         w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-              onPress={openDrawer}
-            >
-              <Feather name="menu" size={24} color="gray" />
-            </Pressable>
-          )}
+            onPress={openDrawer}
+          >
+            <Feather name="menu" size={24} color="gray" />
+          </Pressable>
         </View>
 
         <View className=" absolute right-9 top-[120px] z-10 items-center justify-center">
@@ -681,7 +679,7 @@ const Posts = () => {
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
-          {showCollectButton && applicator.is_leader && (
+          {showCollectButton && user.is_staff && (
             <Pressable
               className="w-screen rounded-md border border-zinc-700/20 bg-red-500 p-5"
               onPress={() => {

@@ -28,7 +28,7 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
   const fetchApplicatorData = async () => {
     const applicatorId = await AsyncStorage.getItem('applicator_id')
     console.log('applicatorId', applicatorId)
-
+    console.log('applicatorId', applicatorId)
     try {
       if (applicatorId) {
         const applicatorData = await findApplicatorById(applicatorId)
@@ -47,6 +47,8 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
     applicator,
     fetchApplicatorData,
   }
+
+  console.log('applicator', applicator)
 
   return (
     <ApplicatorContext.Provider value={value}>
