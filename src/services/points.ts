@@ -2,7 +2,7 @@ import { IPoint } from '@/interfaces/IPoint'
 import { get, patch } from '@/providers/api'
 
 export const findManyPointsReferences = async (
-  updated_at: string,
+  updated_at: string | null,
 ): Promise<IPoint[]> => {
   console.log('UPDATED AT -> ', updated_at)
   const result = await get(

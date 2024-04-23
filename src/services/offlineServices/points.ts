@@ -26,7 +26,7 @@ export const adjustPointReferenceNameOffline = async (
 ) => {
   db.transaction((tx) => {
     tx.executeSql(
-      `UPDATE PointReference SET name = ?, edit_name = 1 WHERE id = ?;`,
+      `UPDATE PointReference SET name = ?, edit_name = 1, updated_at = datetime('now') WHERE id = ?;`,
       [name, pointId],
       () => console.log('Data updated successfully in PointReference table'),
       (_, error) => {
@@ -44,7 +44,7 @@ export const adjustPointReferenceLocationOffline = async (
 ) => {
   db.transaction((tx) => {
     tx.executeSql(
-      `UPDATE PointReference SET longitude = ?, latitude = ?, edit_location = 1 WHERE id = ?;`,
+      `UPDATE PointReference SET longitude = ?, latitude = ?, edit_location = 1, updated_at = datetime('now') WHERE id = ?;`,
       [longitude, latitude, pointId],
       () => console.log('Data updated successfully in PointReference table'),
       (_, error) => {
@@ -58,7 +58,7 @@ export const adjustPointReferenceLocationOffline = async (
 export const adjustPointReferenceStatusOffline = async (pointId: number) => {
   db.transaction((tx) => {
     tx.executeSql(
-      `UPDATE PointReference SET is_active = 0, edit_status = 1 WHERE id = ?;`,
+      `UPDATE PointReference SET is_active = 0, edit_status = 1, updated_at = datetime('now') WHERE id = ?;`,
       [pointId],
       () => console.log('Data updated successfully in PointReference table'),
       (_, error) => {
