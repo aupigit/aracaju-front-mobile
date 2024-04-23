@@ -19,6 +19,7 @@ export const doLogin = async (
         id: user.id,
         name: user.name,
         email: user.email,
+        is_staff: user.is_staff,
       },
       token: access,
       refresh,

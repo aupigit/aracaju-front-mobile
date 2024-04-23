@@ -28,7 +28,7 @@ const FormControl = ({
 }: FormControlProps) => {
   return (
     <View className="gap-5">
-      <Controller
+      {/* <Controller
         control={control}
         render={({ field: { onChange, onBlur, value } }) => (
           <View className="relative">
@@ -36,20 +36,20 @@ const FormControl = ({
               onBlur={onBlur}
               onChangeText={(value) => onChange(value)}
               value={value}
-              placeholder="Email"
+              placeholder="Adicione o id do seu dispositivo"
               className=" rounded-md border border-zinc-700/20 p-2 pl-4"
             />
             {errors && (
               <Text className="absolute -bottom-5 text-sm text-red-500">
-                {errors.email?.message}
+                {errors.factoryId?.message}
               </Text>
             )}
           </View>
         )}
-        name="email"
+        name="factoryId"
         rules={{ required: true }}
         defaultValue=""
-      />
+      /> */}
       <Controller
         control={control}
         render={({ field: { onChange, onBlur, value } }) => (
@@ -58,7 +58,7 @@ const FormControl = ({
               onBlur={onBlur}
               onChangeText={(value) => onChange(value)}
               value={value}
-              placeholder="Password"
+              placeholder="Token"
               secureTextEntry={!showPassword}
               className=" rounded-md border border-zinc-700/20 p-2 pl-4"
             />

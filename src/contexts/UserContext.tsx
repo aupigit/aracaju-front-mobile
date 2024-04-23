@@ -11,9 +11,7 @@ import { useQuery } from 'react-query'
 import NetInfo from '@react-native-community/netinfo'
 import { findUserById } from '@/services/user'
 import { router } from 'expo-router'
-import { findUserByIdOffline } from '@/services/offlineServices/user'
-import { IApplicator } from '@/interfaces/IApplicator'
-import { findApplicatorByUserId } from '@/services/applicator'
+import * as Application from 'expo-application'
 
 interface UserContextProps {
   children: ReactNode
@@ -21,7 +19,6 @@ interface UserContextProps {
 
 interface UserContextData {
   user: IUser | null
-  applicator: IApplicator | null
   isAuthenticated: boolean
   loginUser: (userData?: IUser) => void
   logoutUser: () => void
@@ -31,7 +28,6 @@ const UserContext = createContext<UserContextData | undefined>(undefined)
 
 const UserProvider: React.FC<UserContextProps> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(null)
-  const [applicator, setApplicator] = useState<IApplicator | null>(null)
   const isAuthenticated = !!user
 
   const { data: userData } = useQuery<IUser | null>(
@@ -62,41 +58,24 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
 
   useEffect(() => {
     setUser(userData)
-
-    if (userData) {
-      fetchApplicatorData(userData.id)
-    }
   }, [userData])
 
   const loginUser = (userData?: IUser | undefined) => {
     setUser(userData || null)
-
-    if (userData) {
-      fetchApplicatorData(userData.id)
-    }
   }
 
   const logoutUser = () => {
     setUser(null)
-    setApplicator(null)
     AsyncStorage.removeItem('token')
     AsyncStorage.removeItem('userId')
-  }
-
-  const fetchApplicatorData = async (userId: string) => {
-    try {
-      const applicatorData = await findApplicatorByUserId(userId)
-      setApplicator(applicatorData)
-    } catch (error) {
-      console.error('Erro ao buscar informações do aplicador:', error)
-    }
+    AsyncStorage.removeItem('applicator_id')
+    router.replace('/')
   }
 
   return (
     <UserContext.Provider
       value={{
         user,
-        applicator,
         isAuthenticated,
         loginUser,
         logoutUser,

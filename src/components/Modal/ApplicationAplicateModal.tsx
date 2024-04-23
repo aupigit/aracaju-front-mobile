@@ -23,6 +23,7 @@ import { useUser } from '@/contexts/UserContext'
 import { doApplicationOffline } from '@/services/offlineServices/application'
 import NetInfo from '@react-native-community/netinfo'
 import { db } from '@/lib/database'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -54,7 +55,7 @@ const ApplicationApplicateModal = ({
   setSelectedPoint,
   userLocation,
 }: ApplicationApplicateModalProps) => {
-  const { applicator } = useUser()
+  const { applicator } = useApplicator()
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)
@@ -72,23 +73,6 @@ const ApplicationApplicateModal = ({
     resolver: zodResolver(applicationSchema),
   })
 
-  const onDismissSnackBarOK = () => setVisibleOK(false)
-  const onDismissSnackBarERROR = () => setVisibleERROR(false)
-  const showSnackbar = (type: 'success' | 'error') => {
-    if (type === 'success') {
-      setVisibleOK(true)
-      setTimeout(() => {
-        setVisibleOK(false)
-        reset()
-        setModalVisible(false)
-      }, 4000)
-    } else if (type === 'error') {
-      setVisibleERROR(true)
-      setTimeout(() => {
-        setVisibleERROR(false)
-      }, 4000)
-    }
-  }
   const handleImagePick = async (title) => {
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -120,6 +104,25 @@ const ApplicationApplicateModal = ({
   }
   const handleClearImageToSend = () => {
     setImages([])
+  }
+
+  const onDismissSnackBarOK = () => setVisibleOK(false)
+  const onDismissSnackBarERROR = () => setVisibleERROR(false)
+  const showSnackbar = (type: 'success' | 'error') => {
+    if (type === 'success') {
+      setVisibleOK(true)
+      setTimeout(() => {
+        setVisibleOK(false)
+        reset()
+        handleClearImageToSend()
+        setModalVisible(false)
+      }, 4000)
+    } else if (type === 'error') {
+      setVisibleERROR(true)
+      setTimeout(() => {
+        setVisibleERROR(false)
+      }, 4000)
+    }
   }
 
   const handleBooleanToStr = (value: string) => {

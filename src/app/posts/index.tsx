@@ -61,6 +61,8 @@ import { pullConfigAppData } from '@/services/pullServices/configApp'
 import { db } from '@/lib/database'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
+import { useUser } from '@/contexts/UserContext'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 import { syncTrails } from '@/services/syncServices/trail'
 import { formatTimer } from '@/utils/formatTimer'
 import {
@@ -82,6 +84,8 @@ export type EditPointCoordinateFormData = z.infer<
 >
 
 const Posts = () => {
+  const { applicator } = useApplicator()
+  const { logoutUser, user } = useUser()
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
 
   const openDrawer = () => {
@@ -110,7 +114,6 @@ const Posts = () => {
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [description, setDescription] = useState('')
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
-  const { applicator } = useUser()
 
   const {
     control,
@@ -244,6 +247,11 @@ const Posts = () => {
 
   const mapRef = useRef(null)
 
+ const routePoints = []
+
+  const handleLogout = () => {
+    logoutUser()
+  }
   // PEDIR PERMISSÃO PARA ACESSAR A LOCALIZAÇÃO
   async function requestLocationPermissions() {
     const { granted } = await requestForegroundPermissionsAsync()
@@ -394,6 +402,7 @@ const Posts = () => {
     setSelectedPoint(point)
   }
 
+  const userLocation = [location.coords.latitude, location.coords.longitude]
   const navigationView = () => (
     <View
       className="flex-col justify-between gap-2 p-5"
@@ -415,16 +424,26 @@ const Posts = () => {
         </Pressable>
       </View>
       <Divider className="mb-5 mt-2" />
+      {user?.is_staff && (
+        <View>
+          <Pressable
+            className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+            onPress={() => {
+              setModalAdultCollection(true)
+            }}
+          >
+            <Text className="text-center text-lg font-bold text-white">
+              REALIZAR COLETA ADULTO
+            </Text>
+          </Pressable>
+        </View>
+      )}
       <View>
         <Pressable
-          className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
-          onPress={() => {
-            setModalAdultCollection(true)
-          }}
+          className="w-auto rounded-md border border-zinc-700/20 bg-red-500 p-5"
+          onPress={handleLogout}
         >
-          <Text className="text-center text-lg font-bold text-white">
-            REALIZAR COLETA ADULTO
-          </Text>
+          <Text className="text-center text-lg font-bold text-white">SAIR</Text>
         </Pressable>
       </View>
     </View>
@@ -437,7 +456,7 @@ const Posts = () => {
       </View>
     )
   }
-
+  console.log('usuário', user)
   return (
     <DrawerLayoutAndroid
       ref={drawerRef}
@@ -451,11 +470,10 @@ const Posts = () => {
             <Pressable
               className="
         w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-              onPress={openDrawer}
-            >
-              <Feather name="menu" size={24} color="gray" />
-            </Pressable>
-          )}
+            onPress={openDrawer}
+          >
+            <Feather name="menu" size={24} color="gray" />
+          </Pressable>
         </View>
 
         <View className=" absolute right-9 top-[120px] z-10 items-center justify-center">
