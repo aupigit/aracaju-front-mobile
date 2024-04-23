@@ -5,6 +5,7 @@ export interface IUser extends IBase {
   name?: string
   last_name?: string
   first_name?: string
+  is_staff?: boolean
 }
 
 export interface IAuthenticatedUser {

@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { LogBox } from 'react-native'
 import { PaperProvider } from 'react-native-paper'
+import { ApplicatorProvider } from '@/contexts/ApplicatorContext'
+import { DeviceProvider } from '@/contexts/DeviceContext'
 const queryClient = new QueryClient()
 
 LogBox.ignoreLogs(['In React 18, SSRProvider is not necessary and is a noop.'])
@@ -16,7 +18,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <PaperProvider>
         <QueryClientProvider client={queryClient}>
-          <UserProvider>{children}</UserProvider>
+          <UserProvider>
+            <ApplicatorProvider>
+              <DeviceProvider>{children}</DeviceProvider>
+            </ApplicatorProvider>
+          </UserProvider>
         </QueryClientProvider>
       </PaperProvider>
     </SafeAreaProvider>

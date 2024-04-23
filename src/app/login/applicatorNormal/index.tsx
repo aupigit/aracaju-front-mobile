@@ -10,16 +10,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import FormControl from './FormControl'
 import { doLogin } from '@/services/authenticate'
 import { Snackbar } from 'react-native-paper'
+import * as Device from 'expo-device'
+import * as Application from 'expo-application'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useDevice } from '@/contexts/DeviceContext'
 
 const authSchema = z.object({
-  email: z
-    .string({
-      required_error: 'Email é obrigatório',
-      invalid_type_error: 'Email precisa ser uma string',
-    })
-    .min(2, 'Email precisa ter pelo menos 2 caracteres')
-    .email('Email precisa ser um email válido'),
-
   password: z
     .string({
       required_error: 'Senha é obrigatório',
@@ -31,6 +27,8 @@ const authSchema = z.object({
 export type AuthFormData = z.infer<typeof authSchema>
 
 const Login = () => {
+  const { device } = useDevice()
+  const { loginUser } = useUser()
   const [showPassword, setShowPassword] = useState(false)
   const [buttonLoading, setButtonLoading] = useState(false)
   const [visibleOK, setVisibleOK] = useState(false)
@@ -44,23 +42,22 @@ const Login = () => {
     resolver: zodResolver(authSchema),
   })
 
-  const { loginUser } = useUser()
-
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
+  console.log('devicediahdiahdhai', device)
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       setButtonLoading(true)
 
-      const response = await doLogin(data.email, data.password)
+      const response = await doLogin(device.factory_id, data.password)
 
       if (response && response.user) {
         setVisibleOK(!visibleOK)
-
+        AsyncStorage.setItem('token_service_id', data.password)
         setTimeout(() => {
           setVisibleOK(!visibleOK)
-          router.replace('/posts')
+          router.replace('/login/applicatorCpfVerificate')
         }, 1000)
 
         loginUser(response.user)
@@ -116,7 +113,7 @@ const Login = () => {
       <View className="container h-screen flex-1 bg-white">
         <View className="flex-1 justify-center gap-5">
           <Text className="text-4xl font-bold text-black">
-            Entrar na sua conta da Aracaju
+            Entrar com o verificador de serviço
           </Text>
           <Text className="text-xl text-black">
             Insira seus dados e explore todas as funcionalidades que temos a
@@ -144,7 +141,7 @@ const Login = () => {
           },
         }}
       >
-        <Text className="text-zinc-700">Usuário logado com sucesso.</Text>
+        <Text className="text-zinc-700">Aplicador logado com sucesso.</Text>
       </Snackbar>
       <Snackbar
         visible={visibleERROR}
