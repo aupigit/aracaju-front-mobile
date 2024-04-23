@@ -9,7 +9,7 @@ import { adjustPointReferenceStatusOffline } from '../offlineServices/points'
 
 export const syncPointsReferenceName = async (
   applicatorId: number,
-  deviceId: number,
+  deviceId: string,
 ) => {
   const netInfo = await NetInfo.fetch()
 
@@ -58,7 +58,7 @@ export const syncPointsReferenceName = async (
 
 export const syncPointsReferenceLocation = async (
   applicatorId: number,
-  deviceId: number,
+  deviceId: string,
 ) => {
   const netInfo = await NetInfo.fetch()
 
@@ -108,7 +108,7 @@ export const syncPointsReferenceLocation = async (
 
 export const syncPointsReferenceStatus = async (
   applicatorId: number,
-  deviceId: number,
+  deviceId: string,
 ) => {
   const netInfo = await NetInfo.fetch()
 
@@ -154,7 +154,7 @@ export const syncPointsReferenceStatus = async (
   }
 }
 
-export const syncPoints = async (applicatorId: number, deviceId: number) => {
+export const syncPoints = async (applicatorId: number, deviceId: string) => {
   await syncPointsReferenceName(applicatorId, deviceId)
   await syncPointsReferenceLocation(applicatorId, deviceId)
   await syncPointsReferenceStatus(applicatorId, deviceId)

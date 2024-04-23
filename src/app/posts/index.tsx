@@ -157,8 +157,8 @@ const Posts = () => {
     updatedAtParameter = formatDate(updatedAtDate)
   }
 
-  console.log('db local -> ', lastUpdatedAtData)
-  console.log('formatado -> ', updatedAtParameter)
+  // console.log('db local -> ', lastUpdatedAtData)
+  // console.log('formatado -> ', updatedAtParameter)
 
   const {
     data: pointsData,
@@ -172,7 +172,7 @@ const Posts = () => {
     }
   })
 
-  console.log(pointsData)
+  // console.log(pointsData)
 
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
     'application/applicator',
@@ -364,7 +364,7 @@ const Posts = () => {
       syncApplication(),
       syncDoAdultCollection(),
       syncTrails(),
-      syncPoints(Number(applicator.id), Number(device.factory_id)),
+      syncPoints(1, device.factory_id),
     ])
       .then(() => {
         console.info('Sincronização completa')

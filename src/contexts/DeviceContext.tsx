@@ -22,14 +22,15 @@ const DeviceContext = createContext<DeviceContextData | undefined>(undefined)
 
 const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
   const factoryId = Application.getAndroidId()
+
+  console.log('factoryId', factoryId)
+
   const [device, setDevice] = useState<IDevices | null>(null)
   const fetchDeviceData = async () => {
     try {
-      if (factoryId) {
-        const deviceData = await findDeviceByFactoryId(factoryId)
-        console.log('deviceData', deviceData)
-        setDevice(deviceData)
-      }
+      const deviceData = await findDeviceByFactoryId(factoryId)
+      console.log('deviceData', deviceData)
+      setDevice(deviceData)
     } catch (error) {
       console.error('Erro ao buscar informações do device:', error)
     }
@@ -43,7 +44,7 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
     device,
     fetchDeviceData,
   }
-  console.log('value', value)
+  console.log('device', device)
 
   return (
     <DeviceContext.Provider value={value}>{children}</DeviceContext.Provider>

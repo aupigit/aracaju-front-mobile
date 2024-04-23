@@ -4,7 +4,6 @@ import { get, patch } from '@/providers/api'
 export const findManyPointsReferences = async (
   updated_at: string | null,
 ): Promise<IPoint[]> => {
-  console.log('UPDATED AT -> ', updated_at)
   const result = await get(
     `applications/pointreference/?updated_at=${updated_at}`,
   )
@@ -16,7 +15,7 @@ export const adjustPointReferenceName = async (
   description: string,
   pointId: number,
   applicatorId: number,
-  deviceId: number,
+  deviceId: string,
 ): Promise<IPoint> => {
   const body = {
     name,
@@ -38,7 +37,7 @@ export const adjustPointReferenceCoordinates = async (
   description: string,
   pointId: number,
   applicatorId: number,
-  deviceId: number,
+  deviceId: string,
 ): Promise<IPoint> => {
   const body = {
     longitude,
@@ -59,7 +58,7 @@ export const adjustPointStatus = async (
   pointId: number,
   description: string,
   applicatorId: number,
-  deviceId: number,
+  deviceId: string,
 ): Promise<IPoint> => {
   const body = {
     is_active: false,

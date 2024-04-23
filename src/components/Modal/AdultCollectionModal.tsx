@@ -139,7 +139,7 @@ const AdultCollectionModal = ({
         Number(applicator.id),
         Number(selectedPoint.id),
       )
-      console.log(offlineResponse)
+      // console.log(offlineResponse)
       showSnackbar('success')
     } catch (error) {
       console.error(error)
