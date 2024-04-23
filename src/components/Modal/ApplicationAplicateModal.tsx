@@ -79,7 +79,7 @@ const ApplicationApplicateModal = ({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [9, 16],
-        quality: 1,
+        quality: 0,
         base64: true,
       })
 
@@ -152,7 +152,8 @@ const ApplicationApplicateModal = ({
         Number(selectedPoint.id),
         Number(applicator.id),
       )
-      console.log(offlineResponse)
+      showSnackbar('success')
+      // console.log(offlineResponse)
     } catch (error) {
       console.error(error)
       showSnackbar('error')

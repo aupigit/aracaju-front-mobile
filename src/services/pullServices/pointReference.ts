@@ -60,7 +60,9 @@ export const pullPointData = (pointData: IPoint[]) => {
             data.situation,
             data.is_active ? 1 : 0,
             data.is_new ? 1 : 0,
-            data.updated_at.toISOString(), // Convert to string
+            data.updated_at
+              ? new Date(data.updated_at).toISOString()
+              : new Date().toISOString(),
           ],
           () =>
             console.log('Data inserted successfully in PointReference table'),

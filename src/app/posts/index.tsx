@@ -70,6 +70,7 @@ import {
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
 import { formatDate } from '@/utils/Date'
+import { useDevice } from '@/contexts/DeviceContext'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -85,6 +86,7 @@ export type EditPointCoordinateFormData = z.infer<
 
 const Posts = () => {
   const { applicator } = useApplicator()
+  const { device } = useDevice()
   const { logoutUser, user } = useUser()
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
 
@@ -155,8 +157,8 @@ const Posts = () => {
     updatedAtParameter = formatDate(updatedAtDate)
   }
 
-  console.log('db local -> ', lastUpdatedAtData)
-  console.log('formatado -> ', updatedAtParameter)
+  // console.log('db local -> ', lastUpdatedAtData)
+  // console.log('formatado -> ', updatedAtParameter)
 
   const {
     data: pointsData,
@@ -170,7 +172,7 @@ const Posts = () => {
     }
   })
 
-  console.log(pointsData)
+  // console.log(pointsData)
 
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
     'application/applicator',
@@ -362,7 +364,7 @@ const Posts = () => {
       syncApplication(),
       syncDoAdultCollection(),
       syncTrails(),
-      syncPoints(),
+      syncPoints(applicator.id, device.factory_id),
     ])
       .then(() => {
         console.info('Sincronização completa')

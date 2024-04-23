@@ -12,8 +12,6 @@ export const doApplicatorVerificate = async (
       await AsyncStorage.setItem('applicator_id', applicator[0].id.toString())
     }
 
-    console.log('aplicador', applicator)
-
     return applicator
   } catch (error) {
     console.error(error)

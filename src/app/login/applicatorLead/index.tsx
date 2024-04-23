@@ -61,7 +61,7 @@ const Login = () => {
 
         setTimeout(() => {
           setVisibleOK(!visibleOK)
-          router.replace('/posts')
+          router.replace('/login/applicatorCpfVerificate')
           AsyncStorage.removeItem('token_service_id')
         }, 1000)
 

@@ -188,6 +188,7 @@ export const offlineDatabase = () => {
         image TEXT,
         contract INTEGER,
         transmition TEXT,
+        created_ondevice_at TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       );`,
@@ -422,41 +423,11 @@ export const offlineDatabase = () => {
 export const dropDatabase = () => {
   db.transaction((tx) => {
     tx.executeSql(
-      `DROP TABLE IF EXISTS ConfigApp;`,
+      `DROP TABLE IF EXISTS AdultCollection;`,
       [],
-      () => console.log('Table ConfigApp dropped successfully'),
+      () => console.log('Table AdultCollection dropped successfully'),
       (_, error) => {
-        console.log('Error dropping table ConfigApp: ', error)
-        return false
-      },
-    )
-
-    tx.executeSql(
-      `DROP TABLE IF EXISTS Applicator`,
-      [],
-      () => console.log('Table Applicator dropped successfully'),
-      (_, error) => {
-        console.error('Error dropping table Applicator: ', error)
-        return false
-      },
-    )
-
-    tx.executeSql(
-      `DROP TABLE IF EXISTS User;`,
-      [],
-      () => console.log('Table User dropped successfully'),
-      (_, error) => {
-        console.log('Error dropping table User: ', error)
-        return false
-      },
-    )
-
-    tx.executeSql(
-      `DROP TABLE IF EXISTS PointReference;`,
-      [],
-      () => console.log('Table PointReference dropped successfully'),
-      (_, error) => {
-        console.log('Error dropping table PointReference: ', error)
+        console.error('Error dropping table AdultCollection: ', error)
         return false
       },
     )

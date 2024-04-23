@@ -7,7 +7,10 @@ import {
 } from '../points'
 import { adjustPointReferenceStatusOffline } from '../offlineServices/points'
 
-export const syncPointsReferenceName = async () => {
+export const syncPointsReferenceName = async (
+  applicatorId: string,
+  deviceId: string,
+) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
@@ -27,31 +30,36 @@ export const syncPointsReferenceName = async () => {
     })
 
     for (const item of data as any[]) {
-      // try {
-      //   await adjustPointReferenceName(
-      //     item.name,
-      //     "item.description",
-      //     Number(item.id),
-      //   )
-      //   await db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `UPDATE PointReference SET edit_name = 0 WHERE id = ?;`,
-      //       [item.id],
-      //       () => console.info('Data updated successfully'),
-      //       (_, error) => {
-      //         console.error('Error updating data: ', error)
-      //         return true
-      //       },
-      //     )
-      //   })
-      // } catch (error) {
-      //   console.error('An error occurred while syncing the data:', error)
-      // }
+      try {
+        await adjustPointReferenceName(
+          item.name,
+          'item.description',
+          Number(item.id),
+          applicatorId,
+          deviceId,
+        )
+        await db.transaction((tx) => {
+          tx.executeSql(
+            `UPDATE PointReference SET edit_name = 0 WHERE id = ?;`,
+            [item.id],
+            () => console.info('Data updated successfully'),
+            (_, error) => {
+              console.error('Error updating data: ', error)
+              return true
+            },
+          )
+        })
+      } catch (error) {
+        console.error('An error occurred while syncing the data:', error)
+      }
     }
   }
 }
 
-export const syncPointsReferenceLocation = async () => {
+export const syncPointsReferenceLocation = async (
+  applicatorId: string,
+  deviceId: string,
+) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
@@ -71,32 +79,37 @@ export const syncPointsReferenceLocation = async () => {
     })
 
     for (const item of data as any[]) {
-      // try {
-      //   await adjustPointReferenceCoordinates(
-      //     item.longitude,
-      //     item.latitude,
-      //     'item.description',
-      //     Number(item.id),
-      //   )
-      //   await db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `UPDATE PointReference SET edit_location = 0 WHERE id = ?;`,
-      //       [item.id],
-      //       () => console.info('Data updated successfully'),
-      //       (_, error) => {
-      //         console.error('Error updating data: ', error)
-      //         return true
-      //       },
-      //     )
-      //   })
-      // } catch (error) {
-      //   console.error('An error occurred while syncing the data:', error)
-      // }
+      try {
+        await adjustPointReferenceCoordinates(
+          item.longitude,
+          item.latitude,
+          'item.description',
+          Number(item.id),
+          applicatorId,
+          deviceId,
+        )
+        await db.transaction((tx) => {
+          tx.executeSql(
+            `UPDATE PointReference SET edit_location = 0 WHERE id = ?;`,
+            [item.id],
+            () => console.info('Data updated successfully'),
+            (_, error) => {
+              console.error('Error updating data: ', error)
+              return true
+            },
+          )
+        })
+      } catch (error) {
+        console.error('An error occurred while syncing the data:', error)
+      }
     }
   }
 }
 
-export const syncPointsReferenceStatus = async () => {
+export const syncPointsReferenceStatus = async (
+  applicatorId: string,
+  deviceId: string,
+) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
@@ -116,30 +129,35 @@ export const syncPointsReferenceStatus = async () => {
     })
 
     for (const item of data as any[]) {
-      // try {
-      //   await adjustPointStatus(Number(item.id), 'item.description')
-      //   await db.transaction((tx) => {
-      //     tx.executeSql(
-      //       `UPDATE PointReference SET edit_status = 0 WHERE id = ?;`,
-      //       [item.id],
-      //       () => console.info('Data updated successfully'),
-      //       (_, error) => {
-      //         console.error('Error updating data: ', error)
-      //         return true
-      //       },
-      //     )
-      //   })
-      // } catch (error) {
-      //   console.error('An error occurred while syncing the data:', error)
-      // }
+      try {
+        await adjustPointStatus(
+          Number(item.id),
+          'item.description',
+          applicatorId,
+          deviceId,
+        )
+        await db.transaction((tx) => {
+          tx.executeSql(
+            `UPDATE PointReference SET edit_status = 0 WHERE id = ?;`,
+            [item.id],
+            () => console.info('Data updated successfully'),
+            (_, error) => {
+              console.error('Error updating data: ', error)
+              return true
+            },
+          )
+        })
+      } catch (error) {
+        console.error('An error occurred while syncing the data:', error)
+      }
     }
   }
 }
 
-export const syncPoints = async () => {
-  await syncPointsReferenceName()
-  await syncPointsReferenceLocation()
-  await syncPointsReferenceStatus()
+export const syncPoints = async (applicatorId: string, deviceId: string) => {
+  await syncPointsReferenceName(applicatorId, deviceId)
+  await syncPointsReferenceLocation(applicatorId, deviceId)
+  await syncPointsReferenceStatus(applicatorId, deviceId)
 
   console.log('Dados dos Pontos de referência sincronizados com sucesso!')
 }
