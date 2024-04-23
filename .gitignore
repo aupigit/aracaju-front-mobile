@@ -15,3 +15,5 @@ bun.lockb
 .DS_Store
 
 .env
+
+bun.lockb 

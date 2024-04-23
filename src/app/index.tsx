@@ -6,6 +6,9 @@ import { offlineDatabase } from './offlineDatabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { doLogin } from '@/services/authenticate'
 import { useDevice } from '@/contexts/DeviceContext'
+import { dropDatabase, offlineDatabase } from './offlineDatabase'
+import { syncApplication } from '@/services/syncServices/application'
+
 
 const Home = () => {
   const { isAuthenticated, logoutUser, loginUser } = useUser()
@@ -38,13 +41,18 @@ const Home = () => {
       }
     }
   }
+  const handleDatabase = () => {
+    router.replace('database')
+  }
+
   const handleLogout = () => {
     logoutUser()
   }
 
   useEffect(() => {
     offlineDatabase()
-  })
+    // dropDatabase()
+  }, [])
 
   return (
     <View className="flex-1 items-center justify-center gap-5">
@@ -83,6 +91,12 @@ const Home = () => {
             </Pressable>
           </View>
         )}
+
+        <Button
+          color={'#5178be'}
+          title="DATABSE LOCAL"
+          onPress={handleDatabase}
+        ></Button>
       </View>
     </View>
   )

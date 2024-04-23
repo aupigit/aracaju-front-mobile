@@ -16,6 +16,7 @@ export const doAdultCollection = async (
   image: string,
   applicator: number,
   pointreference: number,
+  created_ondevice_at?: string,
 ) => {
   const body = {
     marker: {
@@ -39,6 +40,7 @@ export const doAdultCollection = async (
     applicator,
     image,
     contract,
+    created_ondevice_at,
   }
 
   try {

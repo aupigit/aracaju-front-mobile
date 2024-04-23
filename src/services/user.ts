@@ -8,3 +8,8 @@ export const findUserById = async (
   const result = await get(`operation/user/${userId}`)
   return result as unknown as Promise<IUser>
 }
+
+export const findUser = async (): Promise<IUser[]> => {
+  const result = await get(`operation/user/`)
+  return result as unknown as Promise<IUser[]>
+}

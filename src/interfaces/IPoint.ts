@@ -125,13 +125,13 @@ export interface IContract extends IBase {
 
 export interface IPoint extends IBase {
   applications: string[]
+  days_since_last_application: string | null
   name: string
   marker: Marker
-  altitude: number
-  contract: number
   from_txt: string
   latitude: number
   longitude: number
+  altitude: number
   accuracy: number
   volumebti: number
   observation: string
@@ -139,10 +139,14 @@ export interface IPoint extends IBase {
   created_ondevice_at?: string
   transmition?: string
   image: URL | string
+  kml_file?: string
+  situation: string
+  is_active: boolean
+  is_new: boolean
+  contract: number
   device: IDevices
   applicator: IApplicator
   pointtype: string
-  status: IPointStatus
   client: ICustomer
   city: ICity
   subregions: ISubRegion

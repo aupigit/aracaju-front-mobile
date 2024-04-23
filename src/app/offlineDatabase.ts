@@ -97,11 +97,11 @@ export const offlineDatabase = () => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS PointReference (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contract INTEGER,
         name TEXT,
         device INTEGER,
         applicator INTEGER,
         pointtype INTEGER,
-        status INTEGER,
         client INTEGER,
         city INTEGER,
         subregions INTEGER,
@@ -116,6 +116,14 @@ export const offlineDatabase = () => {
         distance INTEGER,
         created_ondevice_at TEXT,
         transmition TEXT,
+        image TEXT,
+        kml_file TEXT,
+        situation TEXT,
+        is_active INTEGER,
+        is_new INTEGER,
+        edit_location INTEGER,
+        edit_name INTEGER,
+        edit_status INTEGER,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       );`,
@@ -176,6 +184,9 @@ export const offlineDatabase = () => {
         temperature TEXT,
         humidity REAL,
         insects_number INTEGER,
+        observation TEXT,
+        image TEXT,
+        contract INTEGER,
         transmition TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -191,6 +202,7 @@ export const offlineDatabase = () => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS Trails (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contract INTEGER,
         device INTEGER,
         applicator INTEGER,
         created_ondevice_at TEXT,
@@ -347,10 +359,13 @@ export const offlineDatabase = () => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS Applicator (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contract INTEGER,
         name TEXT,
+        cpf TEXT,
         status INTEGER,
         new_marker INTEGER,
         edit_marker INTEGER,
+        is_leader INTEGER,
         description TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -399,6 +414,50 @@ export const offlineDatabase = () => {
       (_, error) => {
         console.log('Error creating table ConfigApp: ', error)
         return true
+      },
+    )
+  })
+}
+
+export const dropDatabase = () => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      `DROP TABLE IF EXISTS ConfigApp;`,
+      [],
+      () => console.log('Table ConfigApp dropped successfully'),
+      (_, error) => {
+        console.log('Error dropping table ConfigApp: ', error)
+        return false
+      },
+    )
+
+    tx.executeSql(
+      `DROP TABLE IF EXISTS Applicator`,
+      [],
+      () => console.log('Table Applicator dropped successfully'),
+      (_, error) => {
+        console.error('Error dropping table Applicator: ', error)
+        return false
+      },
+    )
+
+    tx.executeSql(
+      `DROP TABLE IF EXISTS User;`,
+      [],
+      () => console.log('Table User dropped successfully'),
+      (_, error) => {
+        console.log('Error dropping table User: ', error)
+        return false
+      },
+    )
+
+    tx.executeSql(
+      `DROP TABLE IF EXISTS PointReference;`,
+      [],
+      () => console.log('Table PointReference dropped successfully'),
+      (_, error) => {
+        console.log('Error dropping table PointReference: ', error)
+        return false
       },
     )
   })
