@@ -2,7 +2,7 @@ import { View, Text, Image, Pressable, Linking, Button } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
-import { offlineDatabase } from './offlineDatabase'
+import { dropDatabase, offlineDatabase } from './offlineDatabase'
 import { syncApplication } from '@/services/syncServices/application'
 
 const Home = () => {
@@ -18,13 +18,18 @@ const Home = () => {
     }
   }
 
+  const handleDatabase = () => {
+    router.replace('database')
+  }
+
   const handleLogout = () => {
     logoutUser()
   }
 
   useEffect(() => {
     offlineDatabase()
-  })
+    // dropDatabase()
+  }, [])
 
   return (
     <View className="flex-1 items-center justify-center gap-5">
@@ -60,6 +65,11 @@ const Home = () => {
             onPress={handleLogout}
           ></Button>
         )}
+        <Button
+          color={'#5178be'}
+          title="DATABSE LOCAL"
+          onPress={handleDatabase}
+        ></Button>
 
         <View>
           {count > 0 && (

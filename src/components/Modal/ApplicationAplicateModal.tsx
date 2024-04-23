@@ -133,51 +133,23 @@ const ApplicationApplicateModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const netInfo = await NetInfo.fetch()
-      if (netInfo.isConnected && netInfo.isInternetReachable) {
-        const response = await doApplication(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.accuracy,
-          data.volumebti,
-          recipienteChecked,
-          fichaChecked,
-          placaChecked,
-          data.observation,
-          data.image,
-          selectedPoint.contract,
-          Number(selectedPoint.id),
-          Number(applicator.id),
-        )
-        setVisibleOK(true)
-        setTimeout(() => {
-          setVisibleOK(!visibleOK)
-          setModalVisible(false)
-          reset()
-        }, 3000)
-        console.log(response)
-        showSnackbar('success')
-      } else {
-        const offlineResponse = await doApplicationOffline(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.accuracy,
-          data.volumebti,
-          recipienteChecked,
-          fichaChecked,
-          placaChecked,
-          data.observation,
-          data.image,
-          selectedPoint.contract,
-          Number(selectedPoint.id),
-          Number(applicator.id),
-        )
-        console.log(offlineResponse)
-      }
+      const offlineResponse = await doApplicationOffline(
+        userLocation,
+        selectedPoint.latitude,
+        selectedPoint.longitude,
+        selectedPoint.altitude,
+        selectedPoint.accuracy,
+        data.volumebti,
+        recipienteChecked,
+        fichaChecked,
+        placaChecked,
+        data.observation,
+        data.image,
+        selectedPoint.contract,
+        Number(selectedPoint.id),
+        Number(applicator.id),
+      )
+      console.log(offlineResponse)
     } catch (error) {
       console.error(error)
       showSnackbar('error')

@@ -9,7 +9,6 @@ import {
   DrawerLayoutAndroid,
 } from 'react-native'
 import NetInfo from '@react-native-community/netinfo'
-import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import MapView, {
   Circle,
@@ -19,7 +18,6 @@ import MapView, {
 } from 'react-native-maps'
 import {
   requestForegroundPermissionsAsync,
-  getCurrentPositionAsync,
   LocationObject,
   watchPositionAsync,
   LocationAccuracy,
@@ -27,39 +25,49 @@ import {
 } from 'expo-location'
 import calculateDistance from '@/utils/calculateDistance'
 import isPointInRegion from '@/utils/isPointInRegion'
-import checkConflict from '@/utils/checkConflict'
 import getConflictPoints from '@/utils/getConflictPoints'
-import getConflictPointColor from '@/utils/getConflictPointColor'
 import ApplicationPointUsageModal from '@/components/Modal/ApplicationPointUsageModal'
 import ApplicationPointsInformationModal from '@/components/Modal/ApplicationPointsInformationModal'
 import ApplicationConflictPointsModal from '@/components/Modal/ApplicationConflictPointsModal'
-import * as FileSystem from 'expo-file-system'
-import * as Sharing from 'expo-sharing'
-import { difFakePoint, fakePoints } from './fakePoints'
+import { difFakePoint } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   adjustPointReferenceCoordinates,
   findManyPointsReferences,
 } from '@/services/points'
-import { useQuery, useMutation, useQueryClient } from 'react-query'
+import { useQuery } from 'react-query'
 import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
 import { Feather } from '@expo/vector-icons'
 import { Divider } from 'react-native-paper'
-import { findManyPointsReferencesOffline } from '@/services/offlineServices/points'
 import ApplicationEditPointModal from '@/components/Modal/ApplicationEditPointModal'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import ApplicationAdjustPointCoordinatesModal from '@/components/Modal/ApplicationAdjustPointCoordinatesModal'
-import { findManyApplicationsOffline } from '@/services/offlineServices/application'
-import { db } from '@/lib/database'
-import { syncApplication } from '@/services/syncServices/application'
-import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
 import { useUser } from '@/contexts/UserContext'
 import { doTrails } from '@/services/trails'
 import { doTrailsOffline } from '@/services/offlineServices/trails'
+import {
+  pullPointData,
+  pullPointLastUpdatedAt,
+} from '@/services/pullServices/pointReference'
+import { findApplicator } from '@/services/applicator'
+import { pullApplicatorData } from '@/services/pullServices/applicator'
+import { findUser } from '@/services/user'
+import { pullUserData } from '@/services/pullServices/user'
+import { findConfigApp } from '@/services/configApp'
+import { pullConfigAppData } from '@/services/pullServices/configApp'
+import { db } from '@/lib/database'
+import { syncApplication } from '@/services/syncServices/application'
+import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
 import { syncTrails } from '@/services/syncServices/trail'
+import { formatTimer } from '@/utils/formatTimer'
+import {
+  adjustPointReferenceLocationOffline,
+  findManyPointsReferencesOffline,
+} from '@/services/offlineServices/points'
+import { syncPoints } from '@/services/syncServices/points'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -123,20 +131,102 @@ const Posts = () => {
     checkConnectivity()
   }, [])
 
+  const { data: pointsDataOffline } = useQuery(
+    'application/pointsreference/is_offline',
+    async () => {
+      return await findManyPointsReferencesOffline().then(
+        (response) => response,
+      )
+    },
+  )
+
+  const { data: lastUpdatedAtData } = useQuery(
+    'application/pointreference/last_updated_at',
+    async () => {
+      return await pullPointLastUpdatedAt().then((response) => response)
+    },
+  )
+
+  let updatedAtParameter = ''
+  if (lastUpdatedAtData) {
+    updatedAtParameter = new Date(lastUpdatedAtData).toISOString()
+  }
+
   const {
     data: pointsData,
     isLoading: pointsLoading,
     refetch,
-  } = useQuery(['application/pointreference'], async () => {
-    return await findManyPointsReferences('2').then((response) => response)
+  } = useQuery(['application/pointreference', updatedAtParameter], async () => {
+    if (updatedAtParameter) {
+      return await findManyPointsReferences(updatedAtParameter).then(
+        (response) => response,
+      )
+    }
   })
+
+  const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
+    'application/applicator',
+    async () => {
+      return await findApplicator().then((response) => response)
+    },
+  )
+
+  const { data: userData, isLoading: userLoading } = useQuery(
+    'operation/user',
+    async () => {
+      return await findUser().then((response) => response)
+    },
+  )
+
+  const { data: configAppData, isLoading: configAppLoading } = useQuery(
+    'operation/configapp',
+    async () => {
+      return await findConfigApp().then((response) => response)
+    },
+  )
+
+  const [pullTimeRemaining, setPullTimeRemaining] = useState(30) // Tempo restante em segundos
+
+  const handlePullInformations = () => {
+    if (pointsData && applicatorData && userData && configAppData) {
+      Promise.all([
+        pullPointData(pointsData),
+        pullApplicatorData(applicatorData),
+        pullUserData(userData),
+        pullConfigAppData(configAppData),
+      ])
+        .then(() => {
+          console.info('Pull de dados completo')
+          setPushTimeRemaining(30)
+        })
+        .catch((error) => {
+          console.error('Erro na sincronização:', error)
+        })
+    }
+  }
+
+  // Executar a sincronização de dados automaticamente após 5 minutos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPullTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handlePullInformations()
+          return 30
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, 1000)
+
+    // Limpar o intervalo quando o componente for desmontado
+    return () => clearInterval(interval)
+  }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await adjustPointReferenceCoordinates(
+      await adjustPointReferenceLocationOffline(
         data.longitude,
         data.latitude,
-        description,
         Number(selectedPoint.id),
       )
       setPointIsEditable(false)
@@ -166,6 +256,7 @@ const Posts = () => {
     }
   }
 
+  // LOCALIZAÇÃO ATUAL DO USUÁRIO
   useEffect(() => {
     requestLocationPermissions()
     // handleSync()
@@ -190,45 +281,35 @@ const Posts = () => {
     startWatching()
   }, [])
 
-  useEffect(() => {
-    const postTrails = async () => {
-      const lastLocation = routes[routes.length - 1]
-      if (!lastLocation) {
-        return
-      }
+  // POST DE ROTAS DO USUÁRIO
+  // useEffect(() => {
+  //   const postTrails = async () => {
+  //     const lastLocation = routes[routes.length - 1]
+  //     if (!lastLocation) {
+  //       return
+  //     }
 
-      if (isOnline) {
-        await doTrails(
-          [lastLocation.coords.latitude, lastLocation.coords.longitude],
-          lastLocation.coords.latitude,
-          lastLocation.coords.longitude,
-          lastLocation.coords.altitude,
-          lastLocation.coords.accuracy,
-          Number(applicator.id),
-          1, // CONTRATO
-        )
-      } else {
-        await doTrailsOffline(
-          [lastLocation.coords.latitude, lastLocation.coords.longitude],
-          lastLocation.coords.latitude,
-          lastLocation.coords.longitude,
-          lastLocation.coords.altitude,
-          lastLocation.coords.accuracy,
-          Number(applicator.id),
-          1, // CONTRATO
-        )
-      }
-    }
+  //       await doTrailsOffline(
+  //         [lastLocation.coords.latitude, lastLocation.coords.longitude],
+  //         lastLocation.coords.latitude,
+  //         lastLocation.coords.longitude,
+  //         lastLocation.coords.altitude,
+  //         lastLocation.coords.accuracy,
+  //         Number(applicator.id),
+  //         1, // CONTRATO
+  //       )
+  //   }
 
-    if (routes.length > 0) {
-      postTrails()
-    }
-  }, [routes])
+  //   if (routes.length > 0) {
+  //     postTrails()
+  //   }
+  // }, [routes])
 
+  // MOSTRAR BOTÕES DE AÇÕES DO USUÁRIO
   useEffect(() => {
     if (location) {
-      if (pointsData) {
-        for (const point of pointsData) {
+      if (pointsDataOffline) {
+        for (const point of pointsDataOffline) {
           if (calculateDistance(location.coords, point) <= 15) {
             setShowPointDetails(true)
             if (Number(point.pointtype) === 3) {
@@ -246,8 +327,9 @@ const Posts = () => {
       setShowCollectButton(false)
       setShowPointDetails(false)
     }
-  }, [location, pointsData])
+  }, [location, pointsDataOffline])
 
+  // MOSTRAR CONECTIVIDADE DO USUÁRIO
   const showUserConectivitySituation = () => {
     if (isOnline) {
       setIsSynced(true)
@@ -256,13 +338,44 @@ const Posts = () => {
     }
   }
 
-  useEffect(() => {
-    console.log('Sincronizando dados...')
+  const [pushTimeRemaining, setPushTimeRemaining] = useState(10) // Tempo restante em segundos
+
+  // SINCRONIZAR DADOS
+  const handlePushInformations = () => {
+    console.info('Sincronizando dados...')
     showUserConectivitySituation()
 
-    syncApplication()
-    syncDoAdultCollection()
-    syncTrails()
+    Promise.all([
+      syncApplication(),
+      syncDoAdultCollection(),
+      syncTrails(),
+      syncPoints(),
+    ])
+      .then(() => {
+        console.info('Sincronização completa')
+        // Reiniciar o timer após a sincronização
+        setPushTimeRemaining(10)
+      })
+      .catch((error) => {
+        console.error('Erro na sincronização:', error)
+      })
+  }
+
+  // Executar a sincronização de dados automaticamente após 5 minutos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPushTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handlePushInformations()
+          return 10
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, 1000)
+
+    // Limpar o intervalo quando o componente for desmontado
+    return () => clearInterval(interval)
   }, [])
 
   if (!location) {
@@ -317,7 +430,7 @@ const Posts = () => {
     </View>
   )
 
-  if (pointsLoading) {
+  if (pointsLoading || applicatorLoading || userLoading || configAppLoading) {
     return (
       <View className="flex-1 items-center justify-center">
         <Text>Carregando...</Text>
@@ -333,11 +446,7 @@ const Posts = () => {
       renderNavigationView={navigationView}
     >
       <ScrollView style={{ paddingTop: insets.top }}>
-        <View
-          className=" 
-      absolute
-      right-9 top-20 z-10 items-center justify-center"
-        >
+        <View className=" absolute right-9 top-20 z-10 items-center justify-center">
           {applicator.is_leader && (
             <Pressable
               className="
@@ -347,6 +456,30 @@ const Posts = () => {
               <Feather name="menu" size={24} color="gray" />
             </Pressable>
           )}
+        </View>
+
+        <View className=" absolute right-9 top-[120px] z-10 items-center justify-center">
+          <Pressable
+            className="
+        w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
+            onPress={handlePullInformations}
+          >
+            <Feather name="git-pull-request" size={24} color="gray" />
+            <Text>Tempo restante para sincronização automática:</Text>
+            <Text>{formatTimer(pullTimeRemaining)}</Text>
+          </Pressable>
+        </View>
+
+        <View className=" absolute right-9 top-[210px] z-10 items-center justify-center">
+          <Pressable
+            className="
+        w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
+            onPress={handlePushInformations}
+          >
+            <Feather name="send" size={24} color="gray" />
+            <Text>Tempo restante para sincronização automática:</Text>
+            <Text>{formatTimer(pushTimeRemaining)}</Text>
+          </Pressable>
         </View>
 
         <View className="h-screen flex-1 items-center justify-center">
@@ -395,7 +528,7 @@ const Posts = () => {
                 coordinates={routes.map((loc) => loc.coords)}
               />
 
-              {pointsData
+              {pointsDataOffline
                 ?.filter((point) => isPointInRegion(point, region))
                 .map((point, index) => {
                   const conflictIndex = conflictPoints.findIndex(
@@ -535,7 +668,10 @@ const Posts = () => {
             <Pressable
               className="w-screen rounded-md border border-zinc-700/20 bg-red-500 p-5"
               onPress={() => {
-                const conflictPoints = getConflictPoints(location, pointsData)
+                const conflictPoints = getConflictPoints(
+                  location,
+                  pointsDataOffline,
+                )
                 if (conflictPoints.length >= 2) {
                   if (location) {
                     const distances = conflictPoints.map((point) =>
@@ -552,8 +688,8 @@ const Posts = () => {
                   }
                 } else {
                   if (location) {
-                    if (pointsData) {
-                      for (const point of pointsData) {
+                    if (pointsDataOffline) {
+                      for (const point of pointsDataOffline) {
                         if (calculateDistance(location.coords, point) <= 15) {
                           setModalAdultCollection(true)
                           setSelectedPoint(point)
@@ -575,7 +711,10 @@ const Posts = () => {
               className="w-screen rounded-md border border-zinc-700/20 bg-green-500 p-5"
               onPress={() => {
                 // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                const conflictPoints = getConflictPoints(location, pointsData)
+                const conflictPoints = getConflictPoints(
+                  location,
+                  pointsDataOffline,
+                )
                 if (conflictPoints.length >= 2) {
                   if (location) {
                     // Calcule a distância entre a localização atual e cada ponto de conflito
@@ -596,8 +735,8 @@ const Posts = () => {
                   }
                 } else {
                   if (location) {
-                    if (pointsData) {
-                      for (const point of pointsData) {
+                    if (pointsDataOffline) {
+                      for (const point of pointsDataOffline) {
                         if (calculateDistance(location.coords, point) <= 15) {
                           setModalApplicate(true)
                           setSelectedPoint(point)
@@ -619,7 +758,10 @@ const Posts = () => {
               className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
               onPress={() => {
                 // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                const conflictPoints = getConflictPoints(location, pointsData)
+                const conflictPoints = getConflictPoints(
+                  location,
+                  pointsDataOffline,
+                )
                 if (conflictPoints.length >= 2) {
                   // setConflictPoints(conflictPoints)
                   // setModalConflict(true)
@@ -644,8 +786,8 @@ const Posts = () => {
                   }
                 } else {
                   if (location) {
-                    if (pointsData) {
-                      for (const point of pointsData) {
+                    if (pointsDataOffline) {
+                      for (const point of pointsDataOffline) {
                         if (calculateDistance(location.coords, point) <= 15) {
                           setModalEditPoint(true)
                           setSelectedPoint(point)

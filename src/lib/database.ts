@@ -1,3 +1,3 @@
 import * as SQLite from 'expo-sqlite'
 
-export const db = SQLite.openDatabase('db.name')
+export const db = SQLite.openDatabase('aracaju.sqlite')

@@ -35,7 +35,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
   const isAuthenticated = !!user
 
   const { data: userData } = useQuery<IUser | null>(
-    'operation/user',
+    'operation/user/id',
     async () => {
       const token = await AsyncStorage.getItem('token')
       const userId = await AsyncStorage.getItem('userId')

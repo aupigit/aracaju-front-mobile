@@ -10,6 +10,8 @@ import { adjustPointReferenceName } from '@/services/points'
 import ApplicationConfirmInactivePointModal from './ApplicationConfirmInactivePointModal'
 import ApplicationChangeNamePointModal from './ApplicationChangeNamePointModal'
 import ApplicationChangePointCoordinatesToUserLocation from './ApplicationChangePointCoordinatesToUserLocation'
+import { adjustPointReferenceNameOffline } from '@/services/offlineServices/points'
+import NetInfo from '@react-native-community/netinfo'
 
 interface ApplicationEditPointModalProps {
   modalVisible: boolean
@@ -63,11 +65,8 @@ const ApplicationEditPointModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await adjustPointReferenceName(
-        data.name,
-        data.description,
-        Number(selectedPoint.id),
-      )
+      await adjustPointReferenceNameOffline(data.name, Number(selectedPoint.id))
+
       setChangeNameModal(false)
       refetch()
       reset()

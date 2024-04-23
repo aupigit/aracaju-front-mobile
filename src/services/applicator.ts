@@ -7,3 +7,8 @@ export const findApplicatorByUserId = async (
   const result = await get(`applications/applicator/?user__id=${userId}`)
   return result[0] as unknown as Promise<IApplicator>
 }
+
+export const findApplicator = async (): Promise<IApplicator[]> => {
+  const result = await get(`applications/applicator/`)
+  return result as unknown as Promise<IApplicator[]>
+}

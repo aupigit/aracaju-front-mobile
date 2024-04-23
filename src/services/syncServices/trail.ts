@@ -13,7 +13,7 @@ export const syncTrails = async () => {
           [],
           (_, { rows: { _array } }) => resolve(_array),
           (_, error) => {
-            console.log('Error retrieving data: ', error)
+            console.error('Error retrieving data: ', error)
             reject(error)
             return true
           },
@@ -51,6 +51,6 @@ export const syncTrails = async () => {
       // }
     }
 
-    console.log('Dados das Rotas sincronizados com sucesso!')
+    console.info('Dados das Rotas sincronizados com sucesso!')
   }
 }

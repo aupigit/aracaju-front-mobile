@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { adjustPointStatus } from '@/services/points'
 import { IPoint } from '@/interfaces/IPoint'
 import { z } from 'zod'
+import { adjustPointReferenceStatusOffline } from '@/services/offlineServices/points'
+import NetInfo from '@react-native-community/netinfo'
 
 interface ApplicationConfirmInactivePointModalProps {
   modalVisible: boolean
@@ -39,10 +41,7 @@ const ApplicationConfirmInactivePointModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await adjustPointStatus(
-        Number(selectedPoint.id),
-        data.description,
-      )
+      await adjustPointReferenceStatusOffline(Number(selectedPoint.id))
       refetch()
       setModalVisible(!modalVisible)
       reset()

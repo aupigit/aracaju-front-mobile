@@ -13,7 +13,7 @@ export const syncDoAdultCollection = async () => {
           [],
           (_, { rows: { _array } }) => resolve(_array),
           (_, error) => {
-            console.log('Error retrieving data: ', error)
+            console.error('Error retrieving data: ', error)
             reject(error)
             return true
           },
@@ -45,9 +45,9 @@ export const syncDoAdultCollection = async () => {
           tx.executeSql(
             `UPDATE AdultCollection SET transmition = 'online' WHERE id = ?;`,
             [item.id],
-            () => console.log('Data updated successfully'),
+            () => console.info('Data updated successfully'),
             (_, error) => {
-              console.log('Error updating data: ', error)
+              console.error('Error updating data: ', error)
               return true
             },
           )
@@ -57,6 +57,6 @@ export const syncDoAdultCollection = async () => {
       }
     }
 
-    console.log('Dados da Coleta de insetos sincronizados com sucesso!')
+    console.info('Dados da Coleta de insetos sincronizados com sucesso!')
   }
 }
