@@ -39,7 +39,6 @@ const Login = () => {
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log('Aplicador data', data.cpfApplicator)
     try {
       setButtonLoading(true)
 
@@ -52,7 +51,6 @@ const Login = () => {
           setVisibleOK(!visibleOK)
           router.replace('/posts')
         }, 1000)
-        console.log('response', response)
       } else {
         setVisibleERROR(!visibleERROR)
 

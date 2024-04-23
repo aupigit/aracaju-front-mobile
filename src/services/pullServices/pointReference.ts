@@ -31,8 +31,9 @@ export const pullPointData = (pointData: IPoint[]) => {
             kml_file,
             situation,
             is_active,
-            is_new
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            is_new,
+            updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             data.id,
             data.contract,
@@ -59,6 +60,7 @@ export const pullPointData = (pointData: IPoint[]) => {
             data.situation,
             data.is_active ? 1 : 0,
             data.is_new ? 1 : 0,
+            data.updated_at.toISOString(), // Convert to string
           ],
           () =>
             console.log('Data inserted successfully in PointReference table'),

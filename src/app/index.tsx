@@ -20,7 +20,6 @@ const Home = () => {
     }
   }
 
-  console.log('device', device)
   const handleEnterApplicator = async () => {
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
     if (tokenServiceId && !isAuthenticated) {

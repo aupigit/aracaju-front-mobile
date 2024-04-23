@@ -69,6 +69,7 @@ import {
   findManyPointsReferencesOffline,
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
+import { formatDate } from '@/utils/Date'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -113,7 +114,6 @@ const Posts = () => {
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [description, setDescription] = useState('')
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
-  console.log('aplicadoresada', applicator)
   const {
     control,
     handleSubmit,
@@ -149,10 +149,14 @@ const Posts = () => {
     },
   )
 
-  let updatedAtParameter = ''
+  let updatedAtParameter: string | null = null
   if (lastUpdatedAtData) {
-    updatedAtParameter = new Date(lastUpdatedAtData).toISOString()
+    const updatedAtDate = new Date(lastUpdatedAtData)
+    updatedAtParameter = formatDate(updatedAtDate)
   }
+
+  console.log('db local -> ', lastUpdatedAtData)
+  console.log('formatado -> ', updatedAtParameter)
 
   const {
     data: pointsData,
@@ -165,6 +169,8 @@ const Posts = () => {
       )
     }
   })
+
+  console.log(pointsData)
 
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
     'application/applicator',
@@ -199,7 +205,7 @@ const Posts = () => {
       ])
         .then(() => {
           console.info('Pull de dados completo')
-          setPushTimeRemaining(30)
+          // setPushTimeRemaining(30)
         })
         .catch((error) => {
           console.error('Erro na sincronização:', error)
@@ -208,21 +214,21 @@ const Posts = () => {
   }
 
   // Executar a sincronização de dados automaticamente após 5 minutos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPullTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handlePullInformations()
-          return 30
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setPullTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handlePullInformations()
+  //         return 30
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-    // Limpar o intervalo quando o componente for desmontado
-    return () => clearInterval(interval)
-  }, [])
+  //   // Limpar o intervalo quando o componente for desmontado
+  //   return () => clearInterval(interval)
+  // }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -369,21 +375,21 @@ const Posts = () => {
   }
 
   // Executar a sincronização de dados automaticamente após 5 minutos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPushTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handlePushInformations()
-          return 10
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setPushTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handlePushInformations()
+  //         return 10
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-    // Limpar o intervalo quando o componente for desmontado
-    return () => clearInterval(interval)
-  }, [])
+  //   // Limpar o intervalo quando o componente for desmontado
+  //   return () => clearInterval(interval)
+  // }, [])
 
   if (!location) {
     return
@@ -454,7 +460,6 @@ const Posts = () => {
       </View>
     )
   }
-  console.log('usuário', user)
   return (
     <DrawerLayoutAndroid
       ref={drawerRef}

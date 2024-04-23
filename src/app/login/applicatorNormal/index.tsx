@@ -44,7 +44,6 @@ const Login = () => {
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
-  console.log('devicediahdiahdhai', device)
 
   const onSubmit = handleSubmit(async (data) => {
     try {
