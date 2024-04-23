@@ -23,6 +23,7 @@ import { useUser } from '@/contexts/UserContext'
 import { doApplicationOffline } from '@/services/offlineServices/application'
 import NetInfo from '@react-native-community/netinfo'
 import { db } from '@/lib/database'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -54,7 +55,7 @@ const ApplicationApplicateModal = ({
   setSelectedPoint,
   userLocation,
 }: ApplicationApplicateModalProps) => {
-  const { applicator } = useUser()
+  const { applicator } = useApplicator()
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)
@@ -72,23 +73,6 @@ const ApplicationApplicateModal = ({
     resolver: zodResolver(applicationSchema),
   })
 
-  const onDismissSnackBarOK = () => setVisibleOK(false)
-  const onDismissSnackBarERROR = () => setVisibleERROR(false)
-  const showSnackbar = (type: 'success' | 'error') => {
-    if (type === 'success') {
-      setVisibleOK(true)
-      setTimeout(() => {
-        setVisibleOK(false)
-        reset()
-        setModalVisible(false)
-      }, 4000)
-    } else if (type === 'error') {
-      setVisibleERROR(true)
-      setTimeout(() => {
-        setVisibleERROR(false)
-      }, 4000)
-    }
-  }
   const handleImagePick = async (title) => {
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -122,6 +106,25 @@ const ApplicationApplicateModal = ({
     setImages([])
   }
 
+  const onDismissSnackBarOK = () => setVisibleOK(false)
+  const onDismissSnackBarERROR = () => setVisibleERROR(false)
+  const showSnackbar = (type: 'success' | 'error') => {
+    if (type === 'success') {
+      setVisibleOK(true)
+      setTimeout(() => {
+        setVisibleOK(false)
+        reset()
+        handleClearImageToSend()
+        setModalVisible(false)
+      }, 4000)
+    } else if (type === 'error') {
+      setVisibleERROR(true)
+      setTimeout(() => {
+        setVisibleERROR(false)
+      }, 4000)
+    }
+  }
+
   const handleBooleanToStr = (value: string) => {
     switch (value) {
       case 'true':
@@ -133,50 +136,23 @@ const ApplicationApplicateModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const netInfo = await NetInfo.fetch()
-      if (netInfo.isConnected && netInfo.isInternetReachable) {
-        const response = await doApplication(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.accuracy,
-          data.volumebti,
-          recipienteChecked,
-          fichaChecked,
-          placaChecked,
-          data.observation,
-          data.image,
-          selectedPoint.contract,
-          Number(selectedPoint.id),
-          Number(applicator.id),
-        )
-        setVisibleOK(true)
-        setTimeout(() => {
-          setVisibleOK(!visibleOK)
-          setModalVisible(false)
-          reset()
-        }, 3000)
-        console.log(response)
-        showSnackbar('success')
-      } else {
-        const offlineResponse = await doApplicationOffline(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.accuracy,
-          data.volumebti,
-          recipienteChecked,
-          fichaChecked,
-          placaChecked,
-          data.observation,
-          data.image,
-          selectedPoint.contract,
-          Number(selectedPoint.id),
-          Number(applicator.id),
-        )
-      }
+      const offlineResponse = await doApplicationOffline(
+        userLocation,
+        selectedPoint.latitude,
+        selectedPoint.longitude,
+        selectedPoint.altitude,
+        selectedPoint.accuracy,
+        data.volumebti,
+        recipienteChecked,
+        fichaChecked,
+        placaChecked,
+        data.observation,
+        data.image,
+        selectedPoint.contract,
+        Number(selectedPoint.id),
+        Number(applicator.id),
+      )
+      console.log(offlineResponse)
     } catch (error) {
       console.error(error)
       showSnackbar('error')

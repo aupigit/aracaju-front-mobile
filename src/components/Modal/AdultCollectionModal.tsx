@@ -22,6 +22,7 @@ import * as ImagePicker from 'expo-image-picker'
 import * as Crypto from 'expo-crypto'
 import { IImagesProps } from '../PhonePhotos'
 import { useUser } from '@/contexts/UserContext'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -52,7 +53,7 @@ const AdultCollectionModal = ({
   setSelectedPoint,
   userLocation,
 }: ApplicationApplicateModalProps) => {
-  const { applicator } = useUser()
+  const { applicator } = useApplicator()
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
   const [images, setImages] = useState<IImagesProps[]>([])
@@ -121,49 +122,25 @@ const AdultCollectionModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const netInfo = await NetInfo.fetch()
-
-      if (netInfo.isConnected && netInfo.isInternetReachable) {
-        const response = await doAdultCollection(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.accuracy,
-          data.wind,
-          data.climate,
-          data.temperature,
-          data.humidity,
-          Number(data.insects_number),
-          data.observation,
-          selectedPoint.contract,
-          data.image,
-          Number(applicator.id),
-          Number(selectedPoint.id),
-        )
-        console.log(response)
-        showSnackbar('success')
-      } else {
-        const offlineResponse = await doAdultCollectionOffline(
-          userLocation,
-          selectedPoint.latitude,
-          selectedPoint.longitude,
-          selectedPoint.altitude,
-          selectedPoint.accuracy,
-          data.wind,
-          data.climate,
-          data.temperature,
-          data.humidity,
-          Number(data.insects_number),
-          data.observation,
-          selectedPoint.contract,
-          data.image,
-          Number(applicator.id),
-          Number(selectedPoint.id),
-        )
-        console.log(offlineResponse)
-        showSnackbar('success')
-      }
+      const offlineResponse = await doAdultCollectionOffline(
+        userLocation,
+        selectedPoint.latitude,
+        selectedPoint.longitude,
+        selectedPoint.altitude,
+        selectedPoint.accuracy,
+        data.wind,
+        data.climate,
+        data.temperature,
+        data.humidity,
+        Number(data.insects_number),
+        data.observation,
+        selectedPoint.contract,
+        data.image,
+        Number(applicator.id),
+        Number(selectedPoint.id),
+      )
+      console.log(offlineResponse)
+      showSnackbar('success')
     } catch (error) {
       console.error(error)
       showSnackbar('error')

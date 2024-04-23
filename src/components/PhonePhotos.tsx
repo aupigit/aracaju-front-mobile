@@ -53,7 +53,7 @@ const PhonePhotos: React.FC<PhonePhotosProps> = ({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [9, 16],
-        quality: 1,
+        quality: 0,
         base64: true,
       })
 

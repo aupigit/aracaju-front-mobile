@@ -1,3 +1,4 @@
+import { IApplication } from '@/interfaces/IPoint'
 import { post } from '@/providers/api'
 
 export const doApplication = async (
@@ -15,7 +16,8 @@ export const doApplication = async (
   contract: number,
   pointreference: number,
   applicator: number,
-) => {
+  created_ondevice_at?: string,
+): Promise<IApplication> => {
   const body = {
     marker: {
       type: 'Point',
@@ -37,6 +39,7 @@ export const doApplication = async (
     device: 1,
     applicator,
     contract,
+    created_ondevice_at,
   }
 
   try {

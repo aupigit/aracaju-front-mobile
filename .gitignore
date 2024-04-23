@@ -9,8 +9,11 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+bun.lockb
 
 # macOS
 .DS_Store
 
 .env
+
+bun.lockb 

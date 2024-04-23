@@ -9,4 +9,5 @@ export interface IApplicator extends IBase {
   description: string
   contract: number
   user: number
+  cpf: string
 }

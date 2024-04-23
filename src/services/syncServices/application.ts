@@ -13,7 +13,7 @@ export const syncApplication = async () => {
           [],
           (_, { rows: { _array } }) => resolve(_array),
           (_, error) => {
-            console.log('Error retrieving data: ', error)
+            console.error('Error retrieving data: ', error)
             reject(error)
             return true
           },
@@ -28,7 +28,7 @@ export const syncApplication = async () => {
           item.latitude,
           item.longitude,
           item.altitude,
-          item.accuracy,
+          item.acuracia,
           item.volumebti,
           item.container,
           item.card,
@@ -37,14 +37,16 @@ export const syncApplication = async () => {
           item.image,
           1,
           1,
+          1,
+          item.created_ondevice_at,
         )
         await db.transaction((tx) => {
           tx.executeSql(
             `UPDATE Application SET transmition = 'online' WHERE id = ?;`,
             [item.id],
-            () => console.log('Data updated successfully'),
+            () => console.info('Data updated successfully'),
             (_, error) => {
-              console.log('Error updating data: ', error)
+              console.error('Error updating data: ', error)
               return true
             },
           )
@@ -54,6 +56,6 @@ export const syncApplication = async () => {
       }
     }
 
-    console.log('Dados da Aplicação sincronizados com sucesso!')
+    console.info('Dados da Aplicação sincronizados com sucesso!')
   }
 }
