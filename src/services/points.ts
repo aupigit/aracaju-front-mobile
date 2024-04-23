@@ -14,7 +14,7 @@ export const adjustPointReferenceName = async (
   name: string,
   description: string,
   pointId: number,
-  applicatorId: number,
+  applicatorId: string,
   deviceId: string,
 ): Promise<IPoint> => {
   const body = {
@@ -36,7 +36,7 @@ export const adjustPointReferenceCoordinates = async (
   latitude: number,
   description: string,
   pointId: number,
-  applicatorId: number,
+  applicatorId: string,
   deviceId: string,
 ): Promise<IPoint> => {
   const body = {
@@ -57,7 +57,7 @@ export const adjustPointReferenceCoordinates = async (
 export const adjustPointStatus = async (
   pointId: number,
   description: string,
-  applicatorId: number,
+  applicatorId: string,
   deviceId: string,
 ): Promise<IPoint> => {
   const body = {

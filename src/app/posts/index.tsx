@@ -364,7 +364,7 @@ const Posts = () => {
       syncApplication(),
       syncDoAdultCollection(),
       syncTrails(),
-      syncPoints(1, device.factory_id),
+      syncPoints(applicator.id, device.factory_id),
     ])
       .then(() => {
         console.info('Sincronização completa')
