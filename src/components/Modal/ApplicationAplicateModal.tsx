@@ -152,6 +152,7 @@ const ApplicationApplicateModal = ({
         Number(selectedPoint.id),
         Number(applicator.id),
       )
+      showSnackbar('success')
       // console.log(offlineResponse)
     } catch (error) {
       console.error(error)
