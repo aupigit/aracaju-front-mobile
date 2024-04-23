@@ -1,14 +1,12 @@
-import { View, Text, Pressable } from 'react-native'
+import { View, Text, Pressable, Button } from 'react-native'
 import React, { useEffect } from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
-import { offlineDatabase } from './offlineDatabase'
+import { offlineDatabase, dropDatabase } from './offlineDatabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { doLogin } from '@/services/authenticate'
 import { useDevice } from '@/contexts/DeviceContext'
-import { dropDatabase, offlineDatabase } from './offlineDatabase'
 import { syncApplication } from '@/services/syncServices/application'
-
 
 const Home = () => {
   const { isAuthenticated, logoutUser, loginUser } = useUser()

@@ -13,8 +13,9 @@ export const findApplicatorById = async (
 ): Promise<IApplicator> => {
   const result = await get(`applications/applicator/${applicator_id}`)
   return result as unknown as Promise<IApplicator>
+}
 
- export const findApplicator = async (): Promise<IApplicator[]> => {
+export const findApplicator = async (): Promise<IApplicator[]> => {
   const result = await get(`applications/applicator/`)
   return result as unknown as Promise<IApplicator[]>
 }

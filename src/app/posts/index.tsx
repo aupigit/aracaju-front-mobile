@@ -61,7 +61,6 @@ import { pullConfigAppData } from '@/services/pullServices/configApp'
 import { db } from '@/lib/database'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
-import { useUser } from '@/contexts/UserContext'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import { syncTrails } from '@/services/syncServices/trail'
 import { formatTimer } from '@/utils/formatTimer'
@@ -247,7 +246,7 @@ const Posts = () => {
 
   const mapRef = useRef(null)
 
- const routePoints = []
+  const routePoints = []
 
   const handleLogout = () => {
     logoutUser()
@@ -390,8 +389,6 @@ const Posts = () => {
     return
   }
 
-  const userLocation = [location.coords.latitude, location.coords.longitude]
-
   const handleMarkerPress = (point) => {
     setSelectedPoint(point)
     setModalInfoPoints(false)
@@ -403,6 +400,7 @@ const Posts = () => {
   }
 
   const userLocation = [location.coords.latitude, location.coords.longitude]
+
   const navigationView = () => (
     <View
       className="flex-col justify-between gap-2 p-5"
@@ -470,10 +468,11 @@ const Posts = () => {
             <Pressable
               className="
         w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-            onPress={openDrawer}
-          >
-            <Feather name="menu" size={24} color="gray" />
-          </Pressable>
+              onPress={openDrawer}
+            >
+              <Feather name="menu" size={24} color="gray" />
+            </Pressable>
+          )}
         </View>
 
         <View className=" absolute right-9 top-[120px] z-10 items-center justify-center">
