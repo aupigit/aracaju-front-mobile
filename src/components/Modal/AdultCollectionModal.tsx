@@ -54,6 +54,7 @@ const AdultCollectionModal = ({
   userLocation,
 }: ApplicationApplicateModalProps) => {
   const { applicator } = useApplicator()
+  const { user } = useUser()
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
   const [images, setImages] = useState<IImagesProps[]>([])

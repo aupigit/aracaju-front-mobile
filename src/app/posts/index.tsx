@@ -430,7 +430,7 @@ const Posts = () => {
         </Pressable>
       </View>
       <Divider className="mb-5 mt-2" />
-      {user?.is_staff && (
+      {user?.is_staff && showCollectButton && (
         <View>
           <Pressable
             className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
@@ -775,7 +775,7 @@ const Posts = () => {
               </Text>
             </Pressable>
           )}
-          {showPointDetails && (
+          {user.is_staff && showPointDetails && (
             <Pressable
               className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
               onPress={() => {
