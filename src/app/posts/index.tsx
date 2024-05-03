@@ -29,13 +29,9 @@ import getConflictPoints from '@/utils/getConflictPoints'
 import ApplicationPointUsageModal from '@/components/Modal/ApplicationPointUsageModal'
 import ApplicationPointsInformationModal from '@/components/Modal/ApplicationPointsInformationModal'
 import ApplicationConflictPointsModal from '@/components/Modal/ApplicationConflictPointsModal'
-import { difFakePoint } from './fakePoints'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import {
-  adjustPointReferenceCoordinates,
-  findManyPointsReferences,
-} from '@/services/points'
+import { findManyPointsReferences } from '@/services/points'
 import { useQuery } from 'react-query'
 import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
 import { Feather } from '@expo/vector-icons'
@@ -46,8 +42,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import ApplicationAdjustPointCoordinatesModal from '@/components/Modal/ApplicationAdjustPointCoordinatesModal'
 import { useUser } from '@/contexts/UserContext'
-import { doTrails } from '@/services/trails'
-import { doTrailsOffline } from '@/services/offlineServices/trails'
 import {
   pullPointData,
   pullPointLastUpdatedAt,
@@ -58,7 +52,6 @@ import { findUser } from '@/services/user'
 import { pullUserData } from '@/services/pullServices/user'
 import { findConfigApp } from '@/services/configApp'
 import { pullConfigAppData } from '@/services/pullServices/configApp'
-import { db } from '@/lib/database'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
 import { useApplicator } from '@/contexts/ApplicatorContext'
@@ -69,7 +62,7 @@ import {
   findManyPointsReferencesOffline,
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
-import { formatDate } from '@/utils/Date'
+import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
 import { useDevice } from '@/contexts/DeviceContext'
 
 const editPointCoordinateSchema = z.object({
@@ -114,7 +107,6 @@ const Posts = () => {
   const [modalEditPoint, setModalEditPoint] = useState(false)
   const [pointIsEditable, setPointIsEditable] = useState(false)
   const [coordinateModal, setCoordinateModal] = useState(false)
-  const [description, setDescription] = useState('')
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
   const {
     control,
@@ -135,10 +127,10 @@ const Posts = () => {
     checkConnectivity()
   }, [])
 
-  const { data: pointsDataOffline } = useQuery(
+  const { data: pointsDataOffline, refetch } = useQuery(
     'application/pointsreference/is_offline',
     async () => {
-      return await findManyPointsReferencesOffline().then(
+      return await findManyPointsReferencesOffline(user?.is_staff).then(
         (response) => response,
       )
     },
@@ -160,17 +152,16 @@ const Posts = () => {
   // console.log('db local -> ', lastUpdatedAtData)
   // console.log('formatado -> ', updatedAtParameter)
 
-  const {
-    data: pointsData,
-    isLoading: pointsLoading,
-    refetch,
-  } = useQuery(['application/pointreference', updatedAtParameter], async () => {
-    if (updatedAtParameter) {
-      return await findManyPointsReferences(updatedAtParameter).then(
-        (response) => response,
-      )
-    }
-  })
+  const { data: pointsData, isLoading: pointsLoading } = useQuery(
+    ['application/pointreference', updatedAtParameter],
+    async () => {
+      if (updatedAtParameter) {
+        return await findManyPointsReferences(updatedAtParameter).then(
+          (response) => response,
+        )
+      }
+    },
+  )
 
   // console.log(pointsData)
 
@@ -196,9 +187,22 @@ const Posts = () => {
   )
 
   const [pullTimeRemaining, setPullTimeRemaining] = useState(30) // Tempo restante em segundos
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
+
+  useEffect(() => {
+    // Get the last sync time from AsyncStorage when the component mounts
+    AsyncStorage.getItem('lastSyncTime').then((value) => {
+      if (value) {
+        setLastSyncTime(new Date(value))
+      }
+    })
+  }, [])
 
   const handlePullInformations = () => {
     if (pointsData && applicatorData && userData && configAppData) {
+      const now = new Date()
+      setLastSyncTime(now) // Update the last sync time
+      AsyncStorage.setItem('lastSyncTime', now.toISOString()) // Save the last sync time to AsyncStorage
       Promise.all([
         pullPointData(pointsData),
         pullApplicatorData(applicatorData),
@@ -207,6 +211,7 @@ const Posts = () => {
       ])
         .then(() => {
           console.info('Pull de dados completo')
+          refetch()
           // setPushTimeRemaining(30)
         })
         .catch((error) => {
@@ -487,7 +492,7 @@ const Posts = () => {
             onPress={handlePullInformations}
           >
             <Feather name="git-pull-request" size={24} color="gray" />
-            <Text>Tempo restante para sincronização automática:</Text>
+            <Text>Sincronizar (Pull Info) On to Local:</Text>
             <Text>{formatTimer(pullTimeRemaining)}</Text>
           </Pressable>
         </View>
@@ -499,7 +504,7 @@ const Posts = () => {
             onPress={handlePushInformations}
           >
             <Feather name="send" size={24} color="gray" />
-            <Text>Tempo restante para sincronização automática:</Text>
+            <Text>Sincronizar (Push info) Local to On:</Text>
             <Text>{formatTimer(pushTimeRemaining)}</Text>
           </Pressable>
         </View>
@@ -553,30 +558,14 @@ const Posts = () => {
               {pointsDataOffline
                 ?.filter((point) => isPointInRegion(point, region))
                 .map((point, index) => {
-                  const conflictIndex = conflictPoints.findIndex(
-                    (conflictPoint) =>
-                      conflictPoint.latitude === point.latitude &&
-                      conflictPoint.longitude === point.longitude,
-                  )
-
-                  let pinColor = 'red'
-                  let strokeColor = 'red'
-                  let fillColor = 'rgba(255,0,0,0.1)'
-
-                  if (conflictIndex === 0) {
-                    pinColor = 'yellow'
-                    strokeColor = 'yellow'
-                    fillColor = 'rgba(255,255,0,0.1)'
-                  } else if (conflictIndex === 1) {
-                    pinColor = 'purple'
-                    strokeColor = 'purple'
-                    fillColor = 'rgba(128,0,128,0.1)'
-                  }
+                  const pinColor = 'red'
+                  const strokeColor = 'red'
+                  const fillColor = 'rgba(255,0,0,0.1)'
 
                   return (
                     <React.Fragment key={index}>
                       <Marker
-                        title={`${point.name} || ${point.volumebti}`}
+                        title={`${point.name} || ${point.volumebti} ml`}
                         coordinate={{
                           latitude: point.latitude,
                           longitude: point.longitude,
@@ -597,7 +586,7 @@ const Posts = () => {
                     </React.Fragment>
                   )
                 })}
-              <Marker
+              {/* <Marker
                 coordinate={{
                   latitude: difFakePoint.latitude,
                   longitude: difFakePoint.longitude,
@@ -613,7 +602,7 @@ const Posts = () => {
                 radius={15}
                 strokeColor="green"
                 fillColor="rgba(0,255,0,0.1)"
-              />
+              /> */}
 
               {previewCoordinate && (
                 <Marker coordinate={previewCoordinate} pinColor={'blue'} />
@@ -688,7 +677,7 @@ const Posts = () => {
         <View className="absolute bottom-0 left-0 items-center justify-center">
           {showCollectButton && user.is_staff && (
             <Pressable
-              className="w-screen rounded-md border border-zinc-700/20 bg-red-500 p-5"
+              className="w-screen bg-red-500 p-5"
               onPress={() => {
                 const conflictPoints = getConflictPoints(
                   location,
@@ -730,7 +719,7 @@ const Posts = () => {
           )}
           {showButton && (
             <Pressable
-              className="w-screen rounded-md border border-zinc-700/20 bg-green-500 p-5"
+              className="w-screen bg-green-500 p-5"
               onPress={() => {
                 // Verifique se há conflito (usuário dentro do raio de dois pontos)
                 const conflictPoints = getConflictPoints(
@@ -777,7 +766,7 @@ const Posts = () => {
           )}
           {showPointDetails && (
             <Pressable
-              className="w-screen rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+              className="w-screen bg-[#7c58d6] p-5"
               onPress={() => {
                 // Verifique se há conflito (usuário dentro do raio de dois pontos)
                 const conflictPoints = getConflictPoints(
@@ -825,6 +814,13 @@ const Posts = () => {
                 VER DETALHES DO PONTO
               </Text>
             </Pressable>
+          )}
+          {lastSyncTime && (
+            <View className="w-screen items-center justify-center bg-white">
+              <Text>
+                Ultíma vez sincronizado: {formatDateToDDMMYYYY(lastSyncTime)}
+              </Text>
+            </View>
           )}
         </View>
       </ScrollView>

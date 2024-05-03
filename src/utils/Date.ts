@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+
 export function formatDate(date) {
   // Subtrai 3 horas por conta do backend online
   date = new Date(date.getTime() - 3 * 60 * 60 * 1000)
@@ -10,4 +12,8 @@ export function formatDate(date) {
   const sign = timezoneOffset > 0 ? '-' : '+'
 
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}.${String(date.getMilliseconds()).padStart(3, '0')}00${sign}${hoursOffset}:${minutesOffset}`
+}
+
+export function formatDateToDDMMYYYY(date: Date) {
+  return format(date, 'dd/MM/yyyy HH:mm:ss')
 }

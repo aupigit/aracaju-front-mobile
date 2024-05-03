@@ -9,6 +9,8 @@ import { useForm } from 'react-hook-form'
 import { EditPointFormData, editPointSchema } from './ApplicationEditPointModal'
 import { zodResolver } from '@hookform/resolvers/zod'
 import ApplicationApplicateModal from './ApplicationAplicateModal'
+import { useApplicator } from '@/contexts/ApplicatorContext'
+import { useDevice } from '@/contexts/DeviceContext'
 
 interface ApplicationPointUsageModalProps {
   modalVisible: boolean
@@ -33,6 +35,9 @@ const ApplicationPointUsageModal = ({
   refetch,
   modalApplicate,
 }: ApplicationPointUsageModalProps) => {
+  const { applicator } = useApplicator()
+  const { device } = useDevice()
+
   const [isEditable, setIsEditable] = useState(false)
   const [confirmInactivePointModal, setConfirmInactivePointModal] =
     useState(false)
@@ -58,6 +63,8 @@ const ApplicationPointUsageModal = ({
         data.name,
         data.description,
         Number(selectedPoint.id),
+        applicator.id,
+        device.factory_id,
       )
       setChangeNameModal(false)
       refetch()

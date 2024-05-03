@@ -1,11 +1,17 @@
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
 
-export const findManyPointsReferencesOffline = (): Promise<IPoint[]> => {
+export const findManyPointsReferencesOffline = (
+  is_staff?: boolean,
+): Promise<IPoint[]> => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
+      const sql = is_staff
+        ? `SELECT * FROM PointReference WHERE is_active == true;`
+        : `SELECT * FROM PointReference WHERE is_active == true AND pointtype == 2;`
+
       tx.executeSql(
-        `SELECT * FROM PointReference;`,
+        sql,
         [],
         (_, { rows: { _array } }) => {
           resolve(_array as IPoint[])
