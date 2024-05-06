@@ -25,6 +25,11 @@
     "name": "create-aupi-front-mobile",
     "slug": "create-aupi-front-mobile",
     "android": {
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyD4yDs6XgPHoXcNXqXnSmj_FQ3DJKcC5H0"
+        }
+      },
       "permissions": [
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
