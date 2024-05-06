@@ -16,6 +16,7 @@ export const doApplicationOffline = async (
   contract: number,
   pointreference: number,
   applicator: number,
+  device: number,
 ) => {
   const body = {
     coordinates, // COORDENADAS DO USUÁRIO
@@ -32,7 +33,7 @@ export const doApplicationOffline = async (
     status: 'Em dia',
     image,
     pointreference,
-    device: 1,
+    device,
     applicator,
     contract,
   }
@@ -58,8 +59,9 @@ export const doApplicationOffline = async (
           status,
           image,
           created_ondevice_at,
-          transmition
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          transmition,
+          contract
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           body.pointreference,
           body.device,
@@ -79,6 +81,7 @@ export const doApplicationOffline = async (
           body.image,
           new Date().toISOString(), // created_ondevice_at
           'offline', // transmition
+          body.contract,
         ],
         () => console.log('Data inserted successfully in Application table'),
         (_, error) => {

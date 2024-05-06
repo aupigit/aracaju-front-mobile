@@ -24,6 +24,7 @@ import { doApplicationOffline } from '@/services/offlineServices/application'
 import NetInfo from '@react-native-community/netinfo'
 import { db } from '@/lib/database'
 import { useApplicator } from '@/contexts/ApplicatorContext'
+import { useDevice } from '@/contexts/DeviceContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -56,6 +57,7 @@ const ApplicationApplicateModal = ({
   userLocation,
 }: ApplicationApplicateModalProps) => {
   const { applicator } = useApplicator()
+  const { device } = useDevice()
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)
@@ -151,6 +153,7 @@ const ApplicationApplicateModal = ({
         selectedPoint.contract,
         Number(selectedPoint.id),
         Number(applicator.id),
+        Number(device.factory_id),
       )
       showSnackbar('success')
       // console.log(offlineResponse)

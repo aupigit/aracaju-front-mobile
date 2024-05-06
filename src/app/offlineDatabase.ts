@@ -156,6 +156,7 @@ export const offlineDatabase = () => {
         image TEXT,
         created_ondevice_at TEXT,
         transmition TEXT,
+        contract INTEGER,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       );`,
@@ -423,11 +424,11 @@ export const offlineDatabase = () => {
 export const dropDatabase = () => {
   db.transaction((tx) => {
     tx.executeSql(
-      `DROP TABLE IF EXISTS AdultCollection;`,
+      `DROP TABLE IF EXISTS Application;`,
       [],
-      () => console.log('Table AdultCollection dropped successfully'),
+      () => console.log('Table Application dropped successfully'),
       (_, error) => {
-        console.error('Error dropping table AdultCollection: ', error)
+        console.error('Error dropping table Application: ', error)
         return false
       },
     )

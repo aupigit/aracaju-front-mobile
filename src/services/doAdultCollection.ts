@@ -16,6 +16,7 @@ export const doAdultCollection = async (
   image: string,
   applicator: number,
   pointreference: number,
+  device: number,
   created_ondevice_at?: string,
 ) => {
   const body = {
@@ -26,8 +27,8 @@ export const doAdultCollection = async (
     from_txt: 'string',
     latitude,
     longitude,
-    altitude: 0,
-    accuracy: 0,
+    altitude,
+    accuracy,
     wind,
     climate,
     temperature,
@@ -36,7 +37,7 @@ export const doAdultCollection = async (
     observation,
     insects_number,
     pointreference,
-    device: 1,
+    device,
     applicator,
     image,
     contract,

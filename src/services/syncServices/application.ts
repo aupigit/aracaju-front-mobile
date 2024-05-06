@@ -3,10 +3,10 @@ import { doApplication } from '../applications'
 import NetInfo from '@react-native-community/netinfo'
 
 export const syncApplication = async (
-  contractId: number,
+  // contractId: number,
   applicatorId: string,
   deviceId: string,
-  pointreferenceId: number,
+  // pointreferenceId: number,
 ) => {
   const netInfo = await NetInfo.fetch()
 
@@ -40,8 +40,8 @@ export const syncApplication = async (
           item.plate,
           item.observation,
           item.image,
-          contractId, // Contract Id
-          pointreferenceId, // Pointreference Id
+          item.contract, // Contract Id
+          item.pointreference, // Pointreference Id
           Number(applicatorId), // Applicator Id
           Number(deviceId), // Device id
           item.created_ondevice_at,
