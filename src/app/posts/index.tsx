@@ -367,12 +367,12 @@ const Posts = () => {
 
     Promise.all([
       syncApplication(
-        selectedPoint.contract,
+        // selectedPoint.contract,
         applicator.id,
-        device.factory_id,
-        selectedPoint.id,
+        device.id,
+        // selectedPoint.id,
       ),
-      syncDoAdultCollection(),
+      syncDoAdultCollection(device.id),
       syncTrails(),
       syncPoints(applicator.id, device.factory_id),
     ])

@@ -2,7 +2,7 @@ import { db } from '@/lib/database'
 import NetInfo from '@react-native-community/netinfo'
 import { doAdultCollection } from '../doAdultCollection'
 
-export const syncDoAdultCollection = async () => {
+export const syncDoAdultCollection = async (deviceId: string) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
@@ -39,6 +39,7 @@ export const syncDoAdultCollection = async () => {
           item.image,
           item.applicator,
           item.pointreference,
+          Number(deviceId),
           item.created_ondevice_at,
         )
         await db.transaction((tx) => {

@@ -16,6 +16,7 @@ export const doAdultCollectionOffline = (
   image: string,
   applicator: number,
   pointreference: number,
+  device: number,
 ) => {
   const body = {
     coordinates,
@@ -32,7 +33,7 @@ export const doAdultCollectionOffline = (
     observation,
     insects_number,
     pointreference,
-    device: 1,
+    device,
     applicator,
     image,
     contract,

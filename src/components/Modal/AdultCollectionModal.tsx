@@ -23,6 +23,7 @@ import * as Crypto from 'expo-crypto'
 import { IImagesProps } from '../PhonePhotos'
 import { useUser } from '@/contexts/UserContext'
 import { useApplicator } from '@/contexts/ApplicatorContext'
+import { useDevice } from '@/contexts/DeviceContext'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -54,6 +55,7 @@ const AdultCollectionModal = ({
   userLocation,
 }: ApplicationApplicateModalProps) => {
   const { applicator } = useApplicator()
+  const { device } = useDevice()
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
   const [images, setImages] = useState<IImagesProps[]>([])
@@ -138,6 +140,7 @@ const AdultCollectionModal = ({
         data.image,
         Number(applicator.id),
         Number(selectedPoint.id),
+        Number(device.factory_id),
       )
       // console.log(offlineResponse)
       showSnackbar('success')
