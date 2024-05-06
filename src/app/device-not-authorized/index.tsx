@@ -17,11 +17,11 @@ const DeviceNotAuthorized = () => {
       <View className="container h-screen flex-1 bg-white">
         <View className="flex-1 justify-center gap-5">
           <Text className="text-4xl font-bold text-black">
-            Aparelho não autorizado. Entre em contato com o suporte.
+            Dispositivo não autorizado. Entre em contato com o suporte.
           </Text>
           <Text className="text-xl text-black">
             Entre em contato com o suporte e informe o seguinte código para
-            autorizar seu aparelho:
+            autorizar seu Dispositivo:
           </Text>
 
           <View className="flex flex-row items-center justify-between rounded-md border border-zinc-900/20 p-2">
