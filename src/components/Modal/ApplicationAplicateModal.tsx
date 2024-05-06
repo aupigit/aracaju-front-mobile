@@ -25,6 +25,8 @@ import NetInfo from '@react-native-community/netinfo'
 import { db } from '@/lib/database'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
+import { findConfigAppByName } from '@/services/configApp'
+import { useQuery } from 'react-query'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -64,7 +66,7 @@ const ApplicationApplicateModal = ({
   const [images, setImages] = useState<IImagesProps[]>([])
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
-
+  const [scaleVolume, setScaleVolume] = useState([])
   const {
     control,
     handleSubmit,
@@ -163,6 +165,18 @@ const ApplicationApplicateModal = ({
     }
   })
 
+  const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
+    useQuery('config/configapp/?name="volume_escala"', async () => {
+      return await findConfigAppByName('volume_escala').then(
+        (response) => response,
+      )
+    })
+
+  useEffect(() => {
+    if (configScaleVolume?.data_config) {
+      setScaleVolume(configScaleVolume.data_config.split(';'))
+    }
+  }, [configScaleVolume])
   return (
     <Modal
       animationType="slide"
@@ -320,17 +334,15 @@ const ApplicationApplicateModal = ({
               render={({ field: { onChange, value } }) => (
                 <View className="mb-2 border border-zinc-700/20">
                   <RNPickerSelect
-                    placeholder={{ label: 'Selecione um valor', value: 0 }}
+                    placeholder={{ label: 'Volume BTI', value: 0 }}
                     onValueChange={(value) => {
                       onChange(value)
                     }}
                     value={value}
-                    items={[
-                      { label: '10', value: 10 },
-                      { label: '50', value: 50 },
-                      { label: '100', value: 100 },
-                      { label: '200', value: 200 },
-                    ]}
+                    items={scaleVolume.map((item) => ({
+                      label: item,
+                      value: Number(item),
+                    }))}
                   />
                 </View>
               )}
