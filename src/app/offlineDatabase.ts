@@ -433,4 +433,26 @@ export const dropDatabase = () => {
       },
     )
   })
+  db.transaction((tx) => {
+    tx.executeSql(
+      `DROP TABLE IF EXISTS ConfigApp;`,
+      [],
+      () => console.log('Table ConfigApp dropped successfully'),
+      (_, error) => {
+        console.error('Error dropping table ConfigApp: ', error)
+        return false
+      },
+    )
+  })
+  db.transaction((tx) => {
+    tx.executeSql(
+      `DROP TABLE IF EXISTS PointReference;`,
+      [],
+      () => console.log('Table PointReference dropped successfully'),
+      (_, error) => {
+        console.error('Error dropping table PointReference: ', error)
+        return false
+      },
+    )
+  })
 }

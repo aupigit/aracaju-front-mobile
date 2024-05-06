@@ -2,14 +2,24 @@ import { View, Text, ScrollView, Pressable } from 'react-native'
 import React, { useState } from 'react'
 import * as Application from 'expo-application'
 import * as Clipboard from 'expo-clipboard'
+import { useDevice } from '@/contexts/DeviceContext'
 
 const DeviceNotAuthorized = () => {
   const [isCopied, setIsCopied] = useState(false)
+  const { fetchDeviceData } = useDevice()
   const factoryId = Application.getAndroidId()
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(factoryId)
     setIsCopied(true)
     setTimeout(() => setIsCopied(false), 10000) // Set isCopied back to false after 10 seconds
+  }
+
+  const handlePress = async () => {
+    try {
+      await fetchDeviceData()
+    } catch (error) {
+      console.error('aaaaaaaaaaa', error)
+    }
   }
 
   return (
@@ -35,6 +45,15 @@ const DeviceNotAuthorized = () => {
               </Text>
             </Pressable>
           </View>
+
+          <Pressable
+            onPress={handlePress}
+            className="w-full rounded-md bg-zinc-700 p-2 text-center"
+          >
+            <Text className="text-center text-lg font-bold text-white">
+              TENTE NOVAMENTE
+            </Text>
+          </Pressable>
         </View>
       </View>
     </ScrollView>
