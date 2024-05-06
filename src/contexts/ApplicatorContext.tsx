@@ -8,6 +8,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { findApplicatorById } from '@/services/applicator' // Assuming there's a service to find applicator by id
 import { IApplicator } from '@/interfaces/IApplicator'
+import { router } from 'expo-router'
 
 interface ApplicatorContextProps {
   children: ReactNode
@@ -27,7 +28,6 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
 
   const fetchApplicatorData = async () => {
     const applicatorId = await AsyncStorage.getItem('applicator_id')
-    // console.log('applicatorId', applicatorId)
     try {
       if (applicatorId) {
         const applicatorData = await findApplicatorById(applicatorId)
