@@ -8,6 +8,7 @@ import {
 import { IDevices } from '@/interfaces/IPoint'
 import { findDeviceByFactoryId } from '@/services/device'
 import * as Application from 'expo-application'
+import { router } from 'expo-router'
 
 interface DeviceContextProps {
   children: ReactNode
@@ -23,14 +24,15 @@ const DeviceContext = createContext<DeviceContextData | undefined>(undefined)
 const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
   const factoryId = Application.getAndroidId()
 
-  console.log('factoryId', factoryId)
-
   const [device, setDevice] = useState<IDevices | null>(null)
   const fetchDeviceData = async () => {
     try {
       const deviceData = await findDeviceByFactoryId(factoryId)
-      console.log('deviceData', deviceData)
       setDevice(deviceData)
+
+      if (!deviceData || deviceData.authorized === false) {
+        router.replace('device-not-authorized')
+      }
     } catch (error) {
       console.error('Erro ao buscar informações do device:', error)
     }
@@ -44,7 +46,6 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
     device,
     fetchDeviceData,
   }
-  console.log('device', device)
 
   return (
     <DeviceContext.Provider value={value}>{children}</DeviceContext.Provider>
