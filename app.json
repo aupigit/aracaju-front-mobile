@@ -19,9 +19,30 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ]
+      ],
+      "expo-router"
     ],
     "name": "create-aupi-front-mobile",
-    "slug": "create-aupi-front-mobile"
+    "slug": "create-aupi-front-mobile",
+    "android": {
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.brunowe.createaupifrontmobile"
+    },
+    "ios": {
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID."
+      },
+      "bundleIdentifier": "com.brunowe.createaupifrontmobile"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e10464db-1cd0-45fb-8adf-27892bd2e8d1"
+      }
+    }
   }
 }

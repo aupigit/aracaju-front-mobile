@@ -17,3 +17,6 @@ bun.lockb
 .env
 
 bun.lockb 
+
+/ios
+/android

@@ -32,10 +32,12 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
 
       if (!deviceData || deviceData.authorized === false) {
         router.replace('device-not-authorized')
+      } else {
+        router.replace('/')
       }
     } catch (error) {
-      console.error('Erro ao buscar informações do device:', error)
       router.replace('device-not-authorized')
+      console.error('Erro ao buscar informações do device:', error)
     }
   }
 

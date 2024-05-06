@@ -149,21 +149,14 @@ const Posts = () => {
     updatedAtParameter = formatDate(updatedAtDate)
   }
 
-  // console.log('db local -> ', lastUpdatedAtData)
-  // console.log('formatado -> ', updatedAtParameter)
-
   const { data: pointsData, isLoading: pointsLoading } = useQuery(
-    ['application/pointreference', updatedAtParameter],
+    'application/pointreference',
     async () => {
-      if (updatedAtParameter) {
-        return await findManyPointsReferences(updatedAtParameter).then(
-          (response) => response,
-        )
-      }
+      return await findManyPointsReferences(updatedAtParameter).then(
+        (response) => response,
+      )
     },
   )
-
-  // console.log(pointsData)
 
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
     'application/applicator',

@@ -37,6 +37,7 @@ const FormControl = ({
               value={value}
               placeholder="Adicione o seu CPF"
               className=" rounded-md border border-zinc-700/20 p-2 pl-4"
+              keyboardType="numeric"
             />
             {errors && (
               <Text className="absolute -bottom-5 text-sm text-red-500">
