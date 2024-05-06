@@ -2,7 +2,12 @@ import { db } from '@/lib/database'
 import { doApplication } from '../applications'
 import NetInfo from '@react-native-community/netinfo'
 
-export const syncApplication = async () => {
+export const syncApplication = async (
+  contractId: number,
+  applicatorId: string,
+  deviceId: string,
+  pointreferenceId: number,
+) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
@@ -35,9 +40,10 @@ export const syncApplication = async () => {
           item.plate,
           item.observation,
           item.image,
-          1,
-          1,
-          1,
+          contractId, // Contract Id
+          pointreferenceId, // Pointreference Id
+          Number(applicatorId), // Applicator Id
+          Number(deviceId), // Device id
           item.created_ondevice_at,
         )
         await db.transaction((tx) => {

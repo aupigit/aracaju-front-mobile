@@ -16,6 +16,7 @@ export const doApplication = async (
   contract: number,
   pointreference: number,
   applicator: number,
+  device: number,
   created_ondevice_at?: string,
 ): Promise<IApplication> => {
   const body = {
@@ -36,7 +37,7 @@ export const doApplication = async (
     status: 'Em dia',
     image,
     pointreference,
-    device: 1,
+    device,
     applicator,
     contract,
     created_ondevice_at,

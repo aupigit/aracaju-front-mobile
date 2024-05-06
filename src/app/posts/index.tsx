@@ -366,7 +366,12 @@ const Posts = () => {
     showUserConectivitySituation()
 
     Promise.all([
-      syncApplication(),
+      syncApplication(
+        selectedPoint.contract,
+        applicator.id,
+        device.factory_id,
+        selectedPoint.id,
+      ),
       syncDoAdultCollection(),
       syncTrails(),
       syncPoints(applicator.id, device.factory_id),
