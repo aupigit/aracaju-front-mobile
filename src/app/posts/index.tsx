@@ -196,7 +196,7 @@ const Posts = () => {
   )
 
   const [pullTimeRemaining, setPullTimeRemaining] = useState(
-    Number(configPullTime.data_config),
+    Number(configPullTime?.data_config ?? 0),
   ) // Tempo restante em segundos
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
 
@@ -236,7 +236,7 @@ const Posts = () => {
       setPullTimeRemaining((prevTime) => {
         if (prevTime === 0) {
           handlePullInformations()
-          return Number(configPullTime.data_config)
+          return Number(configPullTime?.data_config ?? 0)
         } else {
           return prevTime - 1
         }
@@ -341,7 +341,7 @@ const Posts = () => {
         for (const point of pointsDataOffline) {
           if (
             calculateDistance(location.coords, point) <=
-            Number(configPointRadius?.data_config)
+            Number(configPointRadius?.data_config ?? 0)
           ) {
             setShowPointDetails(true)
             if (Number(point.pointtype) === 3) {
@@ -379,7 +379,7 @@ const Posts = () => {
     },
   )
   const [pushTimeRemaining, setPushTimeRemaining] = useState(
-    Number(configPushTime.data_config),
+    Number(configPushTime?.data_config ?? 0),
   )
   // SINCRONIZAR DADOS
   const handlePushInformations = () => {
@@ -399,7 +399,7 @@ const Posts = () => {
     ])
       .then(() => {
         console.info('Sincronização completa')
-        setPushTimeRemaining(Number(configPushTime.data_config))
+        setPushTimeRemaining(Number(configPushTime?.data_config ?? 0))
       })
       .catch((error) => {
         console.error('Erro na sincronização:', error)
@@ -411,7 +411,7 @@ const Posts = () => {
       setPushTimeRemaining((prevTime) => {
         if (prevTime === 0) {
           handlePushInformations()
-          return Number(configPushTime?.data_config)
+          return Number(configPushTime?.data_config ?? 0)
         } else {
           return prevTime - 1
         }
