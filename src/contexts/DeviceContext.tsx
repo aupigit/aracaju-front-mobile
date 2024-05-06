@@ -35,6 +35,7 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Erro ao buscar informações do device:', error)
+      router.replace('device-not-authorized')
     }
   }
 

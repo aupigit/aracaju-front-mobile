@@ -47,7 +47,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
         //   return offlineResponse
         // }
       } else {
-        router.replace('/login')
+        router.replace('/')
         return null
       }
     },
