@@ -7,7 +7,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
 import { Divider, Snackbar } from 'react-native-paper'
 import RNPickerSelect from 'react-native-picker-select'
@@ -24,6 +24,8 @@ import { IImagesProps } from '../PhonePhotos'
 import { useUser } from '@/contexts/UserContext'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
+import { useQuery } from 'react-query'
+import { findConfigAppByName } from '@/services/configApp'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -59,6 +61,8 @@ const AdultCollectionModal = ({
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
   const [images, setImages] = useState<IImagesProps[]>([])
+  const [windCollection, setWindCollection] = useState([])
+  const [climateCollection, setClimateCollection] = useState([])
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
@@ -150,6 +154,35 @@ const AdultCollectionModal = ({
       throw error
     }
   })
+
+  const { data: configWindCollection, isLoading: configWindCollectionLoading } =
+    useQuery('config/configapp/?name="coleta_vento"', async () => {
+      return await findConfigAppByName('coleta_vento').then(
+        (response) => response,
+      )
+    })
+
+  useEffect(() => {
+    if (configWindCollection?.data_config) {
+      setWindCollection(configWindCollection.data_config.split(';'))
+    }
+  }, [configWindCollection])
+
+  const {
+    data: configClimateWindCollection,
+    isLoading: configClimateWindCollectionLoading,
+  } = useQuery('config/configapp/?name="coleta_clima"', async () => {
+    return await findConfigAppByName('coleta_clima').then(
+      (response) => response,
+    )
+  })
+
+  useEffect(() => {
+    if (configClimateWindCollection?.data_config) {
+      setClimateCollection(configClimateWindCollection.data_config.split(';'))
+    }
+  }, [configClimateWindCollection])
+
   return (
     <>
       <Modal
@@ -235,12 +268,10 @@ const AdultCollectionModal = ({
                           onChange(value)
                         }}
                         value={value}
-                        items={[
-                          { label: 'Item 1', value: 'item-1' },
-                          { label: 'Item 2', value: 'item-2' },
-                          { label: 'Item 3', value: 'item-3' },
-                          { label: 'Item 4', value: 'item-4' },
-                        ]}
+                        items={windCollection.map((wind) => ({
+                          label: wind,
+                          value: wind,
+                        }))}
                       />
                     </View>
                   )}
@@ -265,12 +296,10 @@ const AdultCollectionModal = ({
                           onChange(value)
                         }}
                         value={value}
-                        items={[
-                          { label: 'Item 1', value: 'item-1' },
-                          { label: 'Item 2', value: 'item-2' },
-                          { label: 'Item 3', value: 'item-3' },
-                          { label: 'Item 4', value: 'item-4' },
-                        ]}
+                        items={climateCollection.map((climate) => ({
+                          label: climate,
+                          value: climate,
+                        }))}
                       />
                     </View>
                   )}

@@ -50,7 +50,7 @@ import { findApplicator } from '@/services/applicator'
 import { pullApplicatorData } from '@/services/pullServices/applicator'
 import { findUser } from '@/services/user'
 import { pullUserData } from '@/services/pullServices/user'
-import { findConfigApp } from '@/services/configApp'
+import { findConfigApp, findConfigAppByName } from '@/services/configApp'
 import { pullConfigAppData } from '@/services/pullServices/configApp'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
@@ -186,7 +186,25 @@ const Posts = () => {
     },
   )
 
-  const [pullTimeRemaining, setPullTimeRemaining] = useState(30) // Tempo restante em segundos
+  const { data: configPointRadius, isLoading: configPointRadiusLoading } =
+    useQuery('config/configapp/?name="raio_do_ponto"', async () => {
+      return await findConfigAppByName('raio_do_ponto').then(
+        (response) => response,
+      )
+    })
+
+  const { data: configPullTime, isLoading: configPullTimeLoading } = useQuery(
+    'config/configapp/?name="tempo_busca_sincronizacao"',
+    async () => {
+      return await findConfigAppByName('tempo_busca_sincronizacao').then(
+        (response) => response,
+      )
+    },
+  )
+
+  const [pullTimeRemaining, setPullTimeRemaining] = useState(
+    Number(configPullTime.data_config),
+  ) // Tempo restante em segundos
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
 
   useEffect(() => {
@@ -220,22 +238,20 @@ const Posts = () => {
     }
   }
 
-  // Executar a sincronização de dados automaticamente após 5 minutos
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setPullTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handlePullInformations()
-  //         return 30
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPullTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handlePullInformations()
+          return Number(configPullTime.data_config)
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, 1000)
 
-  //   // Limpar o intervalo quando o componente for desmontado
-  //   return () => clearInterval(interval)
-  // }, [])
+    return () => clearInterval(interval)
+  }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -330,7 +346,10 @@ const Posts = () => {
     if (location) {
       if (pointsDataOffline) {
         for (const point of pointsDataOffline) {
-          if (calculateDistance(location.coords, point) <= 15) {
+          if (
+            calculateDistance(location.coords, point) <=
+            Number(configPointRadius?.data_config)
+          ) {
             setShowPointDetails(true)
             if (Number(point.pointtype) === 3) {
               setShowCollectButton(true)
@@ -358,8 +377,17 @@ const Posts = () => {
     }
   }
 
-  const [pushTimeRemaining, setPushTimeRemaining] = useState(10) // Tempo restante em segundos
-
+  const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
+    'config/configapp/?name="tempo_entrega_sincronizacao"',
+    async () => {
+      return await findConfigAppByName('tempo_entrega_sincronizacao').then(
+        (response) => response,
+      )
+    },
+  )
+  const [pushTimeRemaining, setPushTimeRemaining] = useState(
+    Number(configPushTime.data_config),
+  )
   // SINCRONIZAR DADOS
   const handlePushInformations = () => {
     console.info('Sincronizando dados...')
@@ -378,30 +406,28 @@ const Posts = () => {
     ])
       .then(() => {
         console.info('Sincronização completa')
-        // Reiniciar o timer após a sincronização
-        setPushTimeRemaining(10)
+        setPushTimeRemaining(Number(configPushTime.data_config))
       })
       .catch((error) => {
         console.error('Erro na sincronização:', error)
       })
   }
 
-  // Executar a sincronização de dados automaticamente após 5 minutos
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setPushTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handlePushInformations()
-  //         return 10
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPushTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handlePushInformations()
+          return Number(configPushTime?.data_config)
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, 1000)
 
-  //   // Limpar o intervalo quando o componente for desmontado
-  //   return () => clearInterval(interval)
-  // }, [])
+    // Limpar o intervalo quando o componente for desmontado
+    return () => clearInterval(interval)
+  }, [])
 
   if (!location) {
     return
@@ -706,7 +732,10 @@ const Posts = () => {
                   if (location) {
                     if (pointsDataOffline) {
                       for (const point of pointsDataOffline) {
-                        if (calculateDistance(location.coords, point) <= 15) {
+                        if (
+                          calculateDistance(location.coords, point) <=
+                          Number(configPointRadius?.data_config ?? 0)
+                        ) {
                           setModalAdultCollection(true)
                           setSelectedPoint(point)
                           return
@@ -753,7 +782,10 @@ const Posts = () => {
                   if (location) {
                     if (pointsDataOffline) {
                       for (const point of pointsDataOffline) {
-                        if (calculateDistance(location.coords, point) <= 15) {
+                        if (
+                          calculateDistance(location.coords, point) <=
+                          Number(configPointRadius.data_config ?? 0)
+                        ) {
                           setModalApplicate(true)
                           setSelectedPoint(point)
                           return
@@ -804,7 +836,10 @@ const Posts = () => {
                   if (location) {
                     if (pointsDataOffline) {
                       for (const point of pointsDataOffline) {
-                        if (calculateDistance(location.coords, point) <= 15) {
+                        if (
+                          calculateDistance(location.coords, point) <=
+                          Number(configPointRadius.data_config ?? 0)
+                        ) {
                           setModalEditPoint(true)
                           setSelectedPoint(point)
                           return
