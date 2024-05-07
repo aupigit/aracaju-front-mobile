@@ -22,8 +22,8 @@
       ],
       "expo-router"
     ],
-    "name": "create-aupi-front-mobile",
-    "slug": "create-aupi-front-mobile",
+    "name": "aracaju-app",
+    "slug": "aracaju-app",
     "android": {
       "config": {
         "googleMaps": {
@@ -46,8 +46,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": "e10464db-1cd0-45fb-8adf-27892bd2e8d1"
+        "projectId": "08c1341a-5fd7-4c3a-87ec-9186924485bd"
+      },
+      "router": {
+        "origin": false
       }
-    }
+    },
+    "owner": "aupi"
   }
 }
