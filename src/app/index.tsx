@@ -1,14 +1,22 @@
-import { View, Text, Pressable, Button, StyleSheet } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import React, { useEffect } from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
-import { offlineDatabase, dropDatabase } from './offlineDatabase'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { doLogin } from '@/services/authenticate'
 import { useDevice } from '@/contexts/DeviceContext'
 import { syncApplication } from '@/services/syncServices/application'
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
+import migrations from '../../drizzle/migrations'
+import { db } from '@/lib/database'
+import { User } from '@/db/user'
+import { Application } from '@/db/application'
+import { AdultCollection } from '@/db/adultcollection'
+import { ConfigApp } from '@/db/configapp'
 const Home = () => {
+  const { success, error } = useMigrations(db, migrations)
+
   const { isAuthenticated, logoutUser, loginUser } = useUser()
   const { device } = useDevice()
   const handleEnterLead = async () => {
@@ -38,18 +46,14 @@ const Home = () => {
       }
     }
   }
-  const handleDatabase = () => {
-    router.replace('database')
-  }
 
   const handleLogout = () => {
     logoutUser()
   }
 
-  useEffect(() => {
-    offlineDatabase()
-    // dropDatabase()
-  }, [])
+  // if (error) {
+  //   console.log(error.message)
+  // }
 
   return (
     <View className="flex-1 items-center justify-center gap-5 bg-zinc-500">

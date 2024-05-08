@@ -1,22 +1,22 @@
+import { User } from '@/db/user'
 import IUser from '@/interfaces/IUser'
 import { db } from '@/lib/database'
+import { eq } from 'drizzle-orm'
 
-export const findUserByIdOffline = (
+export const findUserByIdOffline = async (
   userId: string | undefined,
 ): Promise<IUser> => {
-  const result = db.transaction((tx) => {
-    tx.executeSql(
-      `SELECT * FROM User WHERE id = ?;`,
-      [userId],
-      (_, { rows: { _array } }) => {
-        return _array
-      },
-      (_, error) => {
-        console.log('Error retrieving data: ', error)
-        return true
-      },
-    )
-  })
+  try {
+    const result = await db
+      .select()
+      .from(User)
+      .where(eq(User.id, Number(userId)))
+      .execute()
 
-  return result as unknown as Promise<IUser>
+    console.log('Data retrieved successfully from User table')
+    return result[0] as unknown as Promise<IUser>
+  } catch (error) {
+    console.error('Error retrieving data: ', error)
+    throw error
+  }
 }

@@ -34,6 +34,9 @@ interface ApplicationApplicateModalProps {
   selectedPoint: IPoint
   setSelectedPoint: (point: number | null) => void
   userLocation: number[]
+  refetchLatestApplicationDates: () => void
+  refetch: () => void
+  handleApplication: () => void
 }
 
 export const applicationSchema = z.object({
@@ -57,6 +60,9 @@ const ApplicationApplicateModal = ({
   selectedPoint,
   setSelectedPoint,
   userLocation,
+  refetchLatestApplicationDates,
+  refetch,
+  handleApplication,
 }: ApplicationApplicateModalProps) => {
   const { applicator } = useApplicator()
   const { device } = useDevice()
@@ -158,7 +164,9 @@ const ApplicationApplicateModal = ({
         Number(device.factory_id),
       )
       showSnackbar('success')
-      // console.log(offlineResponse)
+      refetchLatestApplicationDates()
+      refetch()
+      handleApplication()
     } catch (error) {
       console.error(error)
       showSnackbar('error')
@@ -166,8 +174,8 @@ const ApplicationApplicateModal = ({
   })
 
   const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
-    useQuery('config/configapp/?name="volume_escala"', async () => {
-      return await findConfigAppByName('volume_escala').then(
+    useQuery('config/configapp/?name="volume_bti"', async () => {
+      return await findConfigAppByName('volume_bti').then(
         (response) => response,
       )
     })
@@ -177,6 +185,7 @@ const ApplicationApplicateModal = ({
       setScaleVolume(configScaleVolume.data_config.split(';'))
     }
   }, [configScaleVolume])
+
   return (
     <Modal
       animationType="slide"
@@ -194,13 +203,16 @@ const ApplicationApplicateModal = ({
         onDismiss={onDismissSnackBarOK}
         action={{
           textColor: '#00ff00',
+          maxFontSizeMultiplier: 1,
           label: 'Fechar',
           onPress: () => {
             setVisibleOK(false)
           },
         }}
       >
-        <Text className="text-zinc-700">Aplicação realizada com sucesso.</Text>
+        <Text className="text-3xl text-zinc-700">
+          Aplicação realizada com sucesso.
+        </Text>
       </Snackbar>
       <Snackbar
         visible={visibleERROR}
@@ -213,7 +225,9 @@ const ApplicationApplicateModal = ({
           },
         }}
       >
-        <Text className="text-red-500">Algo deu errado. Tente novamente.</Text>
+        <Text className="text-3xl text-red-500">
+          Algo deu errado. Tente novamente.
+        </Text>
       </Snackbar>
       <View
         style={{

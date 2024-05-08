@@ -1,3 +1,4 @@
+import { Application } from '@/db/application'
 import { IApplication } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
 
@@ -19,16 +20,16 @@ export const doApplicationOffline = async (
   device: number,
 ) => {
   const body = {
-    coordinates, // COORDENADAS DO USUÁRIO
+    coordinates: JSON.stringify(coordinates), // Convert array to string
     from_txt: 'string',
     latitude,
     longitude,
     altitude,
     acuracia,
     volumebti,
-    container,
-    card,
-    plate,
+    container: container ? 1 : 0, // Convert boolean to number
+    card: card ? 1 : 0, // Convert boolean to number
+    plate: plate ? 1 : 0, // Convert boolean to number
     observation,
     status: 'Em dia',
     image,
@@ -36,81 +37,29 @@ export const doApplicationOffline = async (
     device,
     applicator,
     contract,
+    created_ondevice_at: new Date().toISOString(), // created_ondevice_at
+    transmition: 'offline', // transmition
   }
 
   try {
-    const data = db.transaction((tx) => {
-      tx.executeSql(
-        `INSERT INTO Application (
-          pointreference,
-          device,
-          applicator,
-          marker,
-          from_txt,
-          latitude,
-          longitude,
-          altitude,
-          acuracia,
-          volumebti,
-          container,
-          card,
-          plate,
-          observation,
-          status,
-          image,
-          created_ondevice_at,
-          transmition,
-          contract
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [
-          body.pointreference,
-          body.device,
-          body.applicator,
-          JSON.stringify(body.coordinates), // Convert array to string
-          body.from_txt,
-          body.latitude,
-          body.longitude,
-          body.altitude,
-          body.acuracia,
-          body.volumebti,
-          body.container ? 1 : 0, // Convert boolean to number
-          body.card ? 1 : 0, // Convert boolean to number
-          body.plate ? 1 : 0, // Convert boolean to number
-          body.observation,
-          body.status,
-          body.image,
-          new Date().toISOString(), // created_ondevice_at
-          'offline', // transmition
-          body.contract,
-        ],
-        () => console.log('Data inserted successfully in Application table'),
-        (_, error) => {
-          console.log('Error inserting data: ', error)
-          return true
-        },
-      )
-    })
-
+    const data = await db.insert(Application).values(body)
+    console.log('Data inserted successfully in Application table')
     return data
   } catch (error) {
-    console.error(error)
+    console.error('Error inserting data: ', error)
     throw error
   }
 }
 
-export const findManyApplicationsOffline = (): Promise<IApplication[]> => {
-  const result = db.transaction((tx) => {
-    tx.executeSql(
-      `SELECT * FROM Application;`,
-      [],
-      (_, { rows: { _array } }) => {
-        return _array
-      },
-      (_, error) => {
-        console.log('Error retrieving data: ', error)
-        return true
-      },
-    )
-  })
-  return result as unknown as Promise<IApplication[]>
+export const findManyApplicationsOffline = async (): Promise<
+  IApplication[]
+> => {
+  try {
+    const result = await db.select().from(Application)
+    console.log('Data retrieved successfully from Application table')
+    return result as unknown as Promise<IApplication[]>
+  } catch (error) {
+    console.error('Error retrieving data: ', error)
+    throw error
+  }
 }

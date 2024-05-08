@@ -1,3 +1,5 @@
-import * as SQLite from 'expo-sqlite'
+import { drizzle } from 'drizzle-orm/expo-sqlite'
+import { openDatabaseSync } from 'expo-sqlite'
 
-export const db = SQLite.openDatabase('aracaju.sqlite')
+const expo = openDatabaseSync('aracaju.sqlite.drizzle.v2')
+export const db = drizzle(expo)

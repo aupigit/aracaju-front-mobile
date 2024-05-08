@@ -48,8 +48,6 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
     fetchApplicatorData,
   }
 
-  console.log('applicator', applicator)
-
   return (
     <ApplicatorContext.Provider value={value}>
       {children}

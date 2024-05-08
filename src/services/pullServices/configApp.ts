@@ -1,34 +1,34 @@
+import { ConfigApp } from '@/db/configapp'
 import { IConfigApp } from '@/interfaces/IConfigApp'
 import { db } from '@/lib/database'
+import { sql } from 'drizzle-orm'
 
 export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
   for (const data of configAppData) {
     try {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `INSERT OR IGNORE INTO ConfigApp (
-            id,
-            name,
-            data_type,
-            data_config,
-            description
-          ) VALUES (?, ?, ?, ?, ?)`,
-          [
-            data.id,
-            data.name,
-            data.data_type,
-            data.data_config,
-            data.description,
-          ],
-          () => console.log('Data inserted successfully in ConfigApp table'),
-          (_, error) => {
-            console.error('Error inserting data: ', error)
-            return true
+      await db
+        .insert(ConfigApp)
+        .values({
+          id: Number(data.id),
+          name: data.name,
+          data_type: data.data_type,
+          data_config: data.data_config,
+          description: data.description,
+        })
+        .onConflictDoUpdate({
+          target: ConfigApp.id,
+          set: {
+            name: sql.raw(`excluded.${ConfigApp.name.name}`),
+            data_type: sql.raw(`excluded.${ConfigApp.data_type.name}`),
+            data_config: sql.raw(`excluded.${ConfigApp.data_config.name}`),
+            description: sql.raw(`excluded.${ConfigApp.description.name}`),
           },
-        )
-      })
+        })
+        .execute()
+
+      console.log('Data inserted or updated successfully in ConfigApp table')
     } catch (error) {
-      console.error(error)
+      console.error('Error inserting or updating data: ', error)
       throw error
     }
   }

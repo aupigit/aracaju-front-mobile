@@ -1,46 +1,57 @@
+import { PointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
+import { and, eq, sql } from 'drizzle-orm'
 
-export const findManyPointsReferencesOffline = (
+export const findManyPointsReferencesOffline = async (
   is_staff?: boolean,
 ): Promise<IPoint[]> => {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      const sql = is_staff
-        ? `SELECT * FROM PointReference WHERE is_active == true;`
-        : `SELECT * FROM PointReference WHERE is_active == true AND pointtype == 2;`
+  try {
+    let query
 
-      tx.executeSql(
-        sql,
-        [],
-        (_, { rows: { _array } }) => {
-          resolve(_array as IPoint[])
-        },
-        (_, error) => {
-          console.log('Error retrieving data: ', error)
-          reject(error)
-          return true
-        },
-      )
-    })
-  })
+    if (!is_staff) {
+      query = db
+        .select()
+        .from(PointReference)
+        .where(
+          and(eq(PointReference.is_active, 1), eq(PointReference.pointtype, 2)),
+        )
+    } else {
+      query = db
+        .select()
+        .from(PointReference)
+        .where(eq(PointReference.is_active, 1))
+    }
+
+    const result = await query.execute()
+    console.log('Data retrieved successfully from PointReference table')
+    return result as unknown as Promise<IPoint[]>
+  } catch (error) {
+    console.error('Error retrieving data: ', error)
+    throw error
+  }
 }
 
 export const adjustPointReferenceNameOffline = async (
   name: string,
   pointId: number,
 ) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `UPDATE PointReference SET name = ?, edit_name = 1, updated_at = datetime('now') WHERE id = ?;`,
-      [name, pointId],
-      () => console.log('Data updated successfully in PointReference table'),
-      (_, error) => {
-        console.log('Error updating data: ', error)
-        return true
-      },
-    )
-  })
+  try {
+    await db
+      .update(PointReference)
+      .set({
+        name,
+        edit_name: 1,
+        updated_at: sql`datetime('now')`,
+      })
+      .where(eq(PointReference.id, pointId))
+      .execute()
+
+    console.log('Data updated successfully in PointReference table')
+  } catch (error) {
+    console.error('Error updating data: ', error)
+    throw error
+  }
 }
 
 export const adjustPointReferenceLocationOffline = async (
@@ -48,29 +59,40 @@ export const adjustPointReferenceLocationOffline = async (
   latitude: number,
   pointId: number,
 ) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `UPDATE PointReference SET longitude = ?, latitude = ?, edit_location = 1, updated_at = datetime('now') WHERE id = ?;`,
-      [longitude, latitude, pointId],
-      () => console.log('Data updated successfully in PointReference table'),
-      (_, error) => {
-        console.log('Error updating data: ', error)
-        return true
-      },
-    )
-  })
+  try {
+    await db
+      .update(PointReference)
+      .set({
+        longitude,
+        latitude,
+        edit_location: 1,
+        updated_at: sql`datetime('now')`,
+      })
+      .where(eq(PointReference.id, pointId))
+      .execute()
+
+    console.log('Data updated successfully in PointReference table')
+  } catch (error) {
+    console.error('Error updating data: ', error)
+    throw error
+  }
 }
 
 export const adjustPointReferenceStatusOffline = async (pointId: number) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `UPDATE PointReference SET is_active = 0, edit_status = 1, updated_at = datetime('now') WHERE id = ?;`,
-      [pointId],
-      () => console.log('Data updated successfully in PointReference table'),
-      (_, error) => {
-        console.log('Error updating data: ', error)
-        return true
-      },
-    )
-  })
+  try {
+    await db
+      .update(PointReference)
+      .set({
+        is_active: 0,
+        edit_status: 1,
+        updated_at: sql`datetime('now')`,
+      })
+      .where(eq(PointReference.id, pointId))
+      .execute()
+
+    console.log('Data updated successfully in PointReference table')
+  } catch (error) {
+    console.error('Error updating data: ', error)
+    throw error
+  }
 }

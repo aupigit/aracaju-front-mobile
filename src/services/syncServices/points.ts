@@ -6,6 +6,9 @@ import {
   adjustPointStatus,
 } from '../points'
 import { adjustPointReferenceStatusOffline } from '../offlineServices/points'
+import { PointReference } from '@/db/pointreference'
+import { sql } from 'drizzle-orm'
+import { AdultCollection } from '@/db/adultcollection'
 
 export const syncPointsReferenceName = async (
   applicatorId: string,
@@ -14,20 +17,11 @@ export const syncPointsReferenceName = async (
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
-    const data = await new Promise((resolve, reject) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `SELECT * FROM PointReference WHERE edit_name = 1;`,
-          [],
-          (_, { rows: { _array } }) => resolve(_array),
-          (_, error) => {
-            console.error('Error retrieving data: ', error)
-            reject(error)
-            return true
-          },
-        )
-      })
-    })
+    const data = await db
+      .select()
+      .from(PointReference)
+      .where(sql`${PointReference.edit_name} = 1`)
+      .execute()
 
     for (const item of data as any[]) {
       try {
@@ -38,17 +32,13 @@ export const syncPointsReferenceName = async (
           applicatorId,
           deviceId,
         )
-        await db.transaction((tx) => {
-          tx.executeSql(
-            `UPDATE PointReference SET edit_name = 0 WHERE id = ?;`,
-            [item.id],
-            () => console.info('Data updated successfully'),
-            (_, error) => {
-              console.error('Error updating data: ', error)
-              return true
-            },
-          )
-        })
+
+        await db
+          .update(PointReference)
+          .set({ edit_name: 0 })
+          .where(sql`${PointReference.id} = ${item.id}`)
+          .execute()
+        console.info('Data updated successfully')
       } catch (error) {
         console.error('An error occurred while syncing the data:', error)
       }
@@ -63,20 +53,11 @@ export const syncPointsReferenceLocation = async (
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
-    const data = await new Promise((resolve, reject) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `SELECT * FROM PointReference WHERE edit_location = 1;`,
-          [],
-          (_, { rows: { _array } }) => resolve(_array),
-          (_, error) => {
-            console.error('Error retrieving data: ', error)
-            reject(error)
-            return true
-          },
-        )
-      })
-    })
+    const data = await db
+      .select()
+      .from(PointReference)
+      .where(sql`${PointReference.edit_location} = 1`)
+      .execute()
 
     for (const item of data as any[]) {
       try {
@@ -88,17 +69,12 @@ export const syncPointsReferenceLocation = async (
           applicatorId,
           deviceId,
         )
-        await db.transaction((tx) => {
-          tx.executeSql(
-            `UPDATE PointReference SET edit_location = 0 WHERE id = ?;`,
-            [item.id],
-            () => console.info('Data updated successfully'),
-            (_, error) => {
-              console.error('Error updating data: ', error)
-              return true
-            },
-          )
-        })
+        await db
+          .update(PointReference)
+          .set({ edit_location: 0 })
+          .where(sql`${PointReference.id} = ${item.id}`)
+          .execute()
+        console.info('Data updated successfully')
       } catch (error) {
         console.error('An error occurred while syncing the data:', error)
       }
@@ -113,20 +89,11 @@ export const syncPointsReferenceStatus = async (
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
-    const data = await new Promise((resolve, reject) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `SELECT * FROM PointReference WHERE edit_status = 1;`,
-          [],
-          (_, { rows: { _array } }) => resolve(_array),
-          (_, error) => {
-            console.error('Error retrieving data: ', error)
-            reject(error)
-            return true
-          },
-        )
-      })
-    })
+    const data = await db
+      .select()
+      .from(PointReference)
+      .where(sql`${PointReference.edit_status} = 1`)
+      .execute()
 
     for (const item of data as any[]) {
       try {
@@ -136,17 +103,12 @@ export const syncPointsReferenceStatus = async (
           applicatorId,
           deviceId,
         )
-        await db.transaction((tx) => {
-          tx.executeSql(
-            `UPDATE PointReference SET edit_status = 0 WHERE id = ?;`,
-            [item.id],
-            () => console.info('Data updated successfully'),
-            (_, error) => {
-              console.error('Error updating data: ', error)
-              return true
-            },
-          )
-        })
+        await db
+          .update(PointReference)
+          .set({ edit_status: 0 })
+          .where(sql`${PointReference.id} = ${item.id}`)
+          .execute()
+        console.info('Data updated successfully')
       } catch (error) {
         console.error('An error occurred while syncing the data:', error)
       }
