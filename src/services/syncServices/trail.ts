@@ -1,25 +1,26 @@
 import { db } from '@/lib/database'
 import NetInfo from '@react-native-community/netinfo'
 import { doTrails } from '../trails'
+import { Tracking } from '@/db/tracking'
+import { and, eq, gte, lt } from 'drizzle-orm'
 
-export const syncTrails = async () => {
+export const syncTrails = async (applicatorId: number, deviceId: number) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
-    const data = await new Promise((resolve, reject) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `SELECT * FROM Trails WHERE transmition = 'offline';`,
-          [],
-          (_, { rows: { _array } }) => resolve(_array),
-          (_, error) => {
-            console.error('Error retrieving data: ', error)
-            reject(error)
-            return true
-          },
-        )
-      })
-    })
+    const data = await db
+      .select()
+      .from(Tracking)
+      .where(
+        and(
+          eq(Tracking.applicator, applicatorId),
+          eq(Tracking.device, deviceId),
+          eq(Tracking.transmition, 'offline'),
+        ),
+      )
+      .execute()
+
+    console.log(JSON.stringify(data, null, 2))
 
     for (const item of data as any[]) {
       // TODO - Ciar um JSON para mandar apenas uma vez para a API essas informaçoes

@@ -1,6 +1,7 @@
+import { AdultCollection } from '@/db/adultcollection'
 import { db } from '@/lib/database'
 
-export const doAdultCollectionOffline = (
+export const doAdultCollectionOffline = async (
   coordinates: number[],
   latitude: number,
   longitude: number,
@@ -19,15 +20,15 @@ export const doAdultCollectionOffline = (
   device: number,
 ) => {
   const body = {
-    coordinates,
+    marker: JSON.stringify(coordinates),
     from_txt: 'string',
     latitude,
     longitude,
     altitude,
     accuracy,
     wind,
-    climate,
-    temperature,
+    climate: climate ? 1 : 0,
+    temperature: temperature ? 1 : 0,
     humidity,
     status: 'Em dia',
     observation,
@@ -37,64 +38,19 @@ export const doAdultCollectionOffline = (
     applicator,
     image,
     contract,
+    created_ondevice_at: new Date().toISOString(),
+    transmition: 'offline',
   }
 
   try {
-    const data = db.transaction((tx) => {
-      tx.executeSql(
-        `INSERT INTO AdultCollection (
-          pointreference,
-          device,
-          applicator,
-          marker,
-          from_txt,
-          latitude,
-          longitude,
-          altitude,
-          accuracy,
-          wind,
-          climate,
-          temperature,
-          humidity,
-          insects_number,
-          image,
-          contract,
-          observation,
-          created_ondevice_at,
-          transmition
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [
-          body.pointreference,
-          body.device,
-          body.applicator,
-          JSON.stringify(body.coordinates),
-          body.from_txt,
-          body.latitude,
-          body.longitude,
-          body.altitude,
-          body.accuracy,
-          body.wind,
-          body.climate ? 1 : 0,
-          body.temperature ? 1 : 0,
-          body.humidity,
-          body.insects_number,
-          body.image,
-          body.contract,
-          body.observation,
-          new Date().toISOString(),
-          'offline',
-        ],
-        () =>
-          console.log('Data inserted successfully in Adult Collection table'),
-        (_, error) => {
-          console.log('Error inserting data: ', error)
-          return true
-        },
-      )
+    const data = await db.insert(AdultCollection).values({
+      ...body,
+      humidity: Number(body.humidity),
     })
+    console.log('Data inserted successfully in Adult Collection table')
     return data
   } catch (error) {
-    console.error(error)
+    console.error('Error inserting data: ', error)
     throw error
   }
 }

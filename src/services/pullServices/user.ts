@@ -1,44 +1,42 @@
+import { User } from '@/db/user'
 import IUser from '@/interfaces/IUser'
 import { db } from '@/lib/database'
+import { sql } from 'drizzle-orm'
 
 export const pullUserData = async (userData: IUser[]) => {
   for (const data of userData) {
     try {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `INSERT OR IGNORE INTO User (
-            id,
-            name,
-            email,
-            first_name,
-            last_name,
-            password,
-            is_active,
-            is_staff,
-            is_superuser,
-            last_login,
-            date_joined
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            data.id,
-            data.name,
-            data.email,
-            data.first_name,
-            data.last_name,
-            data.password,
-            data.is_active,
-            data.is_staff,
-            data.is_superuser,
-            data.last_login,
-            data.date_joined,
-          ],
-          () => console.log('Data inserted successfully in User table'),
-          (_, error) => {
-            console.error('Error inserting data: ', error)
-            return true
+      await db
+        .insert(User)
+        .values({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          password: data.password,
+          is_active: data.is_active,
+          is_staff: data.is_staff,
+          is_superuser: data.is_superuser,
+          last_login: data.last_login,
+          date_joined: data.date_joined,
+        })
+        .onConflictDoUpdate({
+          target: User.id,
+          set: {
+            name: sql.raw(`excluded.${User.name.name}`),
+            email: sql.raw(`excluded.${User.email.name}`),
+            first_name: sql.raw(`excluded.${User.first_name.name}`),
+            last_name: sql.raw(`excluded.${User.last_name.name}`),
+            password: sql.raw(`excluded.${User.password.name}`),
+            is_active: sql.raw(`excluded.${User.is_active.name}`),
+            is_staff: sql.raw(`excluded.${User.is_staff.name}`),
+            is_superuser: sql.raw(`excluded.${User.is_superuser.name}`),
+            last_login: sql.raw(`excluded.${User.last_login.name}`),
+            date_joined: sql.raw(`excluded.${User.date_joined.name}`),
           },
-        )
-      })
+        })
+        .execute()
     } catch (error) {
       console.error(error)
       throw error

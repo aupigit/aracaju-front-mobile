@@ -1,25 +1,18 @@
 import { db } from '@/lib/database'
 import NetInfo from '@react-native-community/netinfo'
 import { doAdultCollection } from '../doAdultCollection'
+import { AdultCollection } from '@/db/adultcollection'
+import { sql } from 'drizzle-orm'
 
 export const syncDoAdultCollection = async (deviceId: string) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
-    const data = await new Promise((resolve, reject) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `SELECT * FROM AdultCollection WHERE transmition = 'offline';`,
-          [],
-          (_, { rows: { _array } }) => resolve(_array),
-          (_, error) => {
-            console.error('Error retrieving data: ', error)
-            reject(error)
-            return true
-          },
-        )
-      })
-    })
+    const data = await db
+      .select()
+      .from(AdultCollection)
+      .where(sql`${AdultCollection.transmition} = 'offline'`)
+      .execute()
 
     for (const item of data as any[]) {
       try {
@@ -42,17 +35,12 @@ export const syncDoAdultCollection = async (deviceId: string) => {
           Number(deviceId),
           item.created_ondevice_at,
         )
-        await db.transaction((tx) => {
-          tx.executeSql(
-            `UPDATE AdultCollection SET transmition = 'online' WHERE id = ?;`,
-            [item.id],
-            () => console.info('Data updated successfully'),
-            (_, error) => {
-              console.error('Error updating data: ', error)
-              return true
-            },
-          )
-        })
+        await db
+          .update(AdultCollection)
+          .set({ transmition: 'online' })
+          .where(sql`${AdultCollection.id} = ${item.id}`)
+          .execute()
+        console.info('Data updated successfully')
       } catch (error) {
         console.error('An error occurred while syncing the data:', error)
       }

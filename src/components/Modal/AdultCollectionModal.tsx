@@ -76,7 +76,6 @@ const AdultCollectionModal = ({
   } = useForm<AdultCollectionFormData>({
     resolver: zodResolver(adultCollectionSchema),
   })
-  // console.log(errors)
   const handleImagePick = async (title) => {
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -146,7 +145,6 @@ const AdultCollectionModal = ({
         Number(selectedPoint.id),
         Number(device.factory_id),
       )
-      // console.log(offlineResponse)
       showSnackbar('success')
     } catch (error) {
       console.error(error)
@@ -202,12 +200,12 @@ const AdultCollectionModal = ({
           onDismiss={onDismissSnackBarOK}
           duration={Snackbar.DURATION_SHORT}
           action={{
-            textColor: '#000',
+            textColor: '#00ff00',
             label: 'Fechar',
             onPress: onDismissSnackBarOK,
           }}
         >
-          <Text className="text-zinc-700">
+          <Text className="text-3xl text-zinc-700">
             Coleta de adulto realizada com sucesso.
           </Text>
         </Snackbar>
@@ -219,12 +217,12 @@ const AdultCollectionModal = ({
           onDismiss={onDismissSnackBarERROR}
           duration={Snackbar.DURATION_SHORT}
           action={{
-            textColor: '#000',
+            textColor: '#ff0000',
             label: 'Fechar',
             onPress: onDismissSnackBarERROR,
           }}
         >
-          <Text className="text-zinc-700">
+          <Text className="text-3xl text-zinc-700">
             Ocorreu algum erro. Tente novamente.
           </Text>
         </Snackbar>

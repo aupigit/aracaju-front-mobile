@@ -7,3 +7,12 @@ Use [Expo Router](https://docs.expo.dev/router/introduction/) with [Nativewind](
 ```sh
 npx create-expo-app -e with-router-tailwind
 ```
+
+# Migrations no Drizzle:
+
+-> Para fazer migrações no drizzle será necessário rodar o seguinte comando:
+
+```sh
+  ➜  npx drizzle-kit generate:sqlite
+  ➜  bunx drizzle-kit generate:sqlite
+```

@@ -64,6 +64,11 @@ import {
 import { syncPoints } from '@/services/syncServices/points'
 import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
 import { useDevice } from '@/contexts/DeviceContext'
+import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
+import {
+  doTrailsOffline,
+  findManyTrackingPointsOfflineByDeviceByApplicator,
+} from '@/services/offlineServices/trails'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -108,6 +113,8 @@ const Posts = () => {
   const [pointIsEditable, setPointIsEditable] = useState(false)
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
+
   const {
     control,
     handleSubmit,
@@ -133,6 +140,14 @@ const Posts = () => {
       return await findManyPointsReferencesOffline(user?.is_staff).then(
         (response) => response,
       )
+    },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+      staleTime: Infinity,
+      cacheTime: Infinity,
+      retry: false,
     },
   )
 
@@ -195,10 +210,43 @@ const Posts = () => {
     },
   )
 
+  const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
+    'config/configapp/?name="tempo_entrega_sincronizacao"',
+    async () => {
+      return await findConfigAppByName('tempo_entrega_sincronizacao').then(
+        (response) => response,
+      )
+    },
+  )
+
+  const {
+    data: latestApplicationDates,
+    isLoading: latestApplicationDateLoading,
+    refetch: refetchLatestApplicationDates,
+  } = useQuery(
+    'application/application/latest',
+    async () => {
+      return await findLatestApplicationDatesByPointIds(
+        pointsDataOffline?.map((points) => points.id),
+      )
+    },
+    {
+      enabled: !!pointsDataOffline,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+      staleTime: Infinity,
+      cacheTime: Infinity,
+      retry: false,
+    },
+  )
+
   const [pullTimeRemaining, setPullTimeRemaining] = useState(
     Number(configPullTime?.data_config ?? 0),
   ) // Tempo restante em segundos
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
+  const [pushTimeRemaining, setPushTimeRemaining] = useState(
+    Number(configPushTime?.data_config ?? 0),
+  )
 
   useEffect(() => {
     // Get the last sync time from AsyncStorage when the component mounts
@@ -231,20 +279,20 @@ const Posts = () => {
     }
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPullTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handlePullInformations()
-          return Number(configPullTime?.data_config ?? 0)
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setPullTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handlePullInformations()
+  //         return Number(configPullTime?.data_config ?? 0)
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-    return () => clearInterval(interval)
-  }, [])
+  //   return () => clearInterval(interval)
+  // }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -295,8 +343,8 @@ const Posts = () => {
       unsubscribe = await watchPositionAsync(
         {
           accuracy: LocationAccuracy.Highest,
-          distanceInterval: 1,
-          timeInterval: 1000,
+          distanceInterval: 2,
+          timeInterval: 30000,
         },
         async (newLocation) => {
           setLocation(newLocation)
@@ -311,28 +359,28 @@ const Posts = () => {
   }, [])
 
   // POST DE ROTAS DO USUÁRIO
-  // useEffect(() => {
-  //   const postTrails = async () => {
-  //     const lastLocation = routes[routes.length - 1]
-  //     if (!lastLocation) {
-  //       return
-  //     }
+  useEffect(() => {
+    const postTrails = async () => {
+      const lastLocation = routes[routes.length - 1]
+      if (!lastLocation) {
+        return
+      }
 
-  //       await doTrailsOffline(
-  //         [lastLocation.coords.latitude, lastLocation.coords.longitude],
-  //         lastLocation.coords.latitude,
-  //         lastLocation.coords.longitude,
-  //         lastLocation.coords.altitude,
-  //         lastLocation.coords.accuracy,
-  //         Number(applicator.id),
-  //         1, // CONTRATO
-  //       )
-  //   }
+      await doTrailsOffline(
+        lastLocation.coords.latitude,
+        lastLocation.coords.longitude,
+        lastLocation.coords.altitude,
+        lastLocation.coords.accuracy,
+        Number(applicator.id),
+        lastLocation.timestamp,
+        Number(device.id),
+      )
+    }
 
-  //   if (routes.length > 0) {
-  //     postTrails()
-  //   }
-  // }, [routes])
+    if (routes.length > 0) {
+      postTrails()
+    }
+  }, [routes])
 
   // MOSTRAR BOTÕES DE AÇÕES DO USUÁRIO
   useEffect(() => {
@@ -370,31 +418,15 @@ const Posts = () => {
     }
   }
 
-  const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
-    'config/configapp/?name="tempo_entrega_sincronizacao"',
-    async () => {
-      return await findConfigAppByName('tempo_entrega_sincronizacao').then(
-        (response) => response,
-      )
-    },
-  )
-  const [pushTimeRemaining, setPushTimeRemaining] = useState(
-    Number(configPushTime?.data_config ?? 0),
-  )
   // SINCRONIZAR DADOS
   const handlePushInformations = () => {
     console.info('Sincronizando dados...')
     showUserConectivitySituation()
 
     Promise.all([
-      syncApplication(
-        // selectedPoint.contract,
-        applicator.id,
-        device.id,
-        // selectedPoint.id,
-      ),
+      syncApplication(applicator.id, device.id),
       syncDoAdultCollection(device.id),
-      syncTrails(),
+      syncTrails(Number(applicator.id), Number(device.id)),
       syncPoints(applicator.id, device.factory_id),
     ])
       .then(() => {
@@ -406,21 +438,41 @@ const Posts = () => {
       })
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPushTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handlePushInformations()
-          return Number(configPushTime?.data_config ?? 0)
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setPushTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handlePushInformations()
+  //         return Number(configPushTime?.data_config ?? 0)
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-    // Limpar o intervalo quando o componente for desmontado
-    return () => clearInterval(interval)
-  }, [])
+  //   // Limpar o intervalo quando o componente for desmontado
+  //   return () => clearInterval(interval)
+  // }, [])
+
+  const [markerVisible, setMarkerVisible] = useState(true)
+
+  useEffect(() => {
+    if (!markerVisible) {
+      // Se o Marker não está visível, torná-lo visível após um pequeno atraso
+      const timeoutId = setTimeout(() => {
+        setMarkerVisible(true)
+      }, 1000)
+
+      // Limpar o timeout se o componente for desmontado
+      return () => clearTimeout(timeoutId)
+    }
+  }, [markerVisible])
+
+  // Quando você quiser alterar a cor do Marker
+  function handleApplication() {
+    // Primeiro, tornar o Marker invisível
+    setMarkerVisible(false)
+  }
 
   if (!location) {
     return
@@ -429,11 +481,6 @@ const Posts = () => {
   const handleMarkerPress = (point) => {
     setSelectedPoint(point)
     setModalInfoPoints(false)
-  }
-
-  const handleDifferntMarkerPress = (point) => {
-    setModalVisible(true)
-    setSelectedPoint(point)
   }
 
   const userLocation = [location.coords.latitude, location.coords.longitude]
@@ -582,21 +629,33 @@ const Posts = () => {
               {pointsDataOffline
                 ?.filter((point) => isPointInRegion(point, region))
                 .map((point, index) => {
-                  const pinColor = 'red'
-                  const strokeColor = 'red'
-                  const fillColor = 'rgba(255,0,0,0.1)'
+                  const latestDateForPoint = latestApplicationDates?.find(
+                    (item) => item.id === point.id,
+                  )?.date
+                  const isToday =
+                    latestDateForPoint?.toDateString() ===
+                    new Date().toDateString()
+
+                  const pinColor = isToday ? 'blue' : 'red'
+                  const strokeColor = isToday ? 'blue' : 'red'
+                  const fillColor = isToday
+                    ? 'rgba(0,0,255,0.1)'
+                    : 'rgba(255,0,0,0.1)'
 
                   return (
                     <React.Fragment key={index}>
-                      <Marker
-                        title={`${point.name} || ${point.volumebti} ml`}
-                        coordinate={{
-                          latitude: point.latitude,
-                          longitude: point.longitude,
-                        }}
-                        pinColor={pinColor}
-                        onPress={() => handleMarkerPress(point)}
-                      />
+                      {markerVisible ? (
+                        <Marker
+                          key={index}
+                          title={`${point.name} || ${point.volumebti} ml`}
+                          coordinate={{
+                            latitude: point.latitude,
+                            longitude: point.longitude,
+                          }}
+                          pinColor={pinColor}
+                          onPress={() => handleMarkerPress(point)}
+                        />
+                      ) : null}
 
                       <Circle
                         center={{
@@ -610,23 +669,6 @@ const Posts = () => {
                     </React.Fragment>
                   )
                 })}
-              {/* <Marker
-                coordinate={{
-                  latitude: difFakePoint.latitude,
-                  longitude: difFakePoint.longitude,
-                }}
-                pinColor="green" // muda a cor do marcador para verde
-                onPress={() => handleDifferntMarkerPress(difFakePoint)}
-              />
-              <Circle
-                center={{
-                  latitude: difFakePoint.latitude,
-                  longitude: difFakePoint.longitude,
-                }}
-                radius={15}
-                strokeColor="green"
-                fillColor="rgba(0,255,0,0.1)"
-              /> */}
 
               {previewCoordinate && (
                 <Marker coordinate={previewCoordinate} pinColor={'blue'} />
@@ -668,6 +710,9 @@ const Posts = () => {
             selectedPoint={selectedPoint}
             setSelectedPoint={setSelectedPoint}
             userLocation={userLocation}
+            refetchLatestApplicationDates={refetchLatestApplicationDates}
+            refetch={refetch}
+            handleApplication={handleApplication}
           />
           <AdultCollectionModal
             modalVisible={modalAdultCollection}
