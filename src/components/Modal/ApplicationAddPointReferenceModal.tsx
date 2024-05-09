@@ -8,6 +8,7 @@ import RNPickerSelect from 'react-native-picker-select'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import { doPointReferenceOffline } from '@/services/offlineServices/points'
+import { findPointTypeDataOffline } from '@/services/offlineServices/pointtype'
 
 interface ApplicationAddPointReferenceModalProps {
   modalVisible: boolean
@@ -131,6 +132,15 @@ const ApplicationAddPointReferenceModal = ({
         (response) => response,
       )
     })
+
+  const { data: configPointtype, isLoading: configPointtypeLoading } = useQuery(
+    'application/pointtype/flatdata',
+    async () => {
+      return await findPointTypeDataOffline().then((response) => response)
+    },
+  )
+
+  console.log(configPointtype)
 
   useEffect(() => {
     if (configScaleVolume?.data_config) {
@@ -310,14 +320,14 @@ const ApplicationAddPointReferenceModal = ({
                   <Text>Tipo do ponto</Text>
                   <View className="border border-zinc-700/20">
                     <RNPickerSelect
-                      placeholder={{ label: 'Volume BTI', value: 0 }}
+                      placeholder={{ label: 'Tipo do ponto', value: 0 }}
                       onValueChange={(value) => {
                         onChange(value)
                       }}
                       value={value}
-                      items={scaleVolume.map((item) => ({
-                        label: item,
-                        value: Number(item),
+                      items={configPointtype.map((item) => ({
+                        label: item.name,
+                        value: Number(item.id),
                       }))}
                     />
                   </View>
