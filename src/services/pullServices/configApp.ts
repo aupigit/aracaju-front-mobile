@@ -1,7 +1,7 @@
 import { ConfigApp } from '@/db/configapp'
 import { IConfigApp } from '@/interfaces/IConfigApp'
 import { db } from '@/lib/database'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 
 export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
   for (const data of configAppData) {

@@ -49,7 +49,7 @@ const Login = () => {
 
         setTimeout(() => {
           setVisibleOK(!visibleOK)
-          router.replace('/posts')
+          router.replace('/points-reference')
         }, 1000)
       } else {
         setVisibleERROR(!visibleERROR)

@@ -27,6 +27,7 @@ import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
 import { findConfigAppByName } from '@/services/configApp'
 import { useQuery } from 'react-query'
+import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -161,7 +162,7 @@ const ApplicationApplicateModal = ({
         selectedPoint.contract,
         Number(selectedPoint.id),
         Number(applicator.id),
-        Number(device.factory_id),
+        Number(device.id),
       )
       showSnackbar('success')
       refetchLatestApplicationDates()
@@ -175,7 +176,7 @@ const ApplicationApplicateModal = ({
 
   const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
     useQuery('config/configapp/?name="volume_bti"', async () => {
-      return await findConfigAppByName('volume_bti').then(
+      return await findConfigAppByNameOffline('volume_bti').then(
         (response) => response,
       )
     })

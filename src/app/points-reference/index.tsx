@@ -69,6 +69,10 @@ import {
   doTrailsOffline,
   findManyTrackingPointsOfflineByDeviceByApplicator,
 } from '@/services/offlineServices/trails'
+import { ConfigApp } from '@/db/configapp'
+import { db } from '@/lib/database'
+import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
+import ApplicationAddPointReferenceModal from '@/components/Modal/ApplicationAddPointReferenceModal'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -82,7 +86,7 @@ export type EditPointCoordinateFormData = z.infer<
   typeof editPointCoordinateSchema
 >
 
-const Posts = () => {
+const PointsReference = () => {
   const { applicator } = useApplicator()
   const { device } = useDevice()
   const { logoutUser, user } = useUser()
@@ -106,6 +110,7 @@ const Posts = () => {
   const [modalInfoPoints, setModalInfoPoints] = useState(false)
   const [modalApplicate, setModalApplicate] = useState(false)
   const [modalAdultCollection, setModalAdultCollection] = useState(false)
+  const [modalAddPointReference, setModalAddPointReference] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
   const [isOnline, setIsOnline] = useState(false)
@@ -196,7 +201,7 @@ const Posts = () => {
 
   const { data: configPointRadius, isLoading: configPointRadiusLoading } =
     useQuery('config/configapp/?name="raio_do_ponto"', async () => {
-      return await findConfigAppByName('raio_do_ponto').then(
+      return await findConfigAppByNameOffline('raio_do_ponto').then(
         (response) => response,
       )
     })
@@ -204,7 +209,7 @@ const Posts = () => {
   const { data: configPullTime, isLoading: configPullTimeLoading } = useQuery(
     'config/configapp/?name="tempo_busca_sincronizacao"',
     async () => {
-      return await findConfigAppByName('tempo_busca_sincronizacao').then(
+      return await findConfigAppByNameOffline('tempo_busca_sincronizacao').then(
         (response) => response,
       )
     },
@@ -213,9 +218,9 @@ const Posts = () => {
   const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
     'config/configapp/?name="tempo_entrega_sincronizacao"',
     async () => {
-      return await findConfigAppByName('tempo_entrega_sincronizacao').then(
-        (response) => response,
-      )
+      return await findConfigAppByNameOffline(
+        'tempo_entrega_sincronizacao',
+      ).then((response) => response)
     },
   )
 
@@ -226,9 +231,13 @@ const Posts = () => {
   } = useQuery(
     'application/application/latest',
     async () => {
-      return await findLatestApplicationDatesByPointIds(
-        pointsDataOffline?.map((points) => points.id),
-      )
+      if (pointsDataOffline !== undefined) {
+        return await findLatestApplicationDatesByPointIds(
+          pointsDataOffline
+            ?.filter((point) => isPointInRegion(point, region))
+            .map((point) => point.id),
+        )
+      }
     },
     {
       enabled: !!pointsDataOffline,
@@ -242,10 +251,10 @@ const Posts = () => {
   )
 
   const [pullTimeRemaining, setPullTimeRemaining] = useState(
-    Number(configPullTime?.data_config ?? 0),
-  ) // Tempo restante em segundos
+    configPullTime?.data_config,
+  )
   const [pushTimeRemaining, setPushTimeRemaining] = useState(
-    Number(configPushTime?.data_config ?? 0),
+    configPushTime?.data_config,
   )
 
   useEffect(() => {
@@ -262,6 +271,7 @@ const Posts = () => {
       const now = new Date()
       setLastSyncTime(now) // Update the last sync time
       AsyncStorage.setItem('lastSyncTime', now.toISOString()) // Save the last sync time to AsyncStorage
+
       Promise.all([
         pullPointData(pointsData),
         pullApplicatorData(applicatorData),
@@ -271,7 +281,7 @@ const Posts = () => {
         .then(() => {
           console.info('Pull de dados completo')
           refetch()
-          // setPushTimeRemaining(30)
+          setPushTimeRemaining(Number(configPushTime?.data_config))
         })
         .catch((error) => {
           console.error('Erro na sincronização:', error)
@@ -279,20 +289,20 @@ const Posts = () => {
     }
   }
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setPullTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handlePullInformations()
-  //         return Number(configPullTime?.data_config ?? 0)
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPullTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handlePullInformations()
+          return Number(configPullTime?.data_config)
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, Number(configPullTime?.data_config))
 
-  //   return () => clearInterval(interval)
-  // }, [])
+    return () => clearInterval(interval)
+  }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -431,28 +441,28 @@ const Posts = () => {
     ])
       .then(() => {
         console.info('Sincronização completa')
-        setPushTimeRemaining(Number(configPushTime?.data_config ?? 0))
+        setPushTimeRemaining(Number(configPushTime?.data_config))
       })
       .catch((error) => {
         console.error('Erro na sincronização:', error)
       })
   }
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setPushTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handlePushInformations()
-  //         return Number(configPushTime?.data_config ?? 0)
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPushTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handlePushInformations()
+          return Number(configPushTime?.data_config)
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, Number(configPushTime?.data_config))
 
-  //   // Limpar o intervalo quando o componente for desmontado
-  //   return () => clearInterval(interval)
-  // }, [])
+    // Limpar o intervalo quando o componente for desmontado
+    return () => clearInterval(interval)
+  }, [])
 
   const [markerVisible, setMarkerVisible] = useState(true)
 
@@ -483,7 +493,12 @@ const Posts = () => {
     setModalInfoPoints(false)
   }
 
-  const userLocation = [location.coords.latitude, location.coords.longitude]
+  const userLocation = [
+    location.coords.latitude,
+    location.coords.longitude,
+    Number(location.coords.accuracy.toString().slice(0, 2)),
+    Number(location.coords.altitude.toString().slice(0, 2)),
+  ]
 
   const navigationView = () => (
     <View
@@ -580,6 +595,19 @@ const Posts = () => {
           </Pressable>
         </View>
 
+        {user.is_staff && (
+          <View className=" absolute right-9 top-[300px] z-10 items-center justify-center">
+            <Pressable
+              className="
+        w-auto flex-row items-center justify-center gap-2 rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
+              onPress={() => setModalAddPointReference(!modalAddPointReference)}
+            >
+              <Feather name="plus-circle" size={24} color="gray" />
+              <Text>Adicionar ponto</Text>
+            </Pressable>
+          </View>
+        )}
+
         <View className="h-screen flex-1 items-center justify-center">
           {location && (
             <MapView
@@ -632,9 +660,11 @@ const Posts = () => {
                   const latestDateForPoint = latestApplicationDates?.find(
                     (item) => item.id === point.id,
                   )?.date
+
+                  const latestDate = new Date(latestDateForPoint)
+
                   const isToday =
-                    latestDateForPoint?.toDateString() ===
-                    new Date().toDateString()
+                    latestDate.toDateString() === new Date().toDateString()
 
                   const pinColor = isToday ? 'blue' : 'red'
                   const strokeColor = isToday ? 'blue' : 'red'
@@ -740,6 +770,15 @@ const Posts = () => {
             control={control}
             setPreviewCoordinate={setPreviewCoordinate}
             errors={errors}
+          />
+
+          <ApplicationAddPointReferenceModal
+            modalVisible={modalAddPointReference}
+            setModalVisible={setModalAddPointReference}
+            refetch={refetch}
+            userLocation={userLocation}
+            applicatorId={Number(applicator.id)}
+            deviceId={Number(device.id)}
           />
         </View>
 
@@ -906,7 +945,7 @@ const Posts = () => {
   )
 }
 
-export default Posts
+export default PointsReference
 
 const styles = StyleSheet.create({
   map: {

@@ -1,28 +1,21 @@
 import { View, Text, Pressable } from 'react-native'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { doLogin } from '@/services/authenticate'
 import { useDevice } from '@/contexts/DeviceContext'
-import { syncApplication } from '@/services/syncServices/application'
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from '../../drizzle/migrations'
 import { db } from '@/lib/database'
-import { User } from '@/db/user'
-import { Application } from '@/db/application'
-import { AdultCollection } from '@/db/adultcollection'
-import { ConfigApp } from '@/db/configapp'
 const Home = () => {
-  const { success, error } = useMigrations(db, migrations)
-
   const { isAuthenticated, logoutUser, loginUser } = useUser()
   const { device } = useDevice()
   const handleEnterLead = async () => {
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
     if (isAuthenticated && !tokenServiceId) {
-      router.replace('posts')
+      router.replace('points-reference')
     } else {
       router.replace('login/applicatorLead')
     }
@@ -40,7 +33,7 @@ const Home = () => {
       router.replace('login/applicatorCpfVerificate')
     } else {
       if (isAuthenticated && tokenServiceId) {
-        router.replace('posts')
+        router.replace('points-reference')
       } else {
         router.replace('login/applicatorNormal')
       }
@@ -51,9 +44,25 @@ const Home = () => {
     logoutUser()
   }
 
-  // if (error) {
-  //   console.log(error.message)
-  // }
+  const { success, error } = useMigrations(db, migrations)
+
+  if (error) {
+    console.log(error.message)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Migration error: {error.message}</Text>
+      </View>
+    )
+  }
+
+  if (!success) {
+    console.log('Migration is in progress...')
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Migration is in progress...</Text>
+      </View>
+    )
+  }
 
   return (
     <View className="flex-1 items-center justify-center gap-5 bg-zinc-500">

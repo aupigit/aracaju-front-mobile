@@ -96,3 +96,37 @@ export const adjustPointReferenceStatusOffline = async (pointId: number) => {
     throw error
   }
 }
+
+export const doPointReferenceOffline = async (
+  name: string,
+  latitude: number,
+  longitude: number,
+  accuracy: number,
+  altitude: number,
+  device: number,
+  applicator: number,
+  pointtype: number,
+  volumebti?: number | null,
+  observation?: string | null,
+) => {
+  const body = {
+    name,
+    latitude,
+    longitude,
+    accuracy,
+    altitude,
+    volumebti,
+    observation,
+    created_ondevice_at: new Date().toDateString(),
+    device,
+    applicator,
+    pointtype,
+    is_active: 1,
+    is_new: 1,
+    transmition: 'offline',
+  }
+
+  const data = await db.insert(PointReference).values(body)
+
+  return data
+}

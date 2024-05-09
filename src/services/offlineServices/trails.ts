@@ -80,7 +80,5 @@ export const findManyTrackingPointsOfflineByDeviceByApplicator = async (
     )
     .execute()
 
-  console.log(data)
-
   return data
 }

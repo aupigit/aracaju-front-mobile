@@ -1,6 +1,7 @@
 import { Application } from '@/db/application'
 import { IApplication } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
+import { desc, eq } from 'drizzle-orm'
 
 export const doApplicationOffline = async (
   coordinates: number[],
@@ -20,7 +21,7 @@ export const doApplicationOffline = async (
   device: number,
 ) => {
   const body = {
-    coordinates: JSON.stringify(coordinates), // Convert array to string
+    marker: JSON.stringify(coordinates), // Convert array to string
     from_txt: 'string',
     latitude,
     longitude,
@@ -62,4 +63,28 @@ export const findManyApplicationsOffline = async (): Promise<
     console.error('Error retrieving data: ', error)
     throw error
   }
+}
+
+export const findLatestApplicationDatesByPointIds = async (
+  pointsId: string[],
+) => {
+  const latestDates = []
+
+  for (const points of pointsId) {
+    const data = await db
+      .select()
+      .from(Application)
+      .where(eq(Application.pointreference, Number(points)))
+      .orderBy(desc(Application.created_at))
+      .execute()
+
+    if (data && data.length > 0) {
+      latestDates.push({
+        id: Number(points),
+        date: data[0].created_at,
+      })
+    }
+  }
+
+  return latestDates
 }
