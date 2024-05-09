@@ -73,6 +73,8 @@ import { ConfigApp } from '@/db/configapp'
 import { db } from '@/lib/database'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import ApplicationAddPointReferenceModal from '@/components/Modal/ApplicationAddPointReferenceModal'
+import { pullPointtypeFlatData } from '@/services/pullServices/pointtype'
+import { findManyPointtype } from '@/services/pointtype'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -224,6 +226,13 @@ const PointsReference = () => {
     },
   )
 
+  const { data: pointtypeData, isLoading: pointtypeDataLoading } = useQuery(
+    'applications/pointtype/',
+    async () => {
+      return await findManyPointtype().then((response) => response)
+    },
+  )
+
   const {
     data: latestApplicationDates,
     isLoading: latestApplicationDateLoading,
@@ -250,11 +259,11 @@ const PointsReference = () => {
     },
   )
 
-  const [pullTimeRemaining, setPullTimeRemaining] = useState(
-    configPullTime?.data_config,
+  const [pullTimeRemaining, setPullTimeRemaining] = useState<number>(
+    Number(configPullTime?.data_config) || 0,
   )
-  const [pushTimeRemaining, setPushTimeRemaining] = useState(
-    configPushTime?.data_config,
+  const [pushTimeRemaining, setPushTimeRemaining] = useState<number>(
+    Number(configPushTime?.data_config) || 0,
   )
 
   useEffect(() => {
@@ -277,6 +286,7 @@ const PointsReference = () => {
         pullApplicatorData(applicatorData),
         pullUserData(userData),
         pullConfigAppData(configAppData),
+        pullPointtypeFlatData(pointtypeData),
       ])
         .then(() => {
           console.info('Pull de dados completo')
@@ -294,12 +304,12 @@ const PointsReference = () => {
       setPullTimeRemaining((prevTime) => {
         if (prevTime === 0) {
           handlePullInformations()
-          return Number(configPullTime?.data_config)
+          return Number(configPullTime?.data_config) || 0
         } else {
           return prevTime - 1
         }
       })
-    }, Number(configPullTime?.data_config))
+    }, 1000)
 
     return () => clearInterval(interval)
   }, [])
@@ -453,14 +463,13 @@ const PointsReference = () => {
       setPushTimeRemaining((prevTime) => {
         if (prevTime === 0) {
           handlePushInformations()
-          return Number(configPushTime?.data_config)
+          return Number(configPushTime?.data_config) || 0
         } else {
           return prevTime - 1
         }
       })
-    }, Number(configPushTime?.data_config))
+    }, 1000)
 
-    // Limpar o intervalo quando o componente for desmontado
     return () => clearInterval(interval)
   }, [])
 
@@ -579,7 +588,7 @@ const PointsReference = () => {
           >
             <Feather name="git-pull-request" size={24} color="gray" />
             <Text>Sincronizar (Pull Info) On to Local:</Text>
-            <Text>{formatTimer(pullTimeRemaining)}</Text>
+            <Text>{formatTimer(Number(pullTimeRemaining))}</Text>
           </Pressable>
         </View>
 
@@ -591,7 +600,7 @@ const PointsReference = () => {
           >
             <Feather name="send" size={24} color="gray" />
             <Text>Sincronizar (Push info) Local to On:</Text>
-            <Text>{formatTimer(pushTimeRemaining)}</Text>
+            <Text>{formatTimer(Number(pushTimeRemaining))}</Text>
           </Pressable>
         </View>
 
