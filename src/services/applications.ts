@@ -22,7 +22,7 @@ export const doApplication = async (
   const body = {
     marker: {
       type: 'Point',
-      coordinates, // COORDENADAS DO USUÁRIO
+      coordinates,
     },
     from_txt: 'string',
     latitude,

@@ -4,4 +4,6 @@ export default {
   schema: './src/db/schema.ts',
   out: './drizzle',
   driver: 'expo',
+  verbose: true,
+  strict: true,
 } satisfies Config

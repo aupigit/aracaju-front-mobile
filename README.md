@@ -13,6 +13,5 @@ npx create-expo-app -e with-router-tailwind
 -> Para fazer migrações no drizzle será necessário rodar o seguinte comando:
 
 ```sh
-  ➜  npx drizzle-kit generate:sqlite
-  ➜  bunx drizzle-kit generate:sqlite
+  bunx drizzle-kit generate:sqlite
 ```

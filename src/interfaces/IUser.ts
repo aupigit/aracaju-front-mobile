@@ -11,7 +11,6 @@ export interface IUser extends IBase {
   is_staff?: boolean
   is_active: boolean
   date_joined: string
-  name: string
   // groups: any[]
   // user_permissions: any[]
 }

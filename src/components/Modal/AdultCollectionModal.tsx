@@ -26,6 +26,7 @@ import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
 import { useQuery } from 'react-query'
 import { findConfigAppByName } from '@/services/configApp'
+import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -155,7 +156,7 @@ const AdultCollectionModal = ({
 
   const { data: configWindCollection, isLoading: configWindCollectionLoading } =
     useQuery('config/configapp/?name="coleta_vento"', async () => {
-      return await findConfigAppByName('coleta_vento').then(
+      return await findConfigAppByNameOffline('coleta_vento').then(
         (response) => response,
       )
     })
@@ -170,7 +171,7 @@ const AdultCollectionModal = ({
     data: configClimateWindCollection,
     isLoading: configClimateWindCollectionLoading,
   } = useQuery('config/configapp/?name="coleta_clima"', async () => {
-    return await findConfigAppByName('coleta_clima').then(
+    return await findConfigAppByNameOffline('coleta_clima').then(
       (response) => response,
     )
   })
