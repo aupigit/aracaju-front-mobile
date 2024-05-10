@@ -7,7 +7,7 @@ import {
   doPointsReference,
 } from '../points'
 import { PointReference } from '@/db/pointreference'
-import { asc, sql } from 'drizzle-orm'
+import { asc, eq, sql } from 'drizzle-orm'
 
 export const syncPointsReferenceName = async (
   applicatorId: string,
@@ -125,47 +125,51 @@ export const syncPointsReferenceStatus = async (
 }
 
 export const syncPointsReferenceCreatedOffline = async () => {
-  const netInfo = await NetInfo.fetch()
+  await db
+    .update(PointReference)
+    .set({ updated_at: '2024-05-10T09:47:24.071207Z' })
+    .where(eq(PointReference.id, 5))
+    .execute()
 
-  if (netInfo.isConnected && netInfo.isInternetReachable) {
-    const data = await db
-      .select()
-      .from(PointReference)
-      .where(sql`${PointReference.transmition} = 'offline'`)
-      .orderBy(asc(PointReference.created_at))
-      .limit(10)
-      .execute()
+  console.log(
+    db.select().from(PointReference).where(eq(PointReference.id, 5)).execute(),
+  )
 
-    // TODO - Resolver a questão de ID quando dois matero top criam pontos novos simultaneamente
+  // const netInfo = await NetInfo.fetch()
 
-    // await db
-    //   .update(PointReference)
-    //   .set({ transmition: 'offline' })
-    //   .where(sql`${PointReference.id} = 5`)
-    //   .execute()
+  // if (netInfo.isConnected && netInfo.isInternetReachable) {
+  //   const data = await db
+  //     .select()
+  //     .from(PointReference)
+  //     .where(sql`${PointReference.transmition} = 'offline'`)
+  //     .orderBy(asc(PointReference.created_at))
+  //     .limit(10)
+  //     .execute()
 
-    try {
-      const response = await doPointsReference(data)
-      if (response && response.success) {
-        for (const item of data) {
-          await db
-            .update(PointReference)
-            .set({ transmition: 'online' })
-            .where(sql`${PointReference.id} = ${item.id}`)
-            .execute()
-          console.info('Data updated successfully')
-        }
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
+  //   // TODO - Resolver a questão de ID quando dois matero top criam pontos novos simultaneamente
+
+  //   try {
+  //     const response = await doPointsReference(data)
+  //     if (response && response.success) {
+  //       for (const item of data) {
+  //         await db
+  //           .update(PointReference)
+  //           .set({ transmition: 'online' })
+  //           .where(sql`${PointReference.id} = ${item.id}`)
+  //           .execute()
+  //         console.info('Data updated successfully')
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }
 }
 
 export const syncPoints = async (applicatorId: string, deviceId: string) => {
-  await syncPointsReferenceName(applicatorId, deviceId)
-  await syncPointsReferenceLocation(applicatorId, deviceId)
-  await syncPointsReferenceStatus(applicatorId, deviceId)
+  // await syncPointsReferenceName(applicatorId, deviceId)
+  // await syncPointsReferenceLocation(applicatorId, deviceId)
+  // await syncPointsReferenceStatus(applicatorId, deviceId)
   await syncPointsReferenceCreatedOffline()
 
   // console.log('Dados dos Pontos de referência sincronizados com sucesso!')

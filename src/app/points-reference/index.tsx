@@ -165,13 +165,13 @@ const PointsReference = () => {
     },
   )
 
-  console.log(lastUpdatedAtSuccess)
-
   let updatedAtParameter: string | null = null
   if (lastUpdatedAtData) {
     const updatedAtDate = new Date(lastUpdatedAtData)
     updatedAtParameter = formatDate(updatedAtDate)
   }
+
+  console.log(updatedAtParameter)
 
   const { data: pointsData, isLoading: pointsLoading } = useQuery(
     'application/pointreference',
@@ -278,13 +278,6 @@ const PointsReference = () => {
     })
   }, [])
 
-  console.log('DATA', updatedAtParameter)
-  if (pointsData) {
-    console.log('PONTOS ONLINE', pointsData?.length, pointsData[0].id)
-  }
-  if (pointsDataOffline) {
-    console.log('PONTOS OFFLINE', pointsDataOffline.length)
-  }
   const handleSyncInformations = async () => {
     showUserConectivitySituation()
 
