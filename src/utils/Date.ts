@@ -2,7 +2,7 @@ import { format } from 'date-fns'
 
 export function formatDate(date) {
   // Subtrai 3 horas por conta do backend online
-  date = new Date(date.getTime() - 3 * 60 * 60 * 1000)
+  date = new Date(date.getTime())
 
   const timezoneOffset = date.getTimezoneOffset()
   const hoursOffset = String(

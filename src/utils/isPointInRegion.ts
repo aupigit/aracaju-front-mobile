@@ -21,7 +21,7 @@ function isPointInRegion(point, region) {
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   const distance = R * c
-  return distance <= 2
+  return distance <= 1
 }
 
 export default isPointInRegion

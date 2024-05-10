@@ -148,7 +148,7 @@ const ApplicationApplicateModal = ({
   const onSubmit = handleSubmit(async (data) => {
     try {
       const offlineResponse = await doApplicationOffline(
-        userLocation,
+        [userLocation[0], userLocation[1]],
         selectedPoint.latitude,
         selectedPoint.longitude,
         selectedPoint.altitude,
@@ -176,7 +176,7 @@ const ApplicationApplicateModal = ({
 
   const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
     useQuery('config/configapp/?name="volume_bti"', async () => {
-      return await findConfigAppByNameOffline('volume_bti').then(
+      return await findConfigAppByNameOffline('volume_escala').then(
         (response) => response,
       )
     })

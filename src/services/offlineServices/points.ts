@@ -24,7 +24,7 @@ export const findManyPointsReferencesOffline = async (
     }
 
     const result = await query.execute()
-    console.log('Data retrieved successfully from PointReference table')
+    // console.log('Data retrieved successfully from PointReference table')
     return result as unknown as Promise<IPoint[]>
   } catch (error) {
     console.error('Error retrieving data: ', error)
@@ -47,7 +47,7 @@ export const adjustPointReferenceNameOffline = async (
       .where(eq(PointReference.id, pointId))
       .execute()
 
-    console.log('Data updated successfully in PointReference table')
+    // console.log('Data updated successfully in PointReference table')
   } catch (error) {
     console.error('Error updating data: ', error)
     throw error
@@ -71,7 +71,7 @@ export const adjustPointReferenceLocationOffline = async (
       .where(eq(PointReference.id, pointId))
       .execute()
 
-    console.log('Data updated successfully in PointReference table')
+    // console.log('Data updated successfully in PointReference table')
   } catch (error) {
     console.error('Error updating data: ', error)
     throw error
@@ -90,7 +90,7 @@ export const adjustPointReferenceStatusOffline = async (pointId: number) => {
       .where(eq(PointReference.id, pointId))
       .execute()
 
-    console.log('Data updated successfully in PointReference table')
+    // console.log('Data updated successfully in PointReference table')
   } catch (error) {
     console.error('Error updating data: ', error)
     throw error

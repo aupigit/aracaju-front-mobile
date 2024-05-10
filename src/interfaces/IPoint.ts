@@ -105,6 +105,7 @@ export interface IApplication extends IBase {
   pointreference: number
   device: IDevices
   applicator: IApplicator
+  success: boolean
 }
 
 export interface IContract extends IBase {
@@ -150,4 +151,5 @@ export interface IPoint extends IBase {
   client: ICustomer
   city: ICity
   subregions: ISubRegion
+  success: boolean
 }

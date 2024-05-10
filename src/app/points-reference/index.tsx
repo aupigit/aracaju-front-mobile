@@ -158,12 +158,14 @@ const PointsReference = () => {
     },
   )
 
-  const { data: lastUpdatedAtData } = useQuery(
+  const { data: lastUpdatedAtData, isSuccess: lastUpdatedAtSuccess } = useQuery(
     'application/pointreference/last_updated_at',
     async () => {
       return await pullPointLastUpdatedAt().then((response) => response)
     },
   )
+
+  console.log(lastUpdatedAtSuccess)
 
   let updatedAtParameter: string | null = null
   if (lastUpdatedAtData) {
@@ -177,6 +179,9 @@ const PointsReference = () => {
       return await findManyPointsReferences(updatedAtParameter).then(
         (response) => response,
       )
+    },
+    {
+      enabled: lastUpdatedAtSuccess, // This query will not run until the lastUpdatedAtData query is successful
     },
   )
 
@@ -243,7 +248,12 @@ const PointsReference = () => {
       if (pointsDataOffline !== undefined) {
         return await findLatestApplicationDatesByPointIds(
           pointsDataOffline
-            ?.filter((point) => isPointInRegion(point, region))
+            ?.filter((point) =>
+              isPointInRegion(point, {
+                latitude: userLocation[0],
+                longitude: userLocation[1],
+              }),
+            )
             .map((point) => point.id),
         )
       }
@@ -253,16 +263,9 @@ const PointsReference = () => {
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       refetchOnMount: false,
-      staleTime: Infinity,
-      cacheTime: Infinity,
-      retry: false,
     },
   )
-
-  const [pullTimeRemaining, setPullTimeRemaining] = useState<number>(
-    Number(configPullTime?.data_config) || 0,
-  )
-  const [pushTimeRemaining, setPushTimeRemaining] = useState<number>(
+  const [syncTimeRemaining, setSyncTimeRemaining] = useState<number>(
     Number(configPushTime?.data_config) || 0,
   )
 
@@ -275,7 +278,29 @@ const PointsReference = () => {
     })
   }, [])
 
-  const handlePullInformations = () => {
+  console.log('DATA', updatedAtParameter)
+  if (pointsData) {
+    console.log('PONTOS ONLINE', pointsData?.length, pointsData[0].id)
+  }
+  if (pointsDataOffline) {
+    console.log('PONTOS OFFLINE', pointsDataOffline.length)
+  }
+  const handleSyncInformations = async () => {
+    showUserConectivitySituation()
+
+    Promise.all([
+      syncPoints(applicator.id, device.factory_id),
+      syncApplication(applicator.id, device.id),
+      syncDoAdultCollection(device.id),
+      syncTrails(Number(applicator.id), Number(device.id)),
+    ])
+      .then(() => {
+        setSyncTimeRemaining(Number(configPushTime?.data_config))
+      })
+      .catch((error) => {
+        console.error('Erro na sincronização:', error)
+      })
+
     if (pointsData && applicatorData && userData && configAppData) {
       const now = new Date()
       setLastSyncTime(now) // Update the last sync time
@@ -289,9 +314,9 @@ const PointsReference = () => {
         pullPointtypeFlatData(pointtypeData),
       ])
         .then(() => {
-          console.info('Pull de dados completo')
           refetch()
-          setPushTimeRemaining(Number(configPushTime?.data_config))
+          handleApplication()
+          setSyncTimeRemaining(Number(configPushTime?.data_config))
         })
         .catch((error) => {
           console.error('Erro na sincronização:', error)
@@ -301,10 +326,10 @@ const PointsReference = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setPullTimeRemaining((prevTime) => {
+      setSyncTimeRemaining((prevTime) => {
         if (prevTime === 0) {
-          handlePullInformations()
-          return Number(configPullTime?.data_config) || 0
+          handleSyncInformations()
+          return Number(configPushTime?.data_config) || 0
         } else {
           return prevTime - 1
         }
@@ -438,41 +463,6 @@ const PointsReference = () => {
     }
   }
 
-  // SINCRONIZAR DADOS
-  const handlePushInformations = () => {
-    console.info('Sincronizando dados...')
-    showUserConectivitySituation()
-
-    Promise.all([
-      syncApplication(applicator.id, device.id),
-      syncDoAdultCollection(device.id),
-      syncTrails(Number(applicator.id), Number(device.id)),
-      syncPoints(applicator.id, device.factory_id),
-    ])
-      .then(() => {
-        console.info('Sincronização completa')
-        setPushTimeRemaining(Number(configPushTime?.data_config))
-      })
-      .catch((error) => {
-        console.error('Erro na sincronização:', error)
-      })
-  }
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPushTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handlePushInformations()
-          return Number(configPushTime?.data_config) || 0
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
-
   const [markerVisible, setMarkerVisible] = useState(true)
 
   useEffect(() => {
@@ -584,28 +574,18 @@ const PointsReference = () => {
           <Pressable
             className="
         w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-            onPress={handlePullInformations}
+            onPress={handleSyncInformations}
           >
-            <Feather name="git-pull-request" size={24} color="gray" />
-            <Text>Sincronizar (Pull Info) On to Local:</Text>
-            <Text>{formatTimer(Number(pullTimeRemaining))}</Text>
-          </Pressable>
-        </View>
-
-        <View className=" absolute right-9 top-[210px] z-10 items-center justify-center">
-          <Pressable
-            className="
-        w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-            onPress={handlePushInformations}
-          >
-            <Feather name="send" size={24} color="gray" />
-            <Text>Sincronizar (Push info) Local to On:</Text>
-            <Text>{formatTimer(Number(pushTimeRemaining))}</Text>
+            <View className="flex-row items-center gap-2">
+              <Feather name="git-pull-request" size={24} color="gray" />
+              <Text>Sincronizar</Text>
+            </View>
+            <Text>{formatTimer(Number(syncTimeRemaining))}</Text>
           </Pressable>
         </View>
 
         {user.is_staff && (
-          <View className=" absolute right-9 top-[300px] z-10 items-center justify-center">
+          <View className=" absolute right-9 top-[190px] z-10 items-center justify-center">
             <Pressable
               className="
         w-auto flex-row items-center justify-center gap-2 rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
@@ -664,7 +644,12 @@ const PointsReference = () => {
               />
 
               {pointsDataOffline
-                ?.filter((point) => isPointInRegion(point, region))
+                ?.filter((point) =>
+                  isPointInRegion(point, {
+                    latitude: userLocation[0],
+                    longitude: userLocation[1],
+                  }),
+                )
                 .map((point, index) => {
                   const latestDateForPoint = latestApplicationDates?.find(
                     (item) => item.id === point.id,
@@ -779,6 +764,7 @@ const PointsReference = () => {
             control={control}
             setPreviewCoordinate={setPreviewCoordinate}
             errors={errors}
+            setPointIsEditable={setPointIsEditable}
           />
 
           <ApplicationAddPointReferenceModal

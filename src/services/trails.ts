@@ -1,35 +1,25 @@
+import { SelectTracking } from '@/db/tracking'
 import { ITrails } from '@/interfaces/ITrails'
-import { post } from '@/providers/api'
+import { IPostRequestParams, post } from '@/providers/api'
+import { format } from 'date-fns'
 import { Accuracy } from 'expo-location'
 
 export const doTrails = async (
-  coordinates: number[],
-  latitude: number,
-  longitude: number,
-  altitude: number,
-  acuracia: number,
-  applicator: number,
-  contract: number,
-  created_ondevice_at?: string,
+  data: Array<SelectTracking>,
 ): Promise<ITrails> => {
-  const body = {
-    marker: {
-      type: 'Point',
-      coordinates, // COORDENADAS DO USUÁRIO
-    },
-    from_txt: 'string',
-    latitude,
-    longitude,
-    altitude,
-    accuracy: acuracia,
-    device: 1,
-    applicator,
-    contract,
-    created_ondevice_at,
-  }
+  const newData = data.map((item) => {
+    const timestamp = item.local_timestamp
+    const date = new Date(timestamp)
 
+    return {
+      ...item,
+      local_timestamp: date,
+    }
+  })
   try {
-    const response = await post('applications/trails/', { body })
+    const response = await post('applications/trails/push/', {
+      body: newData,
+    })
     return response.data
   } catch (error) {
     console.error(error)

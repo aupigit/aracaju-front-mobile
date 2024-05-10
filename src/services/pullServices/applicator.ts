@@ -34,7 +34,7 @@ export const pullApplicatorData = async (applicatorData: IApplicator[]) => {
         })
         .execute()
 
-      console.log('Data inserted successfully in Applicator table')
+      // console.log('Data inserted successfully in Applicator table')
     } catch (error) {
       console.error('Error inserting data: ', error)
       throw error

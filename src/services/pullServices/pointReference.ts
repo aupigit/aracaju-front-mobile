@@ -72,9 +72,9 @@ export const pullPointData = async (pointData: IPoint[]) => {
         })
         .execute()
 
-      console.log(
-        'Data inserted or updated successfully in PointReference table',
-      )
+      // console.log(
+      //   'Data inserted or updated successfully in PointReference table',
+      // )
     } catch (error) {
       console.error('Error inserting or updating data: ', error)
       throw error
@@ -93,7 +93,7 @@ export const pullPointLastUpdatedAt = async (): Promise<string> => {
     if (result && result.length > 0) {
       return result[0].updated_at
     } else {
-      throw new Error('No data found.')
+      return null
     }
   } catch (error) {
     console.log('Error retrieving last updated_at: ', error)

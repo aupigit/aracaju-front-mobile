@@ -37,7 +37,7 @@ export const doTrailsOffline = async (
       })
       .execute()
 
-    console.log('Data inserted successfully in Trails table')
+    // console.log('Data inserted successfully in Trails table')
 
     return data
   } catch (error) {

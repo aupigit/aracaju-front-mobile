@@ -14,6 +14,7 @@ interface ApplicationAdjustPointCoordinatesModalProps {
   control: any
   setPreviewCoordinate: (coordinate: number[] | null) => void
   errors: any
+  setPointIsEditable: (isEditable: boolean) => void
 }
 
 const ApplicationAdjustPointCoordinatesModal = ({
@@ -24,6 +25,7 @@ const ApplicationAdjustPointCoordinatesModal = ({
   control,
   setPreviewCoordinate,
   errors,
+  setPointIsEditable,
 }: ApplicationAdjustPointCoordinatesModalProps) => {
   return (
     <Modal
@@ -44,6 +46,7 @@ const ApplicationAdjustPointCoordinatesModal = ({
                 setModalVisible(!modalVisible)
                 setSelectedPoint(null)
                 setPreviewCoordinate(null)
+                setPointIsEditable(false)
               }}
             >
               <Text className="text-xl">Fechar</Text>

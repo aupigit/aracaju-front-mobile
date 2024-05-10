@@ -79,8 +79,8 @@ const ApplicationAddPointReferenceModal = ({
     reset,
     setValue,
     formState: { errors },
-  } = useForm<CreatePointFormData>({
-    resolver: zodResolver(createPointSchema),
+  } = useForm({
+    // resolver: zodResolver(createPointSchema),
   })
 
   if (applicatorId) {
@@ -116,12 +116,12 @@ const ApplicationAddPointReferenceModal = ({
         data.volumebti,
         data.observation,
       ).then((response) => {
-        console.log(response)
+        // console.log(response)
       })
       setVisibleOK(!visibleOK)
       refetch()
     } catch (error) {
-      console.log('Erro ao criar ponto', error.message)
+      // console.log('Erro ao criar ponto', error.message)
       setVisibleERROR(!visibleERROR)
     }
   })
@@ -139,8 +139,6 @@ const ApplicationAddPointReferenceModal = ({
       return await findPointTypeDataOffline().then((response) => response)
     },
   )
-
-  console.log(configPointtype)
 
   useEffect(() => {
     if (configScaleVolume?.data_config) {
@@ -303,7 +301,7 @@ const ApplicationAddPointReferenceModal = ({
                       value={value}
                       items={scaleVolume.map((item) => ({
                         label: item,
-                        value: Number(item),
+                        value: item,
                       }))}
                     />
                   </View>

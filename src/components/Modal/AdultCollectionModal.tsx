@@ -129,7 +129,7 @@ const AdultCollectionModal = ({
   const onSubmit = handleSubmit(async (data) => {
     try {
       const offlineResponse = await doAdultCollectionOffline(
-        userLocation,
+        [userLocation[0], userLocation[1]],
         selectedPoint.latitude,
         selectedPoint.longitude,
         selectedPoint.altitude,
@@ -144,7 +144,7 @@ const AdultCollectionModal = ({
         data.image,
         Number(applicator.id),
         Number(selectedPoint.id),
-        Number(device.factory_id),
+        Number(device.id),
       )
       showSnackbar('success')
     } catch (error) {
