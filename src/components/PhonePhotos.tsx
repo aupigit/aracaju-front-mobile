@@ -6,7 +6,6 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
-  Button,
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
@@ -26,7 +25,6 @@ interface PhonePhotosProps {
   setSelectedImage: React.Dispatch<React.SetStateAction<IImagesProps | null>>
   setImages: React.Dispatch<React.SetStateAction<IImagesProps[]>>
   setIsOpenPhoneLocaleModal: React.Dispatch<React.SetStateAction<boolean>>
-  onImageUpdate: (newImage: IImagesProps) => void
 }
 
 const PhonePhotos: React.FC<PhonePhotosProps> = ({
@@ -34,7 +32,6 @@ const PhonePhotos: React.FC<PhonePhotosProps> = ({
   setSelectedImage,
   setIsOpenPhoneLocaleModal,
   setImages,
-  onImageUpdate,
 }) => {
   const [buttonLoading, setButtonLoading] = useState(false)
 
@@ -90,7 +87,7 @@ const PhonePhotos: React.FC<PhonePhotosProps> = ({
     )
   }
 
-  const { control, handleSubmit, setValue } = useForm()
+  const { control, setValue } = useForm()
 
   return (
     <ScrollView>

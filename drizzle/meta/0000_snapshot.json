@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "5350a3f6-dc02-4e11-9431-365925acd427",
+  "id": "2e8f9758-aa0d-4d36-8094-8ccb232fa53f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "City": {
@@ -204,11 +204,18 @@
     "PointReference": {
       "name": "PointReference",
       "columns": {
-        "id": {
-          "name": "id",
+        "pk": {
+          "name": "pk",
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": false
+        },
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "contract": {
@@ -433,11 +440,18 @@
     "Application": {
       "name": "Application",
       "columns": {
-        "id": {
-          "name": "id",
+        "pk": {
+          "name": "pk",
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": false
+        },
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "pointreference": {
@@ -606,11 +620,18 @@
     "AdultCollection": {
       "name": "AdultCollection",
       "columns": {
-        "id": {
-          "name": "id",
+        "pk": {
+          "name": "pk",
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": false
+        },
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "pointreference": {
@@ -766,109 +787,6 @@
       "indexes": {
         "AdultCollection_id_unique": {
           "name": "AdultCollection_id_unique",
-          "columns": [
-            "id"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "Trailsteste": {
-      "name": "Trailsteste",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "device": {
-          "name": "device",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "applicator": {
-          "name": "applicator",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_ondevice_at": {
-          "name": "created_ondevice_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "transmition": {
-          "name": "transmition",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "latitude": {
-          "name": "latitude",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "longitude": {
-          "name": "longitude",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "altitude": {
-          "name": "altitude",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "accuracy": {
-          "name": "accuracy",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "local_timestamp": {
-          "name": "local_timestamp",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {
-        "Trailsteste_id_unique": {
-          "name": "Trailsteste_id_unique",
           "columns": [
             "id"
           ],
@@ -1709,11 +1627,18 @@
     "Tracking": {
       "name": "Tracking",
       "columns": {
-        "id": {
-          "name": "id",
+        "pk": {
+          "name": "pk",
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": false
+        },
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "device": {

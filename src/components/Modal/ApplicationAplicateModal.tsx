@@ -18,14 +18,9 @@ import RNPickerSelect from 'react-native-picker-select'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { doApplication } from '@/services/applications'
-import { useUser } from '@/contexts/UserContext'
 import { doApplicationOffline } from '@/services/offlineServices/application'
-import NetInfo from '@react-native-community/netinfo'
-import { db } from '@/lib/database'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
-import { findConfigAppByName } from '@/services/configApp'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 
@@ -147,8 +142,8 @@ const ApplicationApplicateModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const offlineResponse = await doApplicationOffline(
-        userLocation,
+      await doApplicationOffline(
+        [userLocation[0], userLocation[1]],
         selectedPoint.latitude,
         selectedPoint.longitude,
         selectedPoint.altitude,
@@ -174,12 +169,14 @@ const ApplicationApplicateModal = ({
     }
   })
 
-  const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
-    useQuery('config/configapp/?name="volume_bti"', async () => {
-      return await findConfigAppByNameOffline('volume_bti').then(
+  const { data: configScaleVolume } = useQuery(
+    'config/configapp/?name="volume_bti"',
+    async () => {
+      return await findConfigAppByNameOffline('volume_escala').then(
         (response) => response,
       )
-    })
+    },
+  )
 
   useEffect(() => {
     if (configScaleVolume?.data_config) {

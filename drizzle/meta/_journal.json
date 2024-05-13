@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1715197931569,
-      "tag": "0000_gifted_katie_power",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1715198144543,
-      "tag": "0001_clumsy_gwen_stacy",
+      "when": 1715619343199,
+      "tag": "0000_red_rattler",
       "breakpoints": true
     }
   ]

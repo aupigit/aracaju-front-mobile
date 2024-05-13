@@ -47,7 +47,7 @@ export const doAdultCollectionOffline = async (
       ...body,
       humidity: Number(body.humidity),
     })
-    console.log('Data inserted successfully in Adult Collection table')
+    // console.log('Data inserted successfully in Adult Collection table')
     return data
   } catch (error) {
     console.error('Error inserting data: ', error)

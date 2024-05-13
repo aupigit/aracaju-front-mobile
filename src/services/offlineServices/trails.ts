@@ -1,6 +1,6 @@
 import { Tracking } from '@/db/tracking'
 import { db } from '@/lib/database'
-import { and, between, eq, gte, lt, sql } from 'drizzle-orm'
+import { and, eq, gte, lt } from 'drizzle-orm'
 
 export const doTrailsOffline = async (
   latitude: number,
@@ -37,7 +37,7 @@ export const doTrailsOffline = async (
       })
       .execute()
 
-    console.log('Data inserted successfully in Trails table')
+    // console.log('Data inserted successfully in Trails table')
 
     return data
   } catch (error) {

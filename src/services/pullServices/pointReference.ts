@@ -1,7 +1,7 @@
 import { PointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
-import { desc, sql } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 
 export const pullPointData = async (pointData: IPoint[]) => {
   for (const data of pointData) {
@@ -93,7 +93,7 @@ export const pullPointLastUpdatedAt = async (): Promise<string> => {
     if (result && result.length > 0) {
       return result[0].updated_at
     } else {
-      throw new Error('No data found.')
+      return null
     }
   } catch (error) {
     console.log('Error retrieving last updated_at: ', error)

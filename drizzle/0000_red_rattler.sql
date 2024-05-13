@@ -28,7 +28,8 @@ CREATE TABLE `PointType` (
 );
 --> statement-breakpoint
 CREATE TABLE `PointReference` (
-	`id` integer PRIMARY KEY NOT NULL,
+	`pk` integer PRIMARY KEY NOT NULL,
+	`id` integer,
 	`contract` integer,
 	`name` text,
 	`device` integer,
@@ -61,7 +62,8 @@ CREATE TABLE `PointReference` (
 );
 --> statement-breakpoint
 CREATE TABLE `Application` (
-	`id` integer PRIMARY KEY NOT NULL,
+	`pk` integer PRIMARY KEY NOT NULL,
+	`id` integer,
 	`pointreference` integer,
 	`device` integer,
 	`applicator` integer,
@@ -86,7 +88,8 @@ CREATE TABLE `Application` (
 );
 --> statement-breakpoint
 CREATE TABLE `AdultCollection` (
-	`id` integer PRIMARY KEY NOT NULL,
+	`pk` integer PRIMARY KEY NOT NULL,
+	`id` integer,
 	`pointreference` integer,
 	`device` integer,
 	`applicator` integer,
@@ -106,21 +109,6 @@ CREATE TABLE `AdultCollection` (
 	`contract` integer,
 	`transmition` text,
 	`created_ondevice_at` text,
-	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE `Trailsteste` (
-	`id` integer PRIMARY KEY NOT NULL,
-	`device` integer,
-	`applicator` integer,
-	`created_ondevice_at` text,
-	`transmition` text,
-	`latitude` real,
-	`longitude` real,
-	`altitude` real,
-	`accuracy` real,
-	`local_timestamp` real,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -247,7 +235,8 @@ CREATE TABLE `ConfigApp` (
 );
 --> statement-breakpoint
 CREATE TABLE `Tracking` (
-	`id` integer PRIMARY KEY NOT NULL,
+	`pk` integer PRIMARY KEY NOT NULL,
+	`id` integer,
 	`device` integer,
 	`applicator` integer,
 	`created_ondevice_at` text,
@@ -267,7 +256,6 @@ CREATE UNIQUE INDEX `PointType_id_unique` ON `PointType` (`id`);--> statement-br
 CREATE UNIQUE INDEX `PointReference_id_unique` ON `PointReference` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Application_id_unique` ON `Application` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `AdultCollection_id_unique` ON `AdultCollection` (`id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `Trailsteste_id_unique` ON `Trailsteste` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `FlowRate_id_unique` ON `FlowRate` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Customer_id_unique` ON `Customer` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Contract_id_unique` ON `Contract` (`id`);--> statement-breakpoint

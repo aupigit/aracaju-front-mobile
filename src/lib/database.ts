@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/expo-sqlite'
 import { openDatabaseSync } from 'expo-sqlite/next'
-
-const expo = openDatabaseSync('aracaju.sqlite.drizzle.v3')
+// aracaju.sqlite.drizzle.v11
+const expo = openDatabaseSync('dasdasdasd12aaaaaaaaaaaaaaa3123123awweeeee')
 export const db = drizzle(expo)

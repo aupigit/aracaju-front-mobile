@@ -1,6 +1,6 @@
 import { db } from '@/lib/database'
 import NetInfo from '@react-native-community/netinfo'
-import { doAdultCollection } from '../doAdultCollection'
+import { doAdultCollection } from '../onlineServices/doAdultCollection'
 import { AdultCollection } from '@/db/adultcollection'
 import { asc, sql } from 'drizzle-orm'
 

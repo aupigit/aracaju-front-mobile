@@ -8,17 +8,20 @@ const DeviceNotAuthorized = () => {
   const [isCopied, setIsCopied] = useState(false)
   const { fetchDeviceData } = useDevice()
   const factoryId = Application.getAndroidId()
+
+  // Depois de Copiar o FactoryId, mostrar "Copiado" na tela por 10 segundos
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(factoryId)
     setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 10000) // Set isCopied back to false after 10 seconds
+    setTimeout(() => setIsCopied(false), 10000)
   }
 
+  // Botão para tentar buscar informações do device novamente
   const handlePress = async () => {
     try {
       await fetchDeviceData()
     } catch (error) {
-      console.error('aaaaaaaaaaa', error)
+      console.error('Erro ao buscar informações do device', error)
     }
   }
 

@@ -2,7 +2,8 @@ import { sql } from 'drizzle-orm'
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const PointReference = sqliteTable('PointReference', {
-  id: integer('id').primaryKey().unique(),
+  pk: integer('pk').primaryKey(),
+  id: integer('id').unique(),
   contract: integer('contract'),
   name: text('name'),
   device: integer('device'),

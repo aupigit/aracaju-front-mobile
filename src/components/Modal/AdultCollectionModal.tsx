@@ -12,20 +12,16 @@ import { IPoint } from '@/interfaces/IPoint'
 import { Divider, Snackbar } from 'react-native-paper'
 import RNPickerSelect from 'react-native-picker-select'
 import { Controller, useForm } from 'react-hook-form'
-import { doAdultCollection } from '@/services/doAdultCollection'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import NetInfo from '@react-native-community/netinfo'
 import { doAdultCollectionOffline } from '@/services/offlineServices/doAdultCollection'
 import { AntDesign, Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as Crypto from 'expo-crypto'
 import { IImagesProps } from '../PhonePhotos'
-import { useUser } from '@/contexts/UserContext'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
 import { useQuery } from 'react-query'
-import { findConfigAppByName } from '@/services/configApp'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 
 interface ApplicationApplicateModalProps {
@@ -129,7 +125,7 @@ const AdultCollectionModal = ({
   const onSubmit = handleSubmit(async (data) => {
     try {
       const offlineResponse = await doAdultCollectionOffline(
-        userLocation,
+        [userLocation[0], userLocation[1]],
         selectedPoint.latitude,
         selectedPoint.longitude,
         selectedPoint.altitude,
@@ -144,7 +140,7 @@ const AdultCollectionModal = ({
         data.image,
         Number(applicator.id),
         Number(selectedPoint.id),
-        Number(device.factory_id),
+        Number(device.id),
       )
       showSnackbar('success')
     } catch (error) {

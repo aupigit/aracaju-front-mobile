@@ -1,7 +1,6 @@
 import { View, Text, Modal, TextInput, Pressable } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Divider, Snackbar } from 'react-native-paper'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import RNPickerSelect from 'react-native-picker-select'
@@ -9,6 +8,7 @@ import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import { doPointReferenceOffline } from '@/services/offlineServices/points'
 import { findPointTypeDataOffline } from '@/services/offlineServices/pointtype'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 interface ApplicationAddPointReferenceModalProps {
   modalVisible: boolean
@@ -115,32 +115,31 @@ const ApplicationAddPointReferenceModal = ({
         data.pointtype,
         data.volumebti,
         data.observation,
-      ).then((response) => {
-        console.log(response)
-      })
+      )
       setVisibleOK(!visibleOK)
+      setModalVisible(!modalVisible)
       refetch()
     } catch (error) {
-      console.log('Erro ao criar ponto', error.message)
+      // console.log('Erro ao criar ponto', error.message)
       setVisibleERROR(!visibleERROR)
     }
   })
 
-  const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
-    useQuery('config/configapp/?name="volume_bti"', async () => {
-      return await findConfigAppByNameOffline('volume_bti').then(
+  const { data: configScaleVolume } = useQuery(
+    'config/configapp/?name="volume_bti"',
+    async () => {
+      return await findConfigAppByNameOffline('volume_escala').then(
         (response) => response,
       )
-    })
+    },
+  )
 
-  const { data: configPointtype, isLoading: configPointtypeLoading } = useQuery(
+  const { data: configPointtype } = useQuery(
     'application/pointtype/flatdata',
     async () => {
       return await findPointTypeDataOffline().then((response) => response)
     },
   )
-
-  console.log(configPointtype)
 
   useEffect(() => {
     if (configScaleVolume?.data_config) {
@@ -186,7 +185,7 @@ const ApplicationAddPointReferenceModal = ({
                       className="w-full p-4 text-lg placeholder:text-gray-300"
                       placeholder="Nome do ponto"
                       onChangeText={onChange}
-                      // value={value}
+                      value={value}
                       editable={true}
                       onBlur={onBlur}
                     />
@@ -198,9 +197,6 @@ const ApplicationAddPointReferenceModal = ({
               <Text className="mb-2 text-red-500">
                 Por favor, Digite o nome do ponto.
               </Text>
-            )}
-            {errors.accuracy && (
-              <Text className="mb-2 text-red-500">Acuracia error.</Text>
             )}
           </View>
           <View className=" w-full flex-row items-center gap-2">
@@ -303,7 +299,7 @@ const ApplicationAddPointReferenceModal = ({
                       value={value}
                       items={scaleVolume.map((item) => ({
                         label: item,
-                        value: Number(item),
+                        value: item,
                       }))}
                     />
                   </View>
@@ -352,7 +348,7 @@ const ApplicationAddPointReferenceModal = ({
                       className="w-full p-4 text-lg placeholder:text-gray-300"
                       placeholder="Observação"
                       onChangeText={onChange}
-                      // value={value}
+                      value={value}
                       editable={true}
                       onBlur={onBlur}
                     />

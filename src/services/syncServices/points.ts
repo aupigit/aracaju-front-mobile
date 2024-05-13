@@ -4,9 +4,10 @@ import {
   adjustPointReferenceCoordinates,
   adjustPointReferenceName,
   adjustPointStatus,
-} from '../points'
+  doPointsReference,
+} from '../onlineServices/points'
 import { PointReference } from '@/db/pointreference'
-import { asc, eq, sql } from 'drizzle-orm'
+import { asc, sql } from 'drizzle-orm'
 
 export const syncPointsReferenceName = async (
   applicatorId: string,
@@ -24,9 +25,15 @@ export const syncPointsReferenceName = async (
       .execute()
 
     try {
-      const response = await adjustPointReferenceName(data)
-      if (response && response.success) {
-        for (const item of data) {
+      for (const item of data) {
+        const response = await adjustPointReferenceName(
+          item.name,
+          'item.description',
+          Number(item.id),
+          applicatorId,
+          deviceId,
+        )
+        if (response && response.success) {
           await db
             .update(PointReference)
             .set({ edit_name: 0 })
@@ -57,9 +64,16 @@ export const syncPointsReferenceLocation = async (
       .execute()
 
     try {
-      const response = await adjustPointReferenceCoordinates(data)
-      if (response && response.success) {
-        for (const item of data) {
+      for (const item of data) {
+        const response = await adjustPointReferenceCoordinates(
+          item.longitude,
+          item.latitude,
+          'item.description',
+          Number(item.id),
+          applicatorId,
+          deviceId,
+        )
+        if (response && response.success) {
           await db
             .update(PointReference)
             .set({ edit_location: 0 })
@@ -88,9 +102,14 @@ export const syncPointsReferenceStatus = async (
       .execute()
 
     try {
-      const response = await adjustPointStatus(data)
-      if (response && response.success) {
-        for (const item of data as any[]) {
+      for (const item of data) {
+        const response = await adjustPointStatus(
+          Number(item.id),
+          'item.description',
+          applicatorId,
+          deviceId,
+        )
+        if (response && response.success) {
           await db
             .update(PointReference)
             .set({ edit_status: 0 })
@@ -117,6 +136,8 @@ export const syncPointsReferenceCreatedOffline = async () => {
       .limit(10)
       .execute()
 
+    // TODO - Resolver a questão de ID quando dois matero top criam pontos novos simultaneamente
+
     try {
       const response = await doPointsReference(data)
       if (response && response.success) {
@@ -139,6 +160,7 @@ export const syncPoints = async (applicatorId: string, deviceId: string) => {
   await syncPointsReferenceName(applicatorId, deviceId)
   await syncPointsReferenceLocation(applicatorId, deviceId)
   await syncPointsReferenceStatus(applicatorId, deviceId)
+  await syncPointsReferenceCreatedOffline()
 
   console.log('Dados dos Pontos de referência sincronizados com sucesso!')
 }

@@ -28,28 +28,6 @@ const FormControl = ({
 }: FormControlProps) => {
   return (
     <View className="gap-5">
-      {/* <Controller
-        control={control}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <View className="relative">
-            <TextInput
-              onBlur={onBlur}
-              onChangeText={(value) => onChange(value)}
-              value={value}
-              placeholder="Adicione o id do seu dispositivo"
-              className=" rounded-md border border-zinc-700/20 p-2 pl-4"
-            />
-            {errors && (
-              <Text className="absolute -bottom-5 text-sm text-red-500">
-                {errors.factoryId?.message}
-              </Text>
-            )}
-          </View>
-        )}
-        name="factoryId"
-        rules={{ required: true }}
-        defaultValue=""
-      /> */}
       <Controller
         control={control}
         render={({ field: { onChange, onBlur, value } }) => (

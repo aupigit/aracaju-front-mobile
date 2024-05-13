@@ -1,8 +1,8 @@
 function calculateDistance(point1, point2) {
-  const lat1 = point1.latitude
-  const lon1 = point1.longitude
-  const lat2 = point2.latitude
-  const lon2 = point2.longitude
+  const lat1 = point1.longitude
+  const lon1 = point1.latitude
+  const lat2 = point2.longitude
+  const lon2 = point2.latitude
 
   const R = 6371e3 // metros
   const φ1 = (lat1 * Math.PI) / 180 // φ, λ em radianos
