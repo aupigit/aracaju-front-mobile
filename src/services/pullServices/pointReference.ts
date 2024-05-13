@@ -1,7 +1,7 @@
 import { PointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
-import { desc, sql } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 
 export const pullPointData = async (pointData: IPoint[]) => {
   for (const data of pointData) {
@@ -72,9 +72,9 @@ export const pullPointData = async (pointData: IPoint[]) => {
         })
         .execute()
 
-      // console.log(
-      //   'Data inserted or updated successfully in PointReference table',
-      // )
+      console.log(
+        'Data inserted or updated successfully in PointReference table',
+      )
     } catch (error) {
       console.error('Error inserting or updating data: ', error)
       throw error

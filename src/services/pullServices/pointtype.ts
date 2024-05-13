@@ -21,6 +21,8 @@ export const pullPointtypeFlatData = async (
           },
         })
         .execute()
+
+      // console.log('Data inserted successfully in PointType table')
     } catch (error) {
       console.error(error)
       throw error

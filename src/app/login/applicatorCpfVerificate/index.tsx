@@ -5,11 +5,10 @@ import NetInfo from '@react-native-community/netinfo'
 import { router } from 'expo-router'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
-import { useUser } from '@/contexts/UserContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import FormControl from './FormControl'
 import { Snackbar } from 'react-native-paper'
-import { doApplicatorVerificate } from '@/services/applicatorVerificate'
+import { doApplicatorVerificate } from '@/services/onlineServices/applicatorVerificate'
 
 const applicatorVerificateSchema = z.object({
   cpfApplicator: z.string({
@@ -70,6 +69,7 @@ const Login = () => {
     }
   })
 
+  // Autenticação por Biometria
   useEffect(() => {
     const checkBiometricSupport = async () => {
       const netInfo = await NetInfo.fetch()

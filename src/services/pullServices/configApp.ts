@@ -1,7 +1,7 @@
 import { ConfigApp } from '@/db/configapp'
 import { IConfigApp } from '@/interfaces/IConfigApp'
 import { db } from '@/lib/database'
-import { eq, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
   for (const data of configAppData) {
@@ -26,7 +26,7 @@ export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
         })
         .execute()
 
-      // console.log('Data inserted or updated successfully in ConfigApp table')
+      console.log('Data inserted or updated successfully in ConfigApp table')
     } catch (error) {
       console.error('Error inserting or updating data: ', error)
       throw error

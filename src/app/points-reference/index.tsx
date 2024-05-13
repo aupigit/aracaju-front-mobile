@@ -4,38 +4,25 @@ import {
   Text,
   ScrollView,
   Alert,
-  StyleSheet,
-  Pressable,
   DrawerLayoutAndroid,
 } from 'react-native'
-import NetInfo from '@react-native-community/netinfo'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import MapView, {
-  Circle,
-  Marker,
-  PROVIDER_GOOGLE,
-  Polyline,
-} from 'react-native-maps'
 import {
   requestForegroundPermissionsAsync,
   LocationObject,
   watchPositionAsync,
   LocationAccuracy,
-  LocationSubscription,
 } from 'expo-location'
 import calculateDistance from '@/utils/calculateDistance'
 import isPointInRegion from '@/utils/isPointInRegion'
-import getConflictPoints from '@/utils/getConflictPoints'
 import ApplicationPointUsageModal from '@/components/Modal/ApplicationPointUsageModal'
 import ApplicationPointsInformationModal from '@/components/Modal/ApplicationPointsInformationModal'
 import ApplicationConflictPointsModal from '@/components/Modal/ApplicationConflictPointsModal'
 import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { findManyPointsReferences } from '@/services/points'
+import { findManyPointsReferences } from '@/services/onlineServices/points'
 import { useQuery } from 'react-query'
 import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
-import { Feather } from '@expo/vector-icons'
-import { Divider } from 'react-native-paper'
 import ApplicationEditPointModal from '@/components/Modal/ApplicationEditPointModal'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -46,17 +33,16 @@ import {
   pullPointData,
   pullPointLastUpdatedAt,
 } from '@/services/pullServices/pointReference'
-import { findApplicator } from '@/services/applicator'
+import { findApplicator } from '@/services/onlineServices/applicator'
 import { pullApplicatorData } from '@/services/pullServices/applicator'
-import { findUser } from '@/services/user'
+import { findUser } from '@/services/onlineServices/user'
 import { pullUserData } from '@/services/pullServices/user'
-import { findConfigApp, findConfigAppByName } from '@/services/configApp'
+import { findConfigApp } from '@/services/onlineServices/configApp'
 import { pullConfigAppData } from '@/services/pullServices/configApp'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import { syncTrails } from '@/services/syncServices/trail'
-import { formatTimer } from '@/utils/formatTimer'
 import {
   adjustPointReferenceLocationOffline,
   findManyPointsReferencesOffline,
@@ -65,16 +51,21 @@ import { syncPoints } from '@/services/syncServices/points'
 import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
 import { useDevice } from '@/contexts/DeviceContext'
 import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
-import {
-  doTrailsOffline,
-  findManyTrackingPointsOfflineByDeviceByApplicator,
-} from '@/services/offlineServices/trails'
-import { ConfigApp } from '@/db/configapp'
-import { db } from '@/lib/database'
+import { doTrailsOffline } from '@/services/offlineServices/trails'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import ApplicationAddPointReferenceModal from '@/components/Modal/ApplicationAddPointReferenceModal'
 import { pullPointtypeFlatData } from '@/services/pullServices/pointtype'
-import { findManyPointtype } from '@/services/pointtype'
+import { findManyPointtype } from '@/services/onlineServices/pointtype'
+import SyncModal from '@/components/Modal/SyncModal'
+import BtnCollect from '@/components/PointsReference/CollectButton'
+import BtnPointInformations from '@/components/PointsReference/PointInformationsButton'
+import BtnApplication from '@/components/PointsReference/ApplicationButton'
+import MapViewComponent from '@/components/MapView/MapView'
+import Sidebar from '@/components/Sidebar/Sidebar'
+import ButtonActions from '@/components/ButtonActions/ButtonActions'
+import { PointReference } from '@/db/pointreference'
+import { db } from '@/lib/database'
+import { eq } from 'drizzle-orm'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -89,21 +80,8 @@ export type EditPointCoordinateFormData = z.infer<
 >
 
 const PointsReference = () => {
-  const { applicator } = useApplicator()
-  const { device } = useDevice()
-  const { logoutUser, user } = useUser()
-  const drawerRef = useRef<DrawerLayoutAndroid>(null)
-
-  const openDrawer = () => {
-    drawerRef.current?.openDrawer()
-  }
-  const closeDrawer = () => {
-    drawerRef.current?.closeDrawer()
-  }
-  const [isSynced, setIsSynced] = useState(true)
   const [location, setLocation] = useState<LocationObject | null>(null)
   const [routes, setRoutes] = useState([])
-  const [region, setRegion] = useState(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [showButton, setShowButton] = useState(false)
   const [showCollectButton, setShowCollectButton] = useState(false)
@@ -115,13 +93,32 @@ const PointsReference = () => {
   const [modalAddPointReference, setModalAddPointReference] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
   const [conflictPoints, setConflictPoints] = useState([])
-  const [isOnline, setIsOnline] = useState(false)
   const [modalEditPoint, setModalEditPoint] = useState(false)
   const [pointIsEditable, setPointIsEditable] = useState(false)
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
+  const [modalSync, setModalSync] = useState(false)
+  const [progress, setProgress] = useState(0)
 
+  // Context services
+  const { applicator } = useApplicator()
+  const { device } = useDevice()
+  const { user } = useUser()
+
+  const insets = useSafeAreaInsets()
+  const mapRef = useRef(null)
+
+  // Ações do Drawer
+  const drawerRef = useRef<DrawerLayoutAndroid>(null)
+  const openDrawer = () => {
+    drawerRef.current?.openDrawer()
+  }
+  const closeDrawer = () => {
+    drawerRef.current?.closeDrawer()
+  }
+
+  // Formulário de ajuste de coordenadas
   const {
     control,
     handleSubmit,
@@ -132,16 +129,20 @@ const PointsReference = () => {
     resolver: zodResolver(editPointCoordinateSchema),
   })
 
-  useEffect(() => {
-    const checkConnectivity = async () => {
-      const netInfo = await NetInfo.fetch()
-      setIsOnline(netInfo.isConnected && netInfo.isInternetReachable)
-    }
+  // Localização do usuário
+  const userLocation = [
+    location?.coords.latitude,
+    location?.coords.longitude,
+    Number(location?.coords.accuracy.toString().slice(0, 2)),
+    Number(location?.coords.altitude.toString().slice(0, 2)),
+  ]
 
-    checkConnectivity()
-  }, [])
-
-  const { data: pointsDataOffline, refetch } = useQuery(
+  // GET - Pontos/Offline
+  const {
+    data: pointsDataOffline,
+    refetch,
+    isSuccess,
+  } = useQuery(
     'application/pointsreference/is_offline',
     async () => {
       return await findManyPointsReferencesOffline(user?.is_staff).then(
@@ -154,16 +155,17 @@ const PointsReference = () => {
       refetchOnMount: false,
       staleTime: Infinity,
       cacheTime: Infinity,
-      retry: false,
     },
   )
 
-  const { data: lastUpdatedAtData, isSuccess: lastUpdatedAtSuccess } = useQuery(
-    'application/pointreference/last_updated_at',
-    async () => {
-      return await pullPointLastUpdatedAt().then((response) => response)
-    },
-  )
+  // GET - Última updated_at de Pontos/Offline
+  const {
+    data: lastUpdatedAtData,
+    isSuccess: lastUpdatedAtSuccess,
+    refetch: lastUpdatedAtRefetch,
+  } = useQuery('application/pointreference/last_updated_at', async () => {
+    return await pullPointLastUpdatedAt().then((response) => response)
+  })
 
   let updatedAtParameter: string | null = null
   if (lastUpdatedAtData) {
@@ -171,9 +173,12 @@ const PointsReference = () => {
     updatedAtParameter = formatDate(updatedAtDate)
   }
 
-  console.log(updatedAtParameter)
-
-  const { data: pointsData, isLoading: pointsLoading } = useQuery(
+  // GET - PointsReference/Online
+  const {
+    data: pointsData,
+    isLoading: pointsLoading,
+    refetch: pointsDataRefetch,
+  } = useQuery(
     'application/pointreference',
     async () => {
       return await findManyPointsReferences(updatedAtParameter).then(
@@ -181,10 +186,11 @@ const PointsReference = () => {
       )
     },
     {
-      enabled: lastUpdatedAtSuccess, // This query will not run until the lastUpdatedAtData query is successful
+      enabled: lastUpdatedAtSuccess,
     },
   )
 
+  // GET - Applicator/Online
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
     'application/applicator',
     async () => {
@@ -192,6 +198,7 @@ const PointsReference = () => {
     },
   )
 
+  // GET - User/Online
   const { data: userData, isLoading: userLoading } = useQuery(
     'operation/user',
     async () => {
@@ -199,6 +206,7 @@ const PointsReference = () => {
     },
   )
 
+  // GET - ConfigaApp/Online
   const { data: configAppData, isLoading: configAppLoading } = useQuery(
     'operation/configapp',
     async () => {
@@ -206,22 +214,21 @@ const PointsReference = () => {
     },
   )
 
+  // GET - ConfigaApp Raio do ponto/Offline
   const { data: configPointRadius, isLoading: configPointRadiusLoading } =
-    useQuery('config/configapp/?name="raio_do_ponto"', async () => {
-      return await findConfigAppByNameOffline('raio_do_ponto').then(
-        (response) => response,
-      )
-    })
+    useQuery(
+      'config/configapp/?name="raio_do_ponto"',
+      async () => {
+        return await findConfigAppByNameOffline('raio_do_ponto').then(
+          (response) => response,
+        )
+      },
+      {
+        enabled: pointsDataOffline !== undefined,
+      },
+    )
 
-  const { data: configPullTime, isLoading: configPullTimeLoading } = useQuery(
-    'config/configapp/?name="tempo_busca_sincronizacao"',
-    async () => {
-      return await findConfigAppByNameOffline('tempo_busca_sincronizacao').then(
-        (response) => response,
-      )
-    },
-  )
-
+  // GET - ConfigaApp Tempo de sincronização/Offline
   const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
     'config/configapp/?name="tempo_entrega_sincronizacao"',
     async () => {
@@ -229,8 +236,15 @@ const PointsReference = () => {
         'tempo_entrega_sincronizacao',
       ).then((response) => response)
     },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+      enabled: pointsDataOffline !== undefined,
+    },
   )
 
+  // GET - PointType/Online
   const { data: pointtypeData, isLoading: pointtypeDataLoading } = useQuery(
     'applications/pointtype/',
     async () => {
@@ -238,6 +252,7 @@ const PointsReference = () => {
     },
   )
 
+  // GET - Data da última aplicação em determinados pontos/Offline
   const {
     data: latestApplicationDates,
     isLoading: latestApplicationDateLoading,
@@ -245,10 +260,16 @@ const PointsReference = () => {
   } = useQuery(
     'application/application/latest',
     async () => {
-      if (pointsDataOffline !== undefined) {
+      if (
+        pointsDataOffline !== undefined &&
+        userLocation.length > 0 &&
+        userLocation.every(
+          (coordinate) => typeof coordinate === 'number' && !isNaN(coordinate),
+        )
+      ) {
         return await findLatestApplicationDatesByPointIds(
           pointsDataOffline
-            ?.filter((point) =>
+            .filter((point) =>
               isPointInRegion(point, {
                 latitude: userLocation[0],
                 longitude: userLocation[1],
@@ -259,18 +280,24 @@ const PointsReference = () => {
       }
     },
     {
-      enabled: !!pointsDataOffline,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
+      enabled:
+        isSuccess &&
+        userLocation.every(
+          (coordinate) => typeof coordinate === 'number' && !isNaN(coordinate),
+        ) &&
+        pointsDataOffline !== undefined,
     },
   )
-  const [syncTimeRemaining, setSyncTimeRemaining] = useState<number>(
-    Number(configPushTime?.data_config) || 0,
-  )
+
+  const [syncTimeRemaining, setSyncTimeRemaining] = useState<number>(0)
 
   useEffect(() => {
-    // Get the last sync time from AsyncStorage when the component mounts
+    if (configPushTime?.data_config) {
+      setSyncTimeRemaining(Number(configPushTime.data_config))
+    }
+  }, [configPushTime])
+
+  useEffect(() => {
     AsyncStorage.getItem('lastSyncTime').then((value) => {
       if (value) {
         setLastSyncTime(new Date(value))
@@ -279,42 +306,83 @@ const PointsReference = () => {
   }, [])
 
   const handleSyncInformations = async () => {
-    showUserConectivitySituation()
+    console.log('Sincronização iniciando')
+    setModalSync(true)
+    setProgress(0) // Inicializa o progresso
 
-    Promise.all([
-      syncPoints(applicator.id, device.factory_id),
-      syncApplication(applicator.id, device.id),
-      syncDoAdultCollection(device.id),
-      syncTrails(Number(applicator.id), Number(device.id)),
-    ])
+    const totalPromises = 9 // Corrigido para 8
+    let completedPromises = 0
+
+    const updateProgress = () => {
+      completedPromises++
+      setProgress(+(completedPromises / totalPromises).toFixed(2))
+    }
+
+    const once = (fn) => {
+      let resolved = false
+      return (...args) => {
+        if (!resolved) {
+          resolved = true
+          return fn(...args)
+        }
+      }
+    }
+
+    const tick = (promise) => {
+      return promise.then(() => {
+        updateProgress()
+      })
+    }
+
+    Promise.all([once(syncPoints)(applicator.id, device.factory_id)].map(tick)) // Faz o push de pontos primeiro
       .then(() => {
-        setSyncTimeRemaining(Number(configPushTime?.data_config))
+        Promise.all(
+          [
+            // Aguarda o push de pontos para ai sim fazer o push dos outros dados
+            once(syncApplication)(applicator.id, device.id),
+            once(syncDoAdultCollection)(device.id),
+            once(syncTrails)(Number(applicator.id), Number(device.id)),
+          ].map(tick),
+        ).then(() => {
+          if (pointsData && applicatorData && userData && configAppData) {
+            const now = new Date()
+            setLastSyncTime(now)
+            AsyncStorage.setItem('lastSyncTime', now.toISOString())
+            Promise.all(
+              [
+                // Espera o push de dados para ai sim realizar o pull de dados
+                once(pullPointData)(pointsData),
+                once(pullApplicatorData)(applicatorData),
+                once(pullUserData)(userData),
+                once(pullConfigAppData)(configAppData),
+                once(pullPointtypeFlatData)(pointtypeData),
+              ].map(tick),
+            )
+              .then(() => {
+                refetch()
+                pointsDataRefetch()
+                handleApplication()
+                lastUpdatedAtRefetch()
+                setSyncTimeRemaining(Number(configPushTime?.data_config))
+                setTimeout(() => {
+                  setModalSync(false)
+                }, 3000)
+                console.log('Sincronização completa')
+              })
+              .catch((error) => {
+                console.error('Erro na sincronização:', error)
+              })
+          }
+        })
       })
       .catch((error) => {
         console.error('Erro na sincronização:', error)
       })
-
-    if (pointsData && applicatorData && userData && configAppData) {
-      const now = new Date()
-      setLastSyncTime(now) // Update the last sync time
-      AsyncStorage.setItem('lastSyncTime', now.toISOString()) // Save the last sync time to AsyncStorage
-
-      Promise.all([
-        pullPointData(pointsData),
-        pullApplicatorData(applicatorData),
-        pullUserData(userData),
-        pullConfigAppData(configAppData),
-        pullPointtypeFlatData(pointtypeData),
-      ])
-        .then(() => {
-          refetch()
-          handleApplication()
-          setSyncTimeRemaining(Number(configPushTime?.data_config))
-        })
-        .catch((error) => {
-          console.error('Erro na sincronização:', error)
-        })
-    }
+    refetch()
+    pointsDataRefetch()
+    handleApplication()
+    lastUpdatedAtRefetch()
+    refetchLatestApplicationDates()
   }
 
   useEffect(() => {
@@ -322,7 +390,7 @@ const PointsReference = () => {
       setSyncTimeRemaining((prevTime) => {
         if (prevTime === 0) {
           handleSyncInformations()
-          return Number(configPushTime?.data_config) || 0
+          return Number(configPushTime?.data_config)
         } else {
           return prevTime - 1
         }
@@ -350,16 +418,6 @@ const PointsReference = () => {
     }
   })
 
-  const insets = useSafeAreaInsets()
-
-  const mapRef = useRef(null)
-
-  const routePoints = []
-
-  const handleLogout = () => {
-    logoutUser()
-  }
-  // PEDIR PERMISSÃO PARA ACESSAR A LOCALIZAÇÃO
   async function requestLocationPermissions() {
     const { granted } = await requestForegroundPermissionsAsync()
 
@@ -371,14 +429,11 @@ const PointsReference = () => {
     }
   }
 
-  // LOCALIZAÇÃO ATUAL DO USUÁRIO
+  // Localização do usuário
   useEffect(() => {
     requestLocationPermissions()
-    // handleSync()
-    let unsubscribe: LocationSubscription | null = null
-
     const startWatching = async () => {
-      unsubscribe = await watchPositionAsync(
+      await watchPositionAsync(
         {
           accuracy: LocationAccuracy.Highest,
           distanceInterval: 2,
@@ -387,7 +442,7 @@ const PointsReference = () => {
         async (newLocation) => {
           setLocation(newLocation)
           await AsyncStorage.setItem('location', JSON.stringify(newLocation))
-
+          refetch()
           setRoutes((currentLocations) => [...currentLocations, newLocation])
         },
       )
@@ -396,7 +451,7 @@ const PointsReference = () => {
     startWatching()
   }, [])
 
-  // POST DE ROTAS DO USUÁRIO
+  // POST - Trails/Offline
   useEffect(() => {
     const postTrails = async () => {
       const lastLocation = routes[routes.length - 1]
@@ -420,14 +475,14 @@ const PointsReference = () => {
     }
   }, [routes])
 
-  // MOSTRAR BOTÕES DE AÇÕES DO USUÁRIO
+  // Ações do usuário
   useEffect(() => {
     if (location) {
       if (pointsDataOffline) {
         for (const point of pointsDataOffline) {
           if (
-            calculateDistance(location.coords, point) <=
-            Number(configPointRadius?.data_config ?? 0)
+            calculateDistance(location?.coords, point) <=
+            Number(configPointRadius?.data_config)
           ) {
             setShowPointDetails(true)
             if (Number(point.pointtype) === 3) {
@@ -445,100 +500,45 @@ const PointsReference = () => {
       setShowCollectButton(false)
       setShowPointDetails(false)
     }
-  }, [location, pointsDataOffline])
+  }, [pointsDataOffline, location])
 
-  // MOSTRAR CONECTIVIDADE DO USUÁRIO
-  const showUserConectivitySituation = () => {
-    if (isOnline) {
-      setIsSynced(true)
-    } else {
-      setIsSynced(false)
-    }
-  }
-
+  // Re-renderização de pontos no mapa
   const [markerVisible, setMarkerVisible] = useState(true)
 
   useEffect(() => {
     if (!markerVisible) {
-      // Se o Marker não está visível, torná-lo visível após um pequeno atraso
       const timeoutId = setTimeout(() => {
         setMarkerVisible(true)
       }, 1000)
 
-      // Limpar o timeout se o componente for desmontado
       return () => clearTimeout(timeoutId)
     }
   }, [markerVisible])
 
-  // Quando você quiser alterar a cor do Marker
   function handleApplication() {
-    // Primeiro, tornar o Marker invisível
     setMarkerVisible(false)
   }
 
-  if (!location) {
-    return
-  }
-
-  const handleMarkerPress = (point) => {
-    setSelectedPoint(point)
-    setModalInfoPoints(false)
-  }
-
-  const userLocation = [
-    location.coords.latitude,
-    location.coords.longitude,
-    Number(location.coords.accuracy.toString().slice(0, 2)),
-    Number(location.coords.altitude.toString().slice(0, 2)),
-  ]
-
+  // Menu lateral
   const navigationView = () => (
-    <View
-      className="flex-col justify-between gap-2 p-5"
-      style={{ paddingTop: insets.top }}
-    >
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Text className="text-2xl font-bold">Menu</Text>
-        <Pressable
-          onPress={() => {
-            closeDrawer()
-          }}
-        >
-          <Text className="text-xl">Fechar</Text>
-        </Pressable>
-      </View>
-      <Divider className="mb-5 mt-2" />
-      {user?.is_staff && (
-        <View>
-          <Pressable
-            className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
-            onPress={() => {
-              setModalAdultCollection(true)
-            }}
-          >
-            <Text className="text-center text-lg font-bold text-white">
-              REALIZAR COLETA ADULTO
-            </Text>
-          </Pressable>
-        </View>
-      )}
-      <View>
-        <Pressable
-          className="w-auto rounded-md border border-zinc-700/20 bg-red-500 p-5"
-          onPress={handleLogout}
-        >
-          <Text className="text-center text-lg font-bold text-white">SAIR</Text>
-        </Pressable>
-      </View>
-    </View>
+    <Sidebar
+      insets={insets}
+      setModalAdultCollection={setModalAdultCollection}
+      closeDrawer={closeDrawer}
+    />
   )
 
-  if (pointsLoading || applicatorLoading || userLoading || configAppLoading) {
+  // Loading de informações
+  if (
+    pointsLoading ||
+    applicatorLoading ||
+    userLoading ||
+    configAppLoading ||
+    configPointRadiusLoading ||
+    configPushTimeLoading ||
+    pointtypeDataLoading ||
+    latestApplicationDateLoading
+  ) {
     return (
       <View className="flex-1 items-center justify-center">
         <Text>Carregando...</Text>
@@ -553,145 +553,29 @@ const PointsReference = () => {
       renderNavigationView={navigationView}
     >
       <ScrollView style={{ paddingTop: insets.top }}>
-        <View className=" absolute right-9 top-20 z-10 items-center justify-center">
-          <Pressable
-            className="
-        w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-            onPress={openDrawer}
-          >
-            <Feather name="menu" size={24} color="gray" />
-          </Pressable>
-        </View>
-
-        <View className=" absolute right-9 top-[120px] z-10 items-center justify-center">
-          <Pressable
-            className="
-        w-auto rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-            onPress={handleSyncInformations}
-          >
-            <View className="flex-row items-center gap-2">
-              <Feather name="git-pull-request" size={24} color="gray" />
-              <Text>Sincronizar</Text>
-            </View>
-            <Text>{formatTimer(Number(syncTimeRemaining))}</Text>
-          </Pressable>
-        </View>
-
-        {user.is_staff && (
-          <View className=" absolute right-9 top-[190px] z-10 items-center justify-center">
-            <Pressable
-              className="
-        w-auto flex-row items-center justify-center gap-2 rounded-sm border border-zinc-700/20 bg-zinc-100/70 p-2"
-              onPress={() => setModalAddPointReference(!modalAddPointReference)}
-            >
-              <Feather name="plus-circle" size={24} color="gray" />
-              <Text>Adicionar ponto</Text>
-            </Pressable>
-          </View>
-        )}
+        <ButtonActions
+          handleSyncInformations={handleSyncInformations}
+          modalAddPointReference={modalAddPointReference}
+          openDrawer={openDrawer}
+          setModalAddPointReference={setModalAddPointReference}
+          syncTimeRemaining={syncTimeRemaining}
+        />
 
         <View className="h-screen flex-1 items-center justify-center">
-          {location && (
-            <MapView
-              ref={mapRef}
-              provider={PROVIDER_GOOGLE}
-              onRegionChangeComplete={setRegion}
-              onRegionChange={(region) => {
-                setRegion(region)
-              }}
-              style={styles.map}
-              initialRegion={{
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                latitudeDelta: 0.0005,
-                longitudeDelta: 0.0005,
-              }}
-              onPress={(e) => {
-                if (pointIsEditable) {
-                  const { latitude, longitude } = e.nativeEvent.coordinate
-                  // handlePress({ latitude, longitude })
-                  setValue('latitude', latitude)
-                  setValue('longitude', longitude)
-                  setCoordinateModal(true)
-                  setPreviewCoordinate({ latitude, longitude })
-                }
-              }}
-              showsUserLocation={true} // mostra a localização do usuário
-              showsCompass={true} // mostra a bússola
-              showsScale={true} // mostra a escala
-              showsMyLocationButton={true} // mostra o botão de localização do usuário
-              zoomControlEnabled={true} // habilita o controle de zoom
-              scrollEnabled={true} // habilita o scroll
-              userLocationPriority="high" // prioridade da localização do usuário
-              userLocationUpdateInterval={1000} // intervalo de atualização da localização do usuário
-              loadingEnabled={true}
-              loadingBackgroundColor={'#fff'}
-              toolbarEnabled={false}
-              mapPadding={{ top: 10, right: 20, bottom: 60, left: 20 }}
-              mapType="hybrid"
-            >
-              <Polyline
-                strokeColor="#0000ff"
-                strokeWidth={6}
-                coordinates={routes.map((loc) => loc.coords)}
-              />
-
-              {pointsDataOffline
-                ?.filter((point) =>
-                  isPointInRegion(point, {
-                    latitude: userLocation[0],
-                    longitude: userLocation[1],
-                  }),
-                )
-                .map((point, index) => {
-                  const latestDateForPoint = latestApplicationDates?.find(
-                    (item) => item.id === point.id,
-                  )?.date
-
-                  const latestDate = new Date(latestDateForPoint)
-
-                  const isToday =
-                    latestDate.toDateString() === new Date().toDateString()
-
-                  const pinColor = isToday ? 'blue' : 'red'
-                  const strokeColor = isToday ? 'blue' : 'red'
-                  const fillColor = isToday
-                    ? 'rgba(0,0,255,0.1)'
-                    : 'rgba(255,0,0,0.1)'
-
-                  return (
-                    <React.Fragment key={index}>
-                      {markerVisible ? (
-                        <Marker
-                          key={index}
-                          title={`${point.name} || ${point.volumebti} ml`}
-                          coordinate={{
-                            latitude: point.latitude,
-                            longitude: point.longitude,
-                          }}
-                          pinColor={pinColor}
-                          onPress={() => handleMarkerPress(point)}
-                        />
-                      ) : null}
-
-                      <Circle
-                        center={{
-                          latitude: point.latitude,
-                          longitude: point.longitude,
-                        }}
-                        radius={15}
-                        strokeColor={strokeColor}
-                        fillColor={fillColor}
-                      />
-                    </React.Fragment>
-                  )
-                })}
-
-              {previewCoordinate && (
-                <Marker coordinate={previewCoordinate} pinColor={'blue'} />
-              )}
-            </MapView>
-          )}
+          <MapViewComponent
+            latestApplicationDates={latestApplicationDates}
+            location={location}
+            mapRef={mapRef}
+            pointIsEditable={pointIsEditable}
+            markerVisible={markerVisible}
+            pointsDataOffline={pointsDataOffline}
+            previewCoordinate={previewCoordinate}
+            routes={routes}
+            setCoordinateModal={setCoordinateModal}
+            setPreviewCoordinate={setPreviewCoordinate}
+            setValue={setValue}
+            userLocation={userLocation}
+          />
 
           <ApplicationPointUsageModal
             modalVisible={modalVisible}
@@ -768,158 +652,42 @@ const PointsReference = () => {
             applicatorId={Number(applicator.id)}
             deviceId={Number(device.id)}
           />
+          <SyncModal
+            modalVisible={modalSync}
+            setModalVisible={setModalSync}
+            progress={progress}
+          />
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
-          {showCollectButton && user.is_staff && (
-            <Pressable
-              className="w-screen bg-red-500 p-5"
-              onPress={() => {
-                const conflictPoints = getConflictPoints(
-                  location,
-                  pointsDataOffline,
-                )
-                if (conflictPoints.length >= 2) {
-                  if (location) {
-                    const distances = conflictPoints.map((point) =>
-                      calculateDistance(location.coords, point),
-                    )
+          <BtnCollect
+            configPointRadius={configPointRadius}
+            location={location}
+            pointsDataOffline={pointsDataOffline}
+            setModalAdultCollection={setModalAdultCollection}
+            setSelectedPoint={setSelectedPoint}
+            user={user}
+            showCollectButton={showCollectButton}
+          />
 
-                    const closestPointIndex = distances.indexOf(
-                      Math.min(...distances),
-                    )
+          <BtnApplication
+            configPointRadius={configPointRadius}
+            pointsDataOffline={pointsDataOffline}
+            setModalApplicate={setModalApplicate}
+            setSelectedPoint={setSelectedPoint}
+            location={location}
+            showButton={showButton}
+          />
 
-                    const closestPoint = conflictPoints[closestPointIndex]
-                    setModalAdultCollection(true)
-                    setSelectedPoint(closestPoint)
-                  }
-                } else {
-                  if (location) {
-                    if (pointsDataOffline) {
-                      for (const point of pointsDataOffline) {
-                        if (
-                          calculateDistance(location.coords, point) <=
-                          Number(configPointRadius?.data_config ?? 0)
-                        ) {
-                          setModalAdultCollection(true)
-                          setSelectedPoint(point)
-                          return
-                        }
-                      }
-                    }
-                  }
-                }
-              }}
-            >
-              <Text className="text-center text-lg font-bold text-white">
-                COLETA ADULTO
-              </Text>
-            </Pressable>
-          )}
-          {showButton && (
-            <Pressable
-              className="w-screen bg-green-500 p-5"
-              onPress={() => {
-                // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                const conflictPoints = getConflictPoints(
-                  location,
-                  pointsDataOffline,
-                )
-                if (conflictPoints.length >= 2) {
-                  if (location) {
-                    // Calcule a distância entre a localização atual e cada ponto de conflito
-                    const distances = conflictPoints.map((point) =>
-                      calculateDistance(location.coords, point),
-                    )
+          <BtnPointInformations
+            configPointRadius={configPointRadius}
+            location={location}
+            pointsDataOffline={pointsDataOffline}
+            setSelectedPoint={setSelectedPoint}
+            setModalEditPoint={setModalEditPoint}
+            showPointDetails={showPointDetails}
+          />
 
-                    // Encontre o índice do ponto com a menor distância
-                    const closestPointIndex = distances.indexOf(
-                      Math.min(...distances),
-                    )
-
-                    // Use o índice para encontrar o ponto mais próximo
-                    const closestPoint = conflictPoints[closestPointIndex]
-                    // Abra o modal com o ponto mais próximo
-                    setModalApplicate(true)
-                    setSelectedPoint(closestPoint)
-                  }
-                } else {
-                  if (location) {
-                    if (pointsDataOffline) {
-                      for (const point of pointsDataOffline) {
-                        if (
-                          calculateDistance(location.coords, point) <=
-                          Number(configPointRadius.data_config ?? 0)
-                        ) {
-                          setModalApplicate(true)
-                          setSelectedPoint(point)
-                          return
-                        }
-                      }
-                    }
-                  }
-                }
-              }}
-            >
-              <Text className="text-center text-lg font-bold text-white">
-                APLICAÇÃO
-              </Text>
-            </Pressable>
-          )}
-          {showPointDetails && (
-            <Pressable
-              className="w-screen bg-[#7c58d6] p-5"
-              onPress={() => {
-                // Verifique se há conflito (usuário dentro do raio de dois pontos)
-                const conflictPoints = getConflictPoints(
-                  location,
-                  pointsDataOffline,
-                )
-                if (conflictPoints.length >= 2) {
-                  // setConflictPoints(conflictPoints)
-                  // setModalConflict(true)
-
-                  if (location) {
-                    // Calcule a distância entre a localização atual e cada ponto de conflito
-                    const distances = conflictPoints.map((point) =>
-                      calculateDistance(location.coords, point),
-                    )
-
-                    // Encontre o índice do ponto com a menor distância
-                    const closestPointIndex = distances.indexOf(
-                      Math.min(...distances),
-                    )
-
-                    // Use o índice para encontrar o ponto mais próximo
-                    const closestPoint = conflictPoints[closestPointIndex]
-
-                    // Abra o modal com o ponto mais próximo
-                    setModalEditPoint(true)
-                    setSelectedPoint(closestPoint)
-                  }
-                } else {
-                  if (location) {
-                    if (pointsDataOffline) {
-                      for (const point of pointsDataOffline) {
-                        if (
-                          calculateDistance(location.coords, point) <=
-                          Number(configPointRadius.data_config ?? 0)
-                        ) {
-                          setModalEditPoint(true)
-                          setSelectedPoint(point)
-                          return
-                        }
-                      }
-                    }
-                  }
-                }
-              }}
-            >
-              <Text className="text-center text-lg font-bold text-white">
-                VER DETALHES DO PONTO
-              </Text>
-            </Pressable>
-          )}
           {lastSyncTime && (
             <View className="w-screen items-center justify-center bg-white">
               <Text>
@@ -934,31 +702,3 @@ const PointsReference = () => {
 }
 
 export default PointsReference
-
-const styles = StyleSheet.create({
-  map: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  circle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'blue',
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  navigationContainer: {
-    backgroundColor: '#ecf0f1',
-  },
-  paragraph: {
-    padding: 16,
-    fontSize: 15,
-    textAlign: 'center',
-  },
-})

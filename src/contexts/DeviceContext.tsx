@@ -6,7 +6,7 @@ import {
   useEffect,
 } from 'react'
 import { IDevices } from '@/interfaces/IPoint'
-import { findDeviceByFactoryId } from '@/services/device'
+import { findDeviceByFactoryId } from '@/services/onlineServices/device'
 import * as Application from 'expo-application'
 import { router } from 'expo-router'
 

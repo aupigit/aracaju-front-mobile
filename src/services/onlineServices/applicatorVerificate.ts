@@ -1,4 +1,4 @@
-import { get } from '../providers/api'
+import { get } from '../../providers/api'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { IApplicator } from '@/interfaces/IApplicator'
 

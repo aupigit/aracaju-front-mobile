@@ -5,9 +5,9 @@ import {
   adjustPointReferenceName,
   adjustPointStatus,
   doPointsReference,
-} from '../points'
+} from '../onlineServices/points'
 import { PointReference } from '@/db/pointreference'
-import { asc, eq, sql } from 'drizzle-orm'
+import { asc, sql } from 'drizzle-orm'
 
 export const syncPointsReferenceName = async (
   applicatorId: string,
@@ -157,10 +157,10 @@ export const syncPointsReferenceCreatedOffline = async () => {
 }
 
 export const syncPoints = async (applicatorId: string, deviceId: string) => {
-  // await syncPointsReferenceName(applicatorId, deviceId)
-  // await syncPointsReferenceLocation(applicatorId, deviceId)
-  // await syncPointsReferenceStatus(applicatorId, deviceId)
+  await syncPointsReferenceName(applicatorId, deviceId)
+  await syncPointsReferenceLocation(applicatorId, deviceId)
+  await syncPointsReferenceStatus(applicatorId, deviceId)
   await syncPointsReferenceCreatedOffline()
 
-  // console.log('Dados dos Pontos de referência sincronizados com sucesso!')
+  console.log('Dados dos Pontos de referência sincronizados com sucesso!')
 }

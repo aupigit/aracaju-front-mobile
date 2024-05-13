@@ -1,6 +1,6 @@
 import { Tracking } from '@/db/tracking'
 import { db } from '@/lib/database'
-import { and, between, eq, gte, lt, sql } from 'drizzle-orm'
+import { and, eq, gte, lt } from 'drizzle-orm'
 
 export const doTrailsOffline = async (
   latitude: number,

@@ -1,5 +1,5 @@
 import { IAuthenticatedUser, IRecoveryPassword } from '@/interfaces/IUser'
-import { post, put } from '../providers/api'
+import { post, put } from '../../providers/api'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export const doLogin = async (

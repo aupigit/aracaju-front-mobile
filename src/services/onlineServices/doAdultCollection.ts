@@ -11,6 +11,7 @@ export const doAdultCollection = async (
       type: 'Point',
       coordinates: JSON.parse(item.marker),
     },
+    contract: 1,
   }))
 
   try {

@@ -1,10 +1,7 @@
 import { View, Text, Modal, Pressable, TextInput } from 'react-native'
-import React, { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import React from 'react'
+import { Controller } from 'react-hook-form'
 import { Divider } from 'react-native-paper'
-import ApplicationConfirmInactivePointModal from './ApplicationConfirmInactivePointModal'
 
 interface ApplicationAdjustPointCoordinatesModalProps {
   modalVisible: boolean
@@ -66,6 +63,7 @@ const ApplicationAdjustPointCoordinatesModal = ({
                     placeholder="Justificativa da mudança da coordenada"
                     onChangeText={onChange}
                     onBlur={onBlur}
+                    value={value}
                   />
                 </View>
               )}

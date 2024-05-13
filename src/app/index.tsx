@@ -3,12 +3,13 @@ import React from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { doLogin } from '@/services/authenticate'
+import { doLogin } from '@/services/onlineServices/authenticate'
 import { useDevice } from '@/contexts/DeviceContext'
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from '../../drizzle/migrations'
 import { db } from '@/lib/database'
+
 const Home = () => {
   const { isAuthenticated, logoutUser, loginUser } = useUser()
   const { device } = useDevice()
@@ -44,6 +45,7 @@ const Home = () => {
     logoutUser()
   }
 
+  // Migrações da aplicação
   const { success, error } = useMigrations(db, migrations)
 
   if (error) {

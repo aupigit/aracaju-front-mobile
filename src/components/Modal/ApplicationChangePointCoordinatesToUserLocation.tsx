@@ -2,12 +2,9 @@ import { View, Text, Pressable, Modal, TextInput } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
-import { adjustPointReferenceCoordinates } from '@/services/points'
 import { IPoint } from '@/interfaces/IPoint'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useApplicator } from '@/contexts/ApplicatorContext'
-import { useDevice } from '@/contexts/DeviceContext'
 import { adjustPointReferenceLocationOffline } from '@/services/offlineServices/points'
 
 interface ApplicationChangePointCoordinatesToUserLocationProps {
@@ -35,9 +32,6 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
   refetch,
   selectedPoint,
 }: ApplicationChangePointCoordinatesToUserLocationProps) => {
-  const { applicator } = useApplicator()
-  const { device } = useDevice()
-
   const {
     control,
     handleSubmit,
@@ -49,7 +43,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await adjustPointReferenceLocationOffline(
+      await adjustPointReferenceLocationOffline(
         userLocation[1], // longitude
         userLocation[0], // latitude
         // data.description,

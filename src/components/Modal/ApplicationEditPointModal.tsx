@@ -3,15 +3,12 @@ import React, { useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
 import { Divider } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
-import { Feather } from '@expo/vector-icons'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { adjustPointReferenceName } from '@/services/points'
 import ApplicationConfirmInactivePointModal from './ApplicationConfirmInactivePointModal'
 import ApplicationChangeNamePointModal from './ApplicationChangeNamePointModal'
 import ApplicationChangePointCoordinatesToUserLocation from './ApplicationChangePointCoordinatesToUserLocation'
 import { adjustPointReferenceNameOffline } from '@/services/offlineServices/points'
-import NetInfo from '@react-native-community/netinfo'
 
 interface ApplicationEditPointModalProps {
   modalVisible: boolean

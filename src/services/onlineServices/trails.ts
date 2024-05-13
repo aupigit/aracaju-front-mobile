@@ -1,8 +1,6 @@
 import { SelectTracking } from '@/db/tracking'
 import { ITrails } from '@/interfaces/ITrails'
-import { IPostRequestParams, post } from '@/providers/api'
-import { format } from 'date-fns'
-import { Accuracy } from 'expo-location'
+import { post } from '@/providers/api'
 
 export const doTrails = async (
   data: Array<SelectTracking>,

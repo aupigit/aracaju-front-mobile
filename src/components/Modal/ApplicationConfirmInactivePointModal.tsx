@@ -3,11 +3,9 @@ import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Divider } from 'react-native-paper'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { adjustPointStatus } from '@/services/points'
 import { IPoint } from '@/interfaces/IPoint'
 import { z } from 'zod'
 import { adjustPointReferenceStatusOffline } from '@/services/offlineServices/points'
-import NetInfo from '@react-native-community/netinfo'
 
 interface ApplicationConfirmInactivePointModalProps {
   modalVisible: boolean

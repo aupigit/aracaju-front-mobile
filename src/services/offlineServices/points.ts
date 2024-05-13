@@ -42,12 +42,12 @@ export const adjustPointReferenceNameOffline = async (
       .set({
         name,
         edit_name: 1,
-        updated_at: sql`datetime('now')`,
+        updated_at: sql`strftime('%Y-%m-%dT%H:%M:%f', 'now', 'localtime')`,
       })
       .where(eq(PointReference.id, pointId))
       .execute()
 
-    // console.log('Data updated successfully in PointReference table')
+    console.log('Data updated successfully in PointReference table')
   } catch (error) {
     console.error('Error updating data: ', error)
     throw error
@@ -66,7 +66,7 @@ export const adjustPointReferenceLocationOffline = async (
         longitude,
         latitude,
         edit_location: 1,
-        updated_at: sql`datetime('now')`,
+        updated_at: sql`strftime('%Y-%m-%dT%H:%M:%f', 'now', 'localtime')`,
       })
       .where(eq(PointReference.id, pointId))
       .execute()
@@ -85,7 +85,7 @@ export const adjustPointReferenceStatusOffline = async (pointId: number) => {
       .set({
         is_active: 0,
         edit_status: 1,
-        updated_at: sql`datetime('now')`,
+        updated_at: sql`strftime('%Y-%m-%dT%H:%M:%f', 'now', 'localtime')`,
       })
       .where(eq(PointReference.id, pointId))
       .execute()

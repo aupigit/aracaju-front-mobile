@@ -12,4 +12,5 @@ export interface ITrails extends IBase {
   device: number
   applicator: number
   timestamp: string
+  success: boolean
 }

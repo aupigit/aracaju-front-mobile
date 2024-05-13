@@ -1,12 +1,11 @@
 import { SelectPointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
-import { IPostRequestParams, get, patch, post } from '@/providers/api'
-import { is } from 'drizzle-orm'
+import { get, patch, post } from '@/providers/api'
 
 export const findManyPointsReferences = async (
   updated_at: string | null,
 ): Promise<IPoint[]> => {
-  console.log('UPDATED_AT', updated_at)
+  // console.log('UPDATED_AT', updated_at)
 
   const result = await get(
     `applications/pointreference/?updated_at=${updated_at}`,
@@ -83,7 +82,7 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
     name: item.name,
     marker: {
       type: 'Point',
-      coordinates: [item.latitude, item.longitude],
+      coordinates: [item.longitude, item.latitude],
     },
     latitude: item.latitude,
     longitude: item.longitude,
@@ -98,7 +97,13 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
     device: item.device,
     applicator: item.applicator,
     pointtype: item.pointtype,
+    city: 1,
+    client: 1,
+    subregions: 1,
+    contract: 1,
   }))
+
+  // TODO - Dados hard coded de cidade, cliente, subregions e contrato
 
   try {
     const result = await post('applications/pointreference/push/', {

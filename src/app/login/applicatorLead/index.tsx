@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { useUser } from '@/contexts/UserContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import FormControl from './FormControl'
-import { doLogin } from '@/services/authenticate'
+import { doLogin } from '@/services/onlineServices/authenticate'
 import { Snackbar } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 

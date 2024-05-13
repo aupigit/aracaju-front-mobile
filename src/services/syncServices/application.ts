@@ -1,5 +1,5 @@
 import { db } from '@/lib/database'
-import { doApplication } from '../applications'
+import { doApplication } from '../onlineServices/applications'
 import NetInfo from '@react-native-community/netinfo'
 import { Application } from '@/db/application'
 import { asc, sql } from 'drizzle-orm'

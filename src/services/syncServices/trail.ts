@@ -1,8 +1,8 @@
 import { db } from '@/lib/database'
 import NetInfo from '@react-native-community/netinfo'
-import { doTrails } from '../trails'
+import { doTrails } from '../onlineServices/trails'
 import { Tracking } from '@/db/tracking'
-import { and, asc, eq, gte, lt, sql } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
 
 export const syncTrails = async (applicatorId: number, deviceId: number) => {
   const netInfo = await NetInfo.fetch()
