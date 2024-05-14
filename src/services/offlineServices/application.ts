@@ -2,6 +2,7 @@ import { Application } from '@/db/application'
 import { IApplication } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
 import { desc, eq } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const doApplicationOffline = async (
   coordinates: number[],
@@ -47,7 +48,7 @@ export const doApplicationOffline = async (
     // console.log('Data inserted successfully in Application table')
     return data
   } catch (error) {
-    console.error('Error inserting data: ', error)
+    Alert.alert('Error inserting data: ', error.message)
     throw error
   }
 }
@@ -60,7 +61,7 @@ export const findManyApplicationsOffline = async (): Promise<
     // console.log('Data retrieved successfully from Application table')
     return result as unknown as Promise<IApplication[]>
   } catch (error) {
-    console.error('Error retrieving data: ', error)
+    Alert.alert('Error retrieving data: ', error.message)
     throw error
   }
 }

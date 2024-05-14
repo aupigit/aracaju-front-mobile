@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
@@ -99,7 +100,7 @@ const AdultCollectionModal = ({
         setValue('image', result.assets[0].base64)
       }
     } catch (error) {
-      console.error('Error picking image:', error)
+      Alert.alert('Error picking image:', error.message)
     }
   }
   const handleClearImageToSend = () => {
@@ -146,7 +147,7 @@ const AdultCollectionModal = ({
       )
       showSnackbar('success')
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao relizar coleta audlto: ', error.message)
       showSnackbar('error')
       throw error
     }

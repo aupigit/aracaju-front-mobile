@@ -8,6 +8,7 @@ import {
 } from '../onlineServices/points'
 import { PointReference } from '@/db/pointreference'
 import { asc, sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const syncPointsReferenceName = async (
   applicatorId: string,
@@ -43,7 +44,7 @@ export const syncPointsReferenceName = async (
         }
       }
     } catch (error) {
-      console.error('An error occurred while syncing the data:', error)
+      Alert.alert('An error occurred while syncing the data:', error.message)
     }
   }
 }
@@ -83,7 +84,7 @@ export const syncPointsReferenceLocation = async (
         }
       }
     } catch (error) {
-      console.error('An error occurred while syncing the data:', error)
+      Alert.alert('An error occurred while syncing the data:', error.message)
     }
   }
 }
@@ -119,7 +120,7 @@ export const syncPointsReferenceStatus = async (
         }
       }
     } catch (error) {
-      console.error('An error occurred while syncing the data:', error)
+      Alert.alert('An error occurred while syncing the data:', error.message)
     }
   }
 }
@@ -151,7 +152,7 @@ export const syncPointsReferenceCreatedOffline = async () => {
         }
       }
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao criar um ponto: ', error.message)
     }
   }
 }

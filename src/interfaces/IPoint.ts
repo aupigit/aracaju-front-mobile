@@ -1,3 +1,4 @@
+import { string } from 'zod'
 import { IApplicator } from './IApplicator'
 import { IBase } from './IBase'
 
@@ -10,6 +11,11 @@ export interface IPointType extends IBase {
   name: string
   description: string
   image: URL | string
+}
+
+export interface IPointTypeFlat extends IBase {
+  name: string
+  point_code: string
 }
 
 export interface IPointStatus extends IBase {

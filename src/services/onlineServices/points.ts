@@ -1,6 +1,7 @@
 import { SelectPointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { get, patch, post } from '@/providers/api'
+import { Alert } from 'react-native'
 
 export const findManyPointsReferences = async (
   updated_at: string | null,
@@ -105,7 +106,7 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
     })
     return result
   } catch (error) {
-    console.error(error)
+    Alert.alert('Erro ao enviar os dados de ponto: ', error.message)
     throw error
   }
 }

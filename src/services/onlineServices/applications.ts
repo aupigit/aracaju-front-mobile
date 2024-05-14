@@ -1,6 +1,7 @@
 import { SelectApplication } from '@/db/application'
 import { IApplication } from '@/interfaces/IPoint'
 import { post } from '@/providers/api'
+import { Alert } from 'react-native'
 
 export const doApplication = async (
   data: Array<SelectApplication>,
@@ -19,7 +20,7 @@ export const doApplication = async (
     })
     return result
   } catch (error) {
-    console.error(error)
+    Alert.alert('Erro ao enviar dados de aplicação: ', error.message)
     throw error
   }
 }

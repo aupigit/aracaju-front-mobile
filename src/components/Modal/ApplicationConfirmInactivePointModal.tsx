@@ -1,4 +1,4 @@
-import { View, Text, Modal, Pressable, TextInput } from 'react-native'
+import { View, Text, Modal, Pressable, TextInput, Alert } from 'react-native'
 import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Divider } from 'react-native-paper'
@@ -44,7 +44,7 @@ const ApplicationConfirmInactivePointModal = ({
       setModalVisible(!modalVisible)
       reset()
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao alterar o status do ponto: ', error.message)
       throw error
     }
   })

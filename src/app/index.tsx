@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from 'react-native'
+import { View, Text, Pressable, Alert } from 'react-native'
 import React from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
@@ -29,7 +29,7 @@ const Home = () => {
         const response = await doLogin(device.factory_id, tokenServiceId)
         loginUser(response.user)
       } catch (error) {
-        console.error(error)
+        Alert.alert('Erro ao realizar o login: ', error.message)
       }
       router.replace('login/applicatorCpfVerificate')
     } else {

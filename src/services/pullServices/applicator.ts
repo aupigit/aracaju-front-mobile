@@ -2,6 +2,7 @@ import { Applicator } from '@/db/applicator'
 import { IApplicator } from '@/interfaces/IApplicator'
 import { db } from '@/lib/database'
 import { sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const pullApplicatorData = async (applicatorData: IApplicator[]) => {
   for (const data of applicatorData) {
@@ -36,7 +37,7 @@ export const pullApplicatorData = async (applicatorData: IApplicator[]) => {
 
       // console.log('Data inserted successfully in Applicator table')
     } catch (error) {
-      console.error('Error inserting data: ', error)
+      Alert.alert('Error inserting data: ', error.message)
       throw error
     }
   }

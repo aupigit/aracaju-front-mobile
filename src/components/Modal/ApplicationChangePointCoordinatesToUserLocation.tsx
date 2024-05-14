@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, TextInput } from 'react-native'
+import { View, Text, Pressable, Modal, TextInput, Alert } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
@@ -53,7 +53,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
       refetch()
       reset()
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
       throw error
     }
   })

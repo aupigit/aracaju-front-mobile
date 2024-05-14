@@ -1,5 +1,6 @@
 import { AdultCollection } from '@/db/adultcollection'
 import { db } from '@/lib/database'
+import { Alert } from 'react-native'
 
 export const doAdultCollectionOffline = async (
   coordinates: number[],
@@ -50,7 +51,7 @@ export const doAdultCollectionOffline = async (
     // console.log('Data inserted successfully in Adult Collection table')
     return data
   } catch (error) {
-    console.error('Error inserting data: ', error)
+    Alert.alert('Error inserting data: ', error.message)
     throw error
   }
 }

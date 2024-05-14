@@ -9,6 +9,8 @@ import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp
 import { doPointReferenceOffline } from '@/services/offlineServices/points'
 import { findPointTypeDataOffline } from '@/services/offlineServices/pointtype'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { findConfigAppByName } from '@/services/onlineServices/configApp'
+import { findPointTypeData } from '@/services/onlineServices/pointtype'
 
 interface ApplicationAddPointReferenceModalProps {
   modalVisible: boolean
@@ -134,6 +136,15 @@ const ApplicationAddPointReferenceModal = ({
     },
   )
 
+  const { data: configScaleVolumeOnline } = useQuery(
+    'config/configapp/?name="volume_bti"',
+    async () => {
+      return await findConfigAppByName('volume_escala').then(
+        (response) => response,
+      )
+    },
+  )
+
   const { data: configPointtype } = useQuery(
     'application/pointtype/flatdata',
     async () => {
@@ -141,11 +152,28 @@ const ApplicationAddPointReferenceModal = ({
     },
   )
 
+  const { data: configPointtypeOnline } = useQuery(
+    'application/pointtype/flatdata',
+    async () => {
+      return await findPointTypeData().then((response) => response)
+    },
+  )
+
   useEffect(() => {
-    if (configScaleVolume?.data_config) {
+    if (
+      configScaleVolume !== undefined &&
+      configScaleVolume.data_config !== undefined
+    ) {
       setScaleVolume(configScaleVolume.data_config.split(';'))
+    } else {
+      if (
+        configScaleVolumeOnline !== undefined &&
+        configScaleVolumeOnline.data_config !== undefined
+      ) {
+        setScaleVolume(configScaleVolumeOnline.data_config.split(';'))
+      }
     }
-  }, [configScaleVolume])
+  }, [configScaleVolume, configScaleVolumeOnline])
 
   return (
     <Modal
@@ -321,10 +349,19 @@ const ApplicationAddPointReferenceModal = ({
                         onChange(value)
                       }}
                       value={value}
-                      items={configPointtype.map((item) => ({
-                        label: item.name,
-                        value: Number(item.id),
-                      }))}
+                      items={
+                        configPointtype !== undefined
+                          ? configPointtype.map((item) => ({
+                              label: item.name,
+                              value: Number(item.id),
+                            }))
+                          : configPointtypeOnline !== undefined
+                            ? configPointtypeOnline.map((item) => ({
+                                label: item.name,
+                                value: Number(item.point_code),
+                              }))
+                            : [] // provide an empty array as default value
+                      }
                     />
                   </View>
                 </View>

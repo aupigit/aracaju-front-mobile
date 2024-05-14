@@ -6,6 +6,7 @@ import {
   TextInput,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
@@ -105,7 +106,7 @@ const ApplicationApplicateModal = ({
         setValue('image', result.assets[0].base64)
       }
     } catch (error) {
-      console.error('Error picking image:', error)
+      Alert.alert('Error picking image:', error.message)
     }
   }
   const handleClearImageToSend = () => {
@@ -164,7 +165,7 @@ const ApplicationApplicateModal = ({
       refetch()
       handleApplication()
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao criar uma aplicação: ', error.message)
       showSnackbar('error')
     }
   })

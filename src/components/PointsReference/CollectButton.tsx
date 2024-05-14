@@ -1,9 +1,7 @@
-import { IConfigApp } from '@/interfaces/IConfigApp'
 import { IPoint } from '@/interfaces/IPoint'
 import IUser from '@/interfaces/IUser'
 import calculateDistance from '@/utils/calculateDistance'
 import getConflictPoints from '@/utils/getConflictPoints'
-import { set } from 'date-fns'
 import { LocationObject } from 'expo-location'
 import React from 'react'
 import { Pressable, Text } from 'react-native'
@@ -14,7 +12,7 @@ interface IButtonCollectAdultProps {
   pointsDataOffline: IPoint[]
   setModalAdultCollection: (modalVisible: boolean) => void
   setSelectedPoint: (point: IPoint | null) => void
-  configPointRadius: IConfigApp
+  configPointRadius: number
   location: LocationObject | null
   selectedPoint: IPoint
   setModalButtonWarning: (modalVisible: boolean) => void
@@ -54,7 +52,7 @@ const BtnCollect = ({
             for (const point of pointsDataOffline) {
               if (
                 calculateDistance(location.coords, point) <=
-                Number(configPointRadius?.data_config ?? 0)
+                Number(configPointRadius ?? 15)
               ) {
                 setModalAdultCollection(true)
                 setSelectedPoint(point)

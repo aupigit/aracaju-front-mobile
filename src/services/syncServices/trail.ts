@@ -3,6 +3,7 @@ import NetInfo from '@react-native-community/netinfo'
 import { doTrails } from '../onlineServices/trails'
 import { Tracking } from '@/db/tracking'
 import { and, asc, eq, sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const syncTrails = async (applicatorId: number, deviceId: number) => {
   const netInfo = await NetInfo.fetch()
@@ -35,7 +36,7 @@ export const syncTrails = async (applicatorId: number, deviceId: number) => {
         }
       }
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao criar uma rota: ', error.message)
     }
 
     console.info('Dados das Rotas sincronizados com sucesso!')

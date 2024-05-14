@@ -6,6 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
@@ -39,7 +40,7 @@ const PhonePhotos: React.FC<PhonePhotosProps> = ({
     ;(async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
       if (status !== 'granted') {
-        console.error('Permission to access media library denied!')
+        Alert.alert('Permission to access media library denied!')
       }
     })()
   }, [])
@@ -64,7 +65,7 @@ const PhonePhotos: React.FC<PhonePhotosProps> = ({
         setValue(`images.${title}`, result.assets[0].uri)
       }
     } catch (error) {
-      console.error('Error picking image:', error)
+      Alert.alert('Error picking image:', error.message)
     }
   }
 

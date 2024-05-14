@@ -37,7 +37,10 @@ import { findApplicator } from '@/services/onlineServices/applicator'
 import { pullApplicatorData } from '@/services/pullServices/applicator'
 import { findUser } from '@/services/onlineServices/user'
 import { pullUserData } from '@/services/pullServices/user'
-import { findConfigApp } from '@/services/onlineServices/configApp'
+import {
+  findConfigApp,
+  findConfigAppByName,
+} from '@/services/onlineServices/configApp'
 import { pullConfigAppData } from '@/services/pullServices/configApp'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
@@ -102,6 +105,7 @@ const PointsReference = () => {
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
   const [modalSync, setModalSync] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [firstTimeOnApplication, setFirstTimeOnApplication] = useState(1)
 
   // Context services
   const { applicator } = useApplicator()
@@ -199,10 +203,34 @@ const PointsReference = () => {
   )
 
   // GET - ConfigaApp/Online
-  const { data: configAppData, isLoading: configAppLoading } = useQuery(
-    'operation/configapp',
+  const {
+    data: configAppData,
+    isLoading: configAppLoading,
+    isSuccess: configAppSuccess,
+  } = useQuery('operation/configapp', async () => {
+    return await findConfigApp().then((response) => response)
+  })
+
+  // GET - ConfigaApp Raio do Ponto/Online
+  const {
+    data: configPointRadiusOnline,
+    isLoading: configPointRadiusIsLoadingOnline,
+  } = useQuery('operation/configapp/?name="raio_do_ponto"', async () => {
+    return await findConfigAppByName('raio_do_ponto').then(
+      (response) => response,
+    )
+  })
+
+  // GET - ConfigaApp Raio do Ponto/Online
+  const {
+    data: configPushTimeOnline,
+    isLoading: configPushTimeIsLoadingOnline,
+  } = useQuery(
+    'operation/configapp/?name="tempo_entrega_sincronizacao"',
     async () => {
-      return await findConfigApp().then((response) => response)
+      return await findConfigAppByName('tempo_entrega_sincronizacao').then(
+        (response) => response,
+      )
     },
   )
 
@@ -219,9 +247,27 @@ const PointsReference = () => {
       )
     },
     {
-      enabled: pointsDataOffline !== undefined && configAppData !== undefined,
+      enabled: configAppSuccess,
     },
   )
+
+  const [configsOfPointRadius, setConfigsOfPointRadius] = useState(0)
+
+  useEffect(() => {
+    if (
+      configPointRadius !== undefined &&
+      configPointRadius.data_config !== undefined
+    ) {
+      setConfigsOfPointRadius(Number(configPointRadius.data_config))
+    } else {
+      if (
+        configPointRadiusOnline !== undefined &&
+        configPointRadiusOnline.data_config !== undefined
+      ) {
+        setSyncTimeRemaining(Number(configPointRadiusOnline.data_config))
+      }
+    }
+  }, [configPointRadius, configPointRadiusOnline])
 
   // GET - ConfigaApp Tempo de sincronização/Offline
   const {
@@ -236,7 +282,7 @@ const PointsReference = () => {
       ).then((response) => response)
     },
     {
-      enabled: pointsDataOffline !== undefined && configAppData !== undefined,
+      enabled: configAppSuccess,
     },
   )
 
@@ -285,18 +331,36 @@ const PointsReference = () => {
     },
   )
 
-  const [syncTimeRemaining, setSyncTimeRemaining] = useState<number>(0)
+  const [syncTimeRemaining, setSyncTimeRemaining] = useState(0)
 
   useEffect(() => {
-    if (configPushTime?.data_config) {
+    if (
+      configPushTime !== undefined &&
+      configPushTime.data_config !== undefined
+    ) {
       setSyncTimeRemaining(Number(configPushTime.data_config))
+    } else {
+      if (
+        configPushTimeOnline !== undefined &&
+        configPushTimeOnline.data_config !== undefined
+      ) {
+        setSyncTimeRemaining(Number(configPushTimeOnline.data_config))
+      }
     }
-  }, [configPushTime])
+  }, [configPushTime, configPushTimeOnline])
 
   useEffect(() => {
     AsyncStorage.getItem('lastSyncTime').then((value) => {
       if (value) {
         setLastSyncTime(new Date(value))
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    AsyncStorage.getItem('first_time_on_application').then((value) => {
+      if (value) {
+        setFirstTimeOnApplication(Number(value))
       }
     })
   }, [])
@@ -353,20 +417,14 @@ const PointsReference = () => {
                 once(pullConfigAppData)(configAppData),
                 once(pullPointtypeFlatData)(pointtypeData),
               ].map(tick),
-            )
-              .then(() => {
-                setTimeout(() => {
-                  setModalSync(false)
-                }, 3000)
-              })
-              .catch((error) => {
-                console.error('Erro na sincronização:', error)
-              })
+            ).catch((error) => {
+              Alert.alert('Erro na sincronização:', error.message)
+            })
           }
         })
       })
       .catch((error) => {
-        console.error('Erro na sincronização:', error)
+        Alert.alert('Erro na sincronização:', error.message)
       })
       .then(() => {
         console.log('Sincronização completa')
@@ -378,23 +436,32 @@ const PointsReference = () => {
         refetchLatestApplicationDates()
         configPushRefetch()
         configPointRadiusRefetch()
+        setTimeout(() => {
+          setModalSync(false)
+        }, 3000)
       })
   }
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setSyncTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handleSyncInformations()
-  //         return Number(configPushTime?.data_config)
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  console.log(firstTimeOnApplication)
 
-  //   return () => clearInterval(interval)
-  // }, [])
+  useEffect(() => {
+    if (firstTimeOnApplication === 1) {
+      handleSyncInformations()
+      AsyncStorage.setItem('first_time_on_application', '0')
+    }
+    const interval = setInterval(() => {
+      setSyncTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handleSyncInformations()
+          return Number(configPushTime?.data_config)
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -409,7 +476,7 @@ const PointsReference = () => {
       reset()
       setPreviewCoordinate(null)
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
       throw error
     }
   })
@@ -478,7 +545,7 @@ const PointsReference = () => {
         for (const point of pointsDataOffline) {
           if (
             calculateDistance(location?.coords, point) <=
-            Number(configPointRadius?.data_config)
+            Number(configsOfPointRadius)
           ) {
             setShowPointDetails(true)
             if (Number(point.pointtype) === 3) {
@@ -535,7 +602,9 @@ const PointsReference = () => {
     configPointRadiusLoading ||
     configPushTimeLoading ||
     pointtypeDataLoading ||
-    latestApplicationDateLoading
+    latestApplicationDateLoading ||
+    configPointRadiusIsLoadingOnline ||
+    configPushTimeIsLoadingOnline
   ) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -664,7 +733,7 @@ const PointsReference = () => {
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
           <BtnCollect
-            configPointRadius={configPointRadius}
+            configPointRadius={configsOfPointRadius}
             location={location}
             pointsDataOffline={pointsDataOffline}
             setModalAdultCollection={setModalAdultCollection}
@@ -676,7 +745,7 @@ const PointsReference = () => {
           />
 
           <BtnApplication
-            configPointRadius={configPointRadius}
+            configPointRadius={configsOfPointRadius}
             pointsDataOffline={pointsDataOffline}
             setModalApplicate={setModalApplicate}
             setSelectedPoint={setSelectedPoint}
@@ -687,7 +756,7 @@ const PointsReference = () => {
           />
 
           <BtnPointInformations
-            configPointRadius={configPointRadius}
+            configPointRadius={configsOfPointRadius}
             location={location}
             pointsDataOffline={pointsDataOffline}
             setSelectedPoint={setSelectedPoint}

@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 import { InvalidCredentialsError, UnauthorizedError } from '../errors/webapp'
 import getHeaders from './getHeaders'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Alert } from 'react-native'
 
 export interface IHttpRequestParams {
   extraHeaders?: any
@@ -45,7 +46,7 @@ const httpRequest = async (
     const response = await axios(endpoint, params)
     return response.data
   } catch (error) {
-    console.error(error)
+    Alert.alert('Axios error. Reveja conexão com a internet ', error.message)
     if (
       error instanceof AxiosError &&
       error?.response?.status &&
@@ -70,7 +71,7 @@ const httpRequest = async (
             refreshError instanceof AxiosError &&
             refreshError?.response?.data?.code !== 'token_not_valid'
           ) {
-            console.error('error revalidando usuário')
+            Alert.alert('error revalidando usuário')
             return
           }
         }

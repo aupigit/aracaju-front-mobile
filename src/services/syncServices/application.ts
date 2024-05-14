@@ -3,6 +3,7 @@ import { doApplication } from '../onlineServices/applications'
 import NetInfo from '@react-native-community/netinfo'
 import { Application } from '@/db/application'
 import { asc, sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const syncApplication = async (
   applicatorId: string,
@@ -32,7 +33,7 @@ export const syncApplication = async (
         }
       }
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao criar aplicação: ', error.message)
     }
 
     console.info('Dados da Aplicação sincronizados com sucesso!')
