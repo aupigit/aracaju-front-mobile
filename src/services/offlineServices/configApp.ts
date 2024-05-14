@@ -13,7 +13,9 @@ export const findConfigAppByNameOffline = async (
       .where(eq(ConfigApp.name, name))
       .execute()
 
-    // console.log('Data retrieved successfully from ConfigApp table')
+    console.log(result)
+
+    console.log('Data retrieved successfully from ConfigApp table')
     return result[0] as unknown as Promise<IConfigApp>
   } catch (error) {
     console.error('Error retrieving data: ', error)

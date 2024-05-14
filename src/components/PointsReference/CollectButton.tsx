@@ -3,6 +3,7 @@ import { IPoint } from '@/interfaces/IPoint'
 import IUser from '@/interfaces/IUser'
 import calculateDistance from '@/utils/calculateDistance'
 import getConflictPoints from '@/utils/getConflictPoints'
+import { set } from 'date-fns'
 import { LocationObject } from 'expo-location'
 import React from 'react'
 import { Pressable, Text } from 'react-native'
@@ -15,6 +16,8 @@ interface IButtonCollectAdultProps {
   setSelectedPoint: (point: IPoint | null) => void
   configPointRadius: IConfigApp
   location: LocationObject | null
+  selectedPoint: IPoint
+  setModalButtonWarning: (modalVisible: boolean) => void
 }
 
 const BtnCollect = ({
@@ -25,32 +28,38 @@ const BtnCollect = ({
   setSelectedPoint,
   configPointRadius,
   location,
+  selectedPoint,
+  setModalButtonWarning,
 }: IButtonCollectAdultProps) => {
   const handlePressCollectButton = () => {
-    const conflictPoints = getConflictPoints(location, pointsDataOffline)
-    if (conflictPoints.length >= 2) {
-      if (location) {
-        const distances = conflictPoints.map((point) =>
-          calculateDistance(location.coords, point),
-        )
-
-        const closestPointIndex = distances.indexOf(Math.min(...distances))
-
-        const closestPoint = conflictPoints[closestPointIndex]
-        setModalAdultCollection(true)
-        setSelectedPoint(closestPoint)
-      }
+    if (selectedPoint === null || selectedPoint.id === null) {
+      setModalButtonWarning(true)
     } else {
-      if (location) {
-        if (pointsDataOffline) {
-          for (const point of pointsDataOffline) {
-            if (
-              calculateDistance(location.coords, point) <=
-              Number(configPointRadius?.data_config ?? 0)
-            ) {
-              setModalAdultCollection(true)
-              setSelectedPoint(point)
-              return
+      const conflictPoints = getConflictPoints(location, pointsDataOffline)
+      if (conflictPoints.length >= 2) {
+        if (location) {
+          const distances = conflictPoints.map((point) =>
+            calculateDistance(location.coords, point),
+          )
+
+          const closestPointIndex = distances.indexOf(Math.min(...distances))
+
+          const closestPoint = conflictPoints[closestPointIndex]
+          setModalAdultCollection(true)
+          setSelectedPoint(closestPoint)
+        }
+      } else {
+        if (location) {
+          if (pointsDataOffline) {
+            for (const point of pointsDataOffline) {
+              if (
+                calculateDistance(location.coords, point) <=
+                Number(configPointRadius?.data_config ?? 0)
+              ) {
+                setModalAdultCollection(true)
+                setSelectedPoint(point)
+                return
+              }
             }
           }
         }

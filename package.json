@@ -23,7 +23,7 @@
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.10",
-    "expo": "~51.0.4",
+    "expo": "~51.0.5",
     "expo-application": "~5.9.1",
     "expo-clipboard": "~6.0.3",
     "expo-constants": "~16.0.1",

@@ -66,6 +66,7 @@ import ButtonActions from '@/components/ButtonActions/ButtonActions'
 import { PointReference } from '@/db/pointreference'
 import { db } from '@/lib/database'
 import { eq } from 'drizzle-orm'
+import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -96,6 +97,7 @@ const PointsReference = () => {
   const [modalEditPoint, setModalEditPoint] = useState(false)
   const [pointIsEditable, setPointIsEditable] = useState(false)
   const [coordinateModal, setCoordinateModal] = useState(false)
+  const [modalButtonWarning, setModalButtonWarning] = useState(false)
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
   const [modalSync, setModalSync] = useState(false)
@@ -142,21 +144,11 @@ const PointsReference = () => {
     data: pointsDataOffline,
     refetch,
     isSuccess,
-  } = useQuery(
-    'application/pointsreference/is_offline',
-    async () => {
-      return await findManyPointsReferencesOffline(user?.is_staff).then(
-        (response) => response,
-      )
-    },
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
-      staleTime: Infinity,
-      cacheTime: Infinity,
-    },
-  )
+  } = useQuery('application/pointsreference/is_offline', async () => {
+    return await findManyPointsReferencesOffline(user?.is_staff).then(
+      (response) => response,
+    )
+  })
 
   // GET - Última updated_at de Pontos/Offline
   const {
@@ -215,21 +207,28 @@ const PointsReference = () => {
   )
 
   // GET - ConfigaApp Raio do ponto/Offline
-  const { data: configPointRadius, isLoading: configPointRadiusLoading } =
-    useQuery(
-      'config/configapp/?name="raio_do_ponto"',
-      async () => {
-        return await findConfigAppByNameOffline('raio_do_ponto').then(
-          (response) => response,
-        )
-      },
-      {
-        enabled: pointsDataOffline !== undefined,
-      },
-    )
+  const {
+    data: configPointRadius,
+    isLoading: configPointRadiusLoading,
+    refetch: configPointRadiusRefetch,
+  } = useQuery(
+    'config/configapp/?name="raio_do_ponto"',
+    async () => {
+      return await findConfigAppByNameOffline('raio_do_ponto').then(
+        (response) => response,
+      )
+    },
+    {
+      enabled: pointsDataOffline !== undefined && configAppData !== undefined,
+    },
+  )
 
   // GET - ConfigaApp Tempo de sincronização/Offline
-  const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
+  const {
+    data: configPushTime,
+    isLoading: configPushTimeLoading,
+    refetch: configPushRefetch,
+  } = useQuery(
     'config/configapp/?name="tempo_entrega_sincronizacao"',
     async () => {
       return await findConfigAppByNameOffline(
@@ -237,10 +236,7 @@ const PointsReference = () => {
       ).then((response) => response)
     },
     {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
-      enabled: pointsDataOffline !== undefined,
+      enabled: pointsDataOffline !== undefined && configAppData !== undefined,
     },
   )
 
@@ -359,15 +355,9 @@ const PointsReference = () => {
               ].map(tick),
             )
               .then(() => {
-                refetch()
-                pointsDataRefetch()
-                handleApplication()
-                lastUpdatedAtRefetch()
-                setSyncTimeRemaining(Number(configPushTime?.data_config))
                 setTimeout(() => {
                   setModalSync(false)
                 }, 3000)
-                console.log('Sincronização completa')
               })
               .catch((error) => {
                 console.error('Erro na sincronização:', error)
@@ -378,27 +368,33 @@ const PointsReference = () => {
       .catch((error) => {
         console.error('Erro na sincronização:', error)
       })
-    refetch()
-    pointsDataRefetch()
-    handleApplication()
-    lastUpdatedAtRefetch()
-    refetchLatestApplicationDates()
+      .then(() => {
+        console.log('Sincronização completa')
+        refetch()
+        pointsDataRefetch()
+        handleApplication()
+        lastUpdatedAtRefetch()
+        setSyncTimeRemaining(Number(configPushTime?.data_config))
+        refetchLatestApplicationDates()
+        configPushRefetch()
+        configPointRadiusRefetch()
+      })
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSyncTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handleSyncInformations()
-          return Number(configPushTime?.data_config)
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setSyncTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handleSyncInformations()
+  //         return Number(configPushTime?.data_config)
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-    return () => clearInterval(interval)
-  }, [])
+  //   return () => clearInterval(interval)
+  // }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -487,9 +483,11 @@ const PointsReference = () => {
             setShowPointDetails(true)
             if (Number(point.pointtype) === 3) {
               setShowCollectButton(true)
+              setShowButton(false)
             }
             if (Number(point.pointtype) === 2) {
               setShowButton(true)
+              setShowCollectButton(false)
             }
 
             return
@@ -657,6 +655,11 @@ const PointsReference = () => {
             setModalVisible={setModalSync}
             progress={progress}
           />
+          <ButtonWarningModal
+            modalVisible={modalButtonWarning}
+            setModalVisible={setModalButtonWarning}
+            setSelectedPoint={setSelectedPoint}
+          />
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
@@ -668,6 +671,8 @@ const PointsReference = () => {
             setSelectedPoint={setSelectedPoint}
             user={user}
             showCollectButton={showCollectButton}
+            selectedPoint={selectedPoint}
+            setModalButtonWarning={setModalButtonWarning}
           />
 
           <BtnApplication
@@ -677,6 +682,8 @@ const PointsReference = () => {
             setSelectedPoint={setSelectedPoint}
             location={location}
             showButton={showButton}
+            selectedPoint={selectedPoint}
+            setModalButtonWarning={setModalButtonWarning}
           />
 
           <BtnPointInformations

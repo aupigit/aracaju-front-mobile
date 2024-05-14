@@ -11,7 +11,6 @@ export const doApplication = async (
       type: 'Point',
       coordinates: JSON.parse(item.marker),
     },
-    contract: 1,
   }))
 
   try {

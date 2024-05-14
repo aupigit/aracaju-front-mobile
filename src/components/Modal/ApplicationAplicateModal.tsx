@@ -143,7 +143,7 @@ const ApplicationApplicateModal = ({
   const onSubmit = handleSubmit(async (data) => {
     try {
       await doApplicationOffline(
-        [userLocation[0], userLocation[1]],
+        [userLocation[1], userLocation[0]],
         selectedPoint.latitude,
         selectedPoint.longitude,
         selectedPoint.altitude,

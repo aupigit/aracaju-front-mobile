@@ -97,13 +97,7 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
     device: item.device,
     applicator: item.applicator,
     pointtype: item.pointtype,
-    city: 1,
-    client: 1,
-    subregions: 1,
-    contract: 1,
   }))
-
-  // TODO - Dados hard coded de cidade, cliente, subregions e contrato
 
   try {
     const result = await post('applications/pointreference/push/', {
