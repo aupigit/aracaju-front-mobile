@@ -92,6 +92,7 @@ const ApplicationEditPointModal = ({
                 setModalVisible(!modalVisible)
                 setIsEditable(false)
                 setSelectedPoint(null)
+                refetch()
               }}
             >
               <Text className="text-xl">Fechar</Text>

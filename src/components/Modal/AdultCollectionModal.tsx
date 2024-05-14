@@ -122,9 +122,11 @@ const AdultCollectionModal = ({
     }
   }
 
+  // TODO - Quando eu crio um ponto novo e realizo uma aplicação o id/pointreference vem como null/0 e por isso da erro 400
+
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const offlineResponse = await doAdultCollectionOffline(
+      await doAdultCollectionOffline(
         [userLocation[0], userLocation[1]],
         selectedPoint.latitude,
         selectedPoint.longitude,
