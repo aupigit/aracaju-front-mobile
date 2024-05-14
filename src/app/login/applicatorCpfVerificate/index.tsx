@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import FormControl from './FormControl'
 import { Snackbar } from 'react-native-paper'
 import { doApplicatorVerificate } from '@/services/onlineServices/applicatorVerificate'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const applicatorVerificateSchema = z.object({
   cpfApplicator: z.string({
@@ -45,7 +46,7 @@ const Login = () => {
 
       if (response && !response?.is_leader) {
         setVisibleOK(!visibleOK)
-
+        AsyncStorage.setItem('first_time_on_application', '1')
         setTimeout(() => {
           setVisibleOK(!visibleOK)
           router.replace('/points-reference')

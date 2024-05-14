@@ -11,7 +11,7 @@ interface IButtonPointInformationProps {
   pointsDataOffline: IPoint[]
   setModalEditPoint: (modalVisible: boolean) => void
   setSelectedPoint: (point: IPoint | null) => void
-  configPointRadius: IConfigApp
+  configPointRadius: number
   location: LocationObject | null
 }
 
@@ -52,7 +52,7 @@ const BtnPointInformations = ({
           for (const point of pointsDataOffline) {
             if (
               calculateDistance(location.coords, point) <=
-              Number(configPointRadius.data_config ?? 15)
+              Number(configPointRadius ?? 15)
             ) {
               setModalEditPoint(true)
               setSelectedPoint(point)

@@ -4,13 +4,12 @@ import getConflictPoints from '@/utils/getConflictPoints'
 import calculateDistance from '@/utils/calculateDistance'
 import { IPoint } from '@/interfaces/IPoint'
 import { LocationObject } from 'expo-location'
-import { IConfigApp } from '@/interfaces/IConfigApp'
 
 interface IButtonApplicationProps {
   showButton?: boolean
   location?: LocationObject | null
   pointsDataOffline: IPoint[]
-  configPointRadius: IConfigApp
+  configPointRadius: number
   setModalApplicate: (modalVisible: boolean) => void
   setSelectedPoint: (point: IPoint | null) => void
   selectedPoint: IPoint
@@ -55,7 +54,7 @@ const BtnApplication = ({
             for (const point of pointsDataOffline) {
               if (
                 calculateDistance(location.coords, point) <=
-                Number(configPointRadius.data_config ?? 15)
+                Number(configPointRadius ?? 15)
               ) {
                 setModalApplicate(true)
                 setSelectedPoint(point)

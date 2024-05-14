@@ -10,5 +10,6 @@ export const findConfigAppByName = async (
   name: string,
 ): Promise<IConfigApp> => {
   const result = await get(`operation/config_apps/?name=${name}`)
+
   return result[0] as unknown as Promise<IConfigApp>
 }
