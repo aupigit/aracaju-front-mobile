@@ -2,6 +2,7 @@ import { User } from '@/db/user'
 import IUser from '@/interfaces/IUser'
 import { db } from '@/lib/database'
 import { sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const pullUserData = async (userData: IUser[]) => {
   for (const data of userData) {
@@ -40,7 +41,7 @@ export const pullUserData = async (userData: IUser[]) => {
 
       // console.log('Data inserted successfully in User table')
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao inserir dados de usuário: ', error.message)
       throw error
     }
   }

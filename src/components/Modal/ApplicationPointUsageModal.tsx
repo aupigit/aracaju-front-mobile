@@ -1,4 +1,4 @@
-import { View, Text, Modal, Pressable } from 'react-native'
+import { View, Text, Modal, Pressable, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
 import ApplicationConfirmInactivePointModal from './ApplicationConfirmInactivePointModal'
@@ -59,7 +59,7 @@ const ApplicationPointUsageModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await adjustPointReferenceName(
+      await adjustPointReferenceName(
         data.name,
         data.description,
         Number(selectedPoint.id),
@@ -70,7 +70,7 @@ const ApplicationPointUsageModal = ({
       refetch()
       reset()
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao alterar o nome do ponto: ', error.message)
       throw error
     }
   })

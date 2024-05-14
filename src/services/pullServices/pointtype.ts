@@ -2,6 +2,7 @@ import { PointType } from '@/db/pointtype'
 import { IPointType } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
 import { sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const pullPointtypeFlatData = async (
   pointtypeFlatData: IPointType[],
@@ -24,7 +25,7 @@ export const pullPointtypeFlatData = async (
 
       // console.log('Data inserted successfully in PointType table')
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao inserir valores de pointtype: ', error.message)
       throw error
     }
   }

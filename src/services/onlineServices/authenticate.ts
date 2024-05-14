@@ -1,6 +1,7 @@
 import { IAuthenticatedUser, IRecoveryPassword } from '@/interfaces/IUser'
 import { post, put } from '../../providers/api'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Alert } from 'react-native'
 
 export const doLogin = async (
   email: string,
@@ -31,7 +32,7 @@ export const doLogin = async (
 
     return authenticatedUser
   } catch (error) {
-    console.error(error)
+    Alert.alert('Erro ao autenticar o usuário: ', error.message)
     throw error
   }
 }
@@ -40,7 +41,7 @@ export const doLogout = async () => {
   try {
     await post('operation/logout/')
   } catch (error) {
-    console.error(error)
+    Alert.alert('Erro ao realizar logout: ', error.message)
     throw error
   } finally {
     await AsyncStorage.removeItem('userId')

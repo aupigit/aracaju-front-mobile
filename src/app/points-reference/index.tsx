@@ -199,12 +199,13 @@ const PointsReference = () => {
   )
 
   // GET - ConfigaApp/Online
-  const { data: configAppData, isLoading: configAppLoading } = useQuery(
-    'operation/configapp',
-    async () => {
-      return await findConfigApp().then((response) => response)
-    },
-  )
+  const {
+    data: configAppData,
+    isLoading: configAppLoading,
+    isSuccess: configAppSuccess,
+  } = useQuery('operation/configapp', async () => {
+    return await findConfigApp().then((response) => response)
+  })
 
   // GET - ConfigaApp Raio do ponto/Offline
   const {
@@ -219,7 +220,7 @@ const PointsReference = () => {
       )
     },
     {
-      enabled: pointsDataOffline !== undefined && configAppData !== undefined,
+      enabled: configAppSuccess,
     },
   )
 
@@ -236,7 +237,7 @@ const PointsReference = () => {
       ).then((response) => response)
     },
     {
-      enabled: pointsDataOffline !== undefined && configAppData !== undefined,
+      enabled: configAppSuccess,
     },
   )
 
@@ -287,9 +288,17 @@ const PointsReference = () => {
 
   const [syncTimeRemaining, setSyncTimeRemaining] = useState<number>(0)
 
+  console.log(syncTimeRemaining)
+  console.log(configPushTime?.data_config)
+
   useEffect(() => {
-    if (configPushTime?.data_config) {
+    if (
+      configPushTime !== undefined &&
+      configPushTime.data_config !== undefined
+    ) {
       setSyncTimeRemaining(Number(configPushTime.data_config))
+    } else {
+      setSyncTimeRemaining(50)
     }
   }, [configPushTime])
 
@@ -360,13 +369,13 @@ const PointsReference = () => {
                 }, 3000)
               })
               .catch((error) => {
-                console.error('Erro na sincronização:', error)
+                Alert.alert('Erro na sincronização:', error.message)
               })
           }
         })
       })
       .catch((error) => {
-        console.error('Erro na sincronização:', error)
+        Alert.alert('Erro na sincronização:', error.message)
       })
       .then(() => {
         console.log('Sincronização completa')
@@ -381,20 +390,20 @@ const PointsReference = () => {
       })
   }
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setSyncTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handleSyncInformations()
-  //         return Number(configPushTime?.data_config)
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSyncTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handleSyncInformations()
+          return Number(configPushTime?.data_config)
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, 1000)
 
-  //   return () => clearInterval(interval)
-  // }, [])
+    return () => clearInterval(interval)
+  }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -409,7 +418,7 @@ const PointsReference = () => {
       reset()
       setPreviewCoordinate(null)
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
       throw error
     }
   })

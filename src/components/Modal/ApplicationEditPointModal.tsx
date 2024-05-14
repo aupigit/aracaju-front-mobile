@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, TextInput } from 'react-native'
+import { View, Text, Pressable, Modal, TextInput, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { IPoint } from '@/interfaces/IPoint'
 import { Divider } from 'react-native-paper'
@@ -68,7 +68,7 @@ const ApplicationEditPointModal = ({
       refetch()
       reset()
     } catch (error) {
-      console.error(error)
+      Alert.alert('Erro ao alterar o nome do ponto: ', error.message)
       throw error
     }
   })

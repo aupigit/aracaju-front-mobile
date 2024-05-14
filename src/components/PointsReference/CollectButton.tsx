@@ -54,7 +54,7 @@ const BtnCollect = ({
             for (const point of pointsDataOffline) {
               if (
                 calculateDistance(location.coords, point) <=
-                Number(configPointRadius?.data_config ?? 0)
+                Number(configPointRadius?.data_config ?? 15)
               ) {
                 setModalAdultCollection(true)
                 setSelectedPoint(point)

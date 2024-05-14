@@ -3,6 +3,7 @@ import NetInfo from '@react-native-community/netinfo'
 import { doAdultCollection } from '../onlineServices/doAdultCollection'
 import { AdultCollection } from '@/db/adultcollection'
 import { asc, sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const syncDoAdultCollection = async (deviceId: string) => {
   const netInfo = await NetInfo.fetch()
@@ -29,7 +30,7 @@ export const syncDoAdultCollection = async (deviceId: string) => {
         }
       }
     } catch (error) {
-      console.error('An error occurred while syncing the data:', error)
+      Alert.alert('An error occurred while syncing the data:', error.message)
     }
 
     console.info('Dados da Coleta de insetos sincronizados com sucesso!')

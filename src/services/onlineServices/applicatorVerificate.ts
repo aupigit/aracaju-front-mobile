@@ -1,6 +1,7 @@
 import { get } from '../../providers/api'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { IApplicator } from '@/interfaces/IApplicator'
+import { Alert } from 'react-native'
 
 export const doApplicatorVerificate = async (
   cpf: string,
@@ -14,7 +15,7 @@ export const doApplicatorVerificate = async (
 
     return applicator
   } catch (error) {
-    console.error(error)
+    Alert.alert('Erro ao buscar aplicador pelo CPF: ', error.message)
     throw error
   }
 }

@@ -28,7 +28,7 @@ const BtnApplication = ({
   setModalButtonWarning,
 }: IButtonApplicationProps) => {
   const handlePressButtonApplication = () => {
-    if (selectedPoint.id === null) {
+    if (selectedPoint === null || selectedPoint.id === null) {
       setModalButtonWarning(true)
     } else {
       // Verifique se há conflito (usuário dentro do raio de dois pontos)
@@ -55,7 +55,7 @@ const BtnApplication = ({
             for (const point of pointsDataOffline) {
               if (
                 calculateDistance(location.coords, point) <=
-                Number(configPointRadius.data_config ?? 0)
+                Number(configPointRadius.data_config ?? 15)
               ) {
                 setModalApplicate(true)
                 setSelectedPoint(point)

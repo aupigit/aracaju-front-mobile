@@ -1,6 +1,7 @@
 import { SelectAdultCollection } from '@/db/adultcollection'
 import { IAdultCollection } from '@/interfaces/IAdultCollection'
 import { post } from '@/providers/api'
+import { Alert } from 'react-native'
 
 export const doAdultCollection = async (
   data: Array<SelectAdultCollection>,
@@ -19,7 +20,7 @@ export const doAdultCollection = async (
     })
     return result
   } catch (error) {
-    console.error('aaaaaaaaaaaaaaaaaa', error)
+    Alert.alert('Erro ao enviar dados de Coleta adulta:', error.message)
     throw error
   }
 }

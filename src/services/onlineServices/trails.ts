@@ -1,6 +1,7 @@
 import { SelectTracking } from '@/db/tracking'
 import { ITrails } from '@/interfaces/ITrails'
 import { post } from '@/providers/api'
+import { Alert } from 'react-native'
 
 export const doTrails = async (
   data: Array<SelectTracking>,
@@ -20,7 +21,7 @@ export const doTrails = async (
     })
     return response.data
   } catch (error) {
-    console.error(error)
+    Alert.alert('Erro ao enviar os dados de rota: ', error.message)
     return null
   }
 }

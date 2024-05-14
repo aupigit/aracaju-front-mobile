@@ -2,6 +2,7 @@ import { User } from '@/db/user'
 import IUser from '@/interfaces/IUser'
 import { db } from '@/lib/database'
 import { eq } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const findUserByIdOffline = async (
   userId: string | undefined,
@@ -16,7 +17,7 @@ export const findUserByIdOffline = async (
     // console.log('Data retrieved successfully from User table')
     return result[0] as unknown as Promise<IUser>
   } catch (error) {
-    console.error('Error retrieving data: ', error)
+    Alert.alert('Error retrieving data: ', error.message)
     throw error
   }
 }

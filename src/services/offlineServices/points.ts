@@ -2,6 +2,7 @@ import { PointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
 import { and, eq, sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const findManyPointsReferencesOffline = async (
   is_staff?: boolean,
@@ -27,7 +28,7 @@ export const findManyPointsReferencesOffline = async (
     console.log('Data retrieved successfully from PointReference table')
     return result as unknown as Promise<IPoint[]>
   } catch (error) {
-    console.error('Error retrieving data: ', error)
+    Alert.alert('Error retrieving data: ', error.message)
     throw error
   }
 }
@@ -47,11 +48,9 @@ export const adjustPointReferenceNameOffline = async (
       .where(eq(PointReference.id, pointId))
       .execute()
 
-    console.log(response)
-
     console.log('Data updated successfully in PointReference table')
   } catch (error) {
-    console.error('Error updating data: ', error)
+    Alert.alert('Error updating data: ', error.message)
     throw error
   }
 }
@@ -73,11 +72,9 @@ export const adjustPointReferenceLocationOffline = async (
       .where(eq(PointReference.id, pointId))
       .execute()
 
-    console.log(response)
-
     console.log('Data updated successfully in PointReference table')
   } catch (error) {
-    console.error('Error updating data: ', error)
+    Alert.alert('Error updating data: ', error.message)
     throw error
   }
 }
@@ -96,7 +93,7 @@ export const adjustPointReferenceStatusOffline = async (pointId: number) => {
 
     console.log('Data updated successfully in PointReference table')
   } catch (error) {
-    console.error('Error updating data: ', error)
+    Alert.alert('Error updating data: ', error.message)
     throw error
   }
 }

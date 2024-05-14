@@ -1,6 +1,7 @@
 import { Tracking } from '@/db/tracking'
 import { db } from '@/lib/database'
 import { and, eq, gte, lt } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const doTrailsOffline = async (
   latitude: number,
@@ -41,7 +42,7 @@ export const doTrailsOffline = async (
 
     return data
   } catch (error) {
-    console.error('Erro ao inserir dados na tabela Trails', error)
+    Alert.alert('Erro ao inserir dados na tabela Trails', error.message)
     throw error
   }
 }

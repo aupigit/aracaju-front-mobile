@@ -2,6 +2,7 @@ import { ConfigApp } from '@/db/configapp'
 import { IConfigApp } from '@/interfaces/IConfigApp'
 import { db } from '@/lib/database'
 import { sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
   for (const data of configAppData) {
@@ -28,7 +29,7 @@ export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
 
       console.log('Data inserted or updated successfully in ConfigApp table')
     } catch (error) {
-      console.error('Error inserting or updating data: ', error)
+      Alert.alert('Error inserting or updating data: ', error.message)
       throw error
     }
   }

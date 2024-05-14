@@ -2,6 +2,7 @@ import { PointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
 import { desc, eq, sql } from 'drizzle-orm'
+import { Alert } from 'react-native'
 
 export const pullPointData = async (pointData: IPoint[]) => {
   for (const data of pointData) {
@@ -76,7 +77,7 @@ export const pullPointData = async (pointData: IPoint[]) => {
         'Data inserted or updated successfully in PointReference table',
       )
     } catch (error) {
-      console.error('Error inserting or updating data: ', error)
+      Alert.alert('Error inserting or updating data: ', error.message)
       throw error
     }
   }

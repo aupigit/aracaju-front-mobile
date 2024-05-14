@@ -1,4 +1,11 @@
-import { View, Text, ScrollView, Pressable } from 'react-native'
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Alert,
+  ActivityIndicator,
+} from 'react-native'
 import React, { useState } from 'react'
 import * as Application from 'expo-application'
 import * as Clipboard from 'expo-clipboard'
@@ -6,6 +13,7 @@ import { useDevice } from '@/contexts/DeviceContext'
 
 const DeviceNotAuthorized = () => {
   const [isCopied, setIsCopied] = useState(false)
+  const [isButtonLoading, setIsButtonLoading] = useState(false)
   const { fetchDeviceData } = useDevice()
   const factoryId = Application.getAndroidId()
 
@@ -19,9 +27,12 @@ const DeviceNotAuthorized = () => {
   // Botão para tentar buscar informações do device novamente
   const handlePress = async () => {
     try {
+      setIsButtonLoading(true)
       await fetchDeviceData()
     } catch (error) {
-      console.error('Erro ao buscar informações do device', error)
+      Alert.alert('Erro ao buscar informações do device', error.message)
+    } finally {
+      setIsButtonLoading(false)
     }
   }
 
@@ -49,14 +60,20 @@ const DeviceNotAuthorized = () => {
             </Pressable>
           </View>
 
-          <Pressable
-            onPress={handlePress}
-            className="w-full rounded-md bg-zinc-700 p-2 text-center"
-          >
-            <Text className="text-center text-lg font-bold text-white">
-              TENTE NOVAMENTE
-            </Text>
-          </Pressable>
+          {isButtonLoading ? (
+            <Pressable className="h-[38px] w-full items-center justify-center rounded-md bg-zinc-700 p-2 text-center">
+              <ActivityIndicator size={'small'} color={'#fff'} />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={handlePress}
+              className="w-full rounded-md bg-zinc-700 p-2 text-center"
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                TENTE NOVAMENTE
+              </Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </ScrollView>

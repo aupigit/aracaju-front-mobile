@@ -9,6 +9,7 @@ import { IDevices } from '@/interfaces/IPoint'
 import { findDeviceByFactoryId } from '@/services/onlineServices/device'
 import * as Application from 'expo-application'
 import { router } from 'expo-router'
+import { Alert } from 'react-native'
 
 interface DeviceContextProps {
   children: ReactNode
@@ -37,7 +38,7 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
       }
     } catch (error) {
       router.replace('device-not-authorized')
-      console.error('Erro ao buscar informações do device:', error)
+      Alert.alert('Erro ao buscar informações do device:', error.message)
     }
   }
 
