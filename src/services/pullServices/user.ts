@@ -38,8 +38,6 @@ export const pullUserData = async (userData: IUser[]) => {
           },
         })
         .execute()
-
-      // console.log('Data inserted successfully in User table')
     } catch (error) {
       Alert.alert('Erro ao inserir dados de usuário: ', error.message)
       throw error

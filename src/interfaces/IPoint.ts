@@ -158,4 +158,5 @@ export interface IPoint extends IBase {
   city: ICity
   subregions: ISubRegion
   success: boolean
+  pk?: number
 }

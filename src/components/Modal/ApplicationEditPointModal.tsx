@@ -18,6 +18,7 @@ interface ApplicationEditPointModalProps {
   userLocation: number[]
   setPointIsEditable: (pointIsEditable: boolean) => void
   refetch: () => void
+  lastUpdatedAtRefetch: () => void
 }
 
 export const editPointSchema = z.object({
@@ -39,6 +40,7 @@ const ApplicationEditPointModal = ({
   refetch,
   setPointIsEditable,
   userLocation,
+  lastUpdatedAtRefetch,
 }: ApplicationEditPointModalProps) => {
   const [isEditable, setIsEditable] = useState(false)
 
@@ -62,10 +64,16 @@ const ApplicationEditPointModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await adjustPointReferenceNameOffline(data.name, Number(selectedPoint.id))
+      await adjustPointReferenceNameOffline(
+        data.name,
+        Number(selectedPoint.id),
+        Number(selectedPoint.pk),
+        selectedPoint.updated_at,
+      )
 
       setChangeNameModal(false)
       refetch()
+      lastUpdatedAtRefetch()
       reset()
     } catch (error) {
       Alert.alert('Erro ao alterar o nome do ponto: ', error.message)
@@ -166,6 +174,7 @@ const ApplicationEditPointModal = ({
           setModalVisible={setConfirmInactivePointModal}
           selectedPoint={selectedPoint}
           refetch={refetch}
+          lastUpdatedAtRefetch={lastUpdatedAtRefetch}
         />
         <ApplicationChangeNamePointModal
           control={control}
@@ -176,6 +185,7 @@ const ApplicationEditPointModal = ({
           selectedPoint={selectedPoint}
           setModalVisible={setChangeNameModal}
           setIsEditable={setIsEditable}
+          lastUpdatedAtRefetch={lastUpdatedAtRefetch}
         />
         <ApplicationChangePointCoordinatesToUserLocation
           modalVisible={changePointCoordinatesToUserLocation}
@@ -183,6 +193,7 @@ const ApplicationEditPointModal = ({
           userLocation={userLocation}
           refetch={refetch}
           selectedPoint={selectedPoint}
+          lastUpdatedAtRefetch={lastUpdatedAtRefetch}
         />
       </View>
     </Modal>

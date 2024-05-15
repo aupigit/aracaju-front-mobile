@@ -14,7 +14,6 @@ export const findUserByIdOffline = async (
       .where(eq(User.id, Number(userId)))
       .execute()
 
-    // console.log('Data retrieved successfully from User table')
     return result[0] as unknown as Promise<IUser>
   } catch (error) {
     Alert.alert('Error retrieving data: ', error.message)

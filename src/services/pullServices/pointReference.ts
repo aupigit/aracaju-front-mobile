@@ -1,11 +1,14 @@
 import { PointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
-import { desc, eq, sql } from 'drizzle-orm'
+import { asc, desc, eq, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const pullPointData = async (pointData: IPoint[]) => {
+  console.log('pontos', pointData.length)
   for (const data of pointData) {
+    console.log('data', data.id)
+
     try {
       await db
         .insert(PointReference)
@@ -19,7 +22,7 @@ export const pullPointData = async (pointData: IPoint[]) => {
           client: Number(data.client),
           city: Number(data.city),
           subregions: Number(data.subregions),
-          marker: data.marker,
+          marker: JSON.stringify(data.marker),
           from_txt: data.from_txt,
           latitude: Number(data.latitude),
           longitude: Number(data.longitude),
@@ -29,7 +32,7 @@ export const pullPointData = async (pointData: IPoint[]) => {
           observation: data.observation,
           distance: Number(data.distance),
           created_ondevice_at: data.created_ondevice_at,
-          transmition: data.transmition,
+          transmition: 'online',
           image: data.image,
           kml_file: data.kml_file,
           situation: data.situation,
@@ -40,7 +43,7 @@ export const pullPointData = async (pointData: IPoint[]) => {
             : new Date().toISOString(),
         })
         .onConflictDoUpdate({
-          target: PointReference.id,
+          target: PointReference.pk,
           set: {
             contract: sql.raw(`excluded.${PointReference.contract.name}`),
             name: sql.raw(`excluded.${PointReference.name.name}`),
@@ -62,7 +65,6 @@ export const pullPointData = async (pointData: IPoint[]) => {
             created_ondevice_at: sql.raw(
               `excluded.${PointReference.created_ondevice_at.name}`,
             ),
-            transmition: sql.raw(`excluded.${PointReference.transmition.name}`),
             image: sql.raw(`excluded.${PointReference.image.name}`),
             kml_file: sql.raw(`excluded.${PointReference.kml_file.name}`),
             situation: sql.raw(`excluded.${PointReference.situation.name}`),
@@ -72,10 +74,6 @@ export const pullPointData = async (pointData: IPoint[]) => {
           },
         })
         .execute()
-
-      console.log(
-        'Data inserted or updated successfully in PointReference table',
-      )
     } catch (error) {
       Alert.alert('Error inserting or updating data: ', error.message)
       throw error
@@ -92,12 +90,14 @@ export const pullPointLastUpdatedAt = async (): Promise<string> => {
       .limit(1)
       .execute()
     if (result && result.length > 0) {
+      console.log(result[0].updated_at)
+
       return result[0].updated_at
     } else {
       return null
     }
   } catch (error) {
-    console.log('Error retrieving last updated_at: ', error)
+    Alert.alert('Error retrieving data: ', error.message)
     throw error
   }
 }

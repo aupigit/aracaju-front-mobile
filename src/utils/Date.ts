@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 
 export function formatDate(date) {
   date = new Date(date.getTime())
@@ -17,4 +18,14 @@ export function formatDate(date) {
 
 export function formatDateToDDMMYYYY(date: Date) {
   return format(date, 'dd/MM/yyyy HH:mm:ss')
+}
+
+export function formatDateToTimezone(date: Date) {
+  const formattedDate = formatInTimeZone(
+    date,
+    'Etc/GMT',
+    'yyyy-MM-dd HH:mm:ss.SSSXXX',
+  )
+
+  return formattedDate
 }

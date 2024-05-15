@@ -25,7 +25,6 @@ export const findManyPointsReferencesOffline = async (
     }
 
     const result = await query.execute()
-    console.log('Data retrieved successfully from PointReference table')
     return result as unknown as Promise<IPoint[]>
   } catch (error) {
     Alert.alert('Error retrieving data: ', error.message)
@@ -36,6 +35,7 @@ export const findManyPointsReferencesOffline = async (
 export const adjustPointReferenceNameOffline = async (
   name: string,
   pointId: number,
+  pk: number,
 ) => {
   try {
     const response = await db
@@ -45,10 +45,10 @@ export const adjustPointReferenceNameOffline = async (
         edit_name: 1,
         updated_at: sql`strftime('%Y-%m-%dT%H:%M:%f', 'now', 'localtime')`,
       })
-      .where(eq(PointReference.id, pointId))
+      .where(eq(PointReference.pk, pk))
       .execute()
 
-    console.log('Data updated successfully in PointReference table')
+    console.log(response)
   } catch (error) {
     Alert.alert('Error updating data: ', error.message)
     throw error
@@ -58,10 +58,10 @@ export const adjustPointReferenceNameOffline = async (
 export const adjustPointReferenceLocationOffline = async (
   longitude: number,
   latitude: number,
-  pointId: number,
+  pk: number,
 ) => {
   try {
-    const response = await db
+    await db
       .update(PointReference)
       .set({
         longitude,
@@ -69,17 +69,15 @@ export const adjustPointReferenceLocationOffline = async (
         edit_location: 1,
         updated_at: sql`strftime('%Y-%m-%dT%H:%M:%f', 'now', 'localtime')`,
       })
-      .where(eq(PointReference.id, pointId))
+      .where(eq(PointReference.pk, pk))
       .execute()
-
-    console.log('Data updated successfully in PointReference table')
   } catch (error) {
     Alert.alert('Error updating data: ', error.message)
     throw error
   }
 }
 
-export const adjustPointReferenceStatusOffline = async (pointId: number) => {
+export const adjustPointReferenceStatusOffline = async (pk: number) => {
   try {
     await db
       .update(PointReference)
@@ -88,10 +86,8 @@ export const adjustPointReferenceStatusOffline = async (pointId: number) => {
         edit_status: 1,
         updated_at: sql`strftime('%Y-%m-%dT%H:%M:%f', 'now', 'localtime')`,
       })
-      .where(eq(PointReference.id, pointId))
+      .where(eq(PointReference.pk, pk))
       .execute()
-
-    console.log('Data updated successfully in PointReference table')
   } catch (error) {
     Alert.alert('Error updating data: ', error.message)
     throw error
@@ -128,6 +124,8 @@ export const doPointReferenceOffline = async (
   }
 
   const data = await db.insert(PointReference).values(body)
+
+  console.log(data)
 
   return data
 }

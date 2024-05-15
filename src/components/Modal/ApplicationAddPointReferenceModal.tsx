@@ -1,4 +1,11 @@
-import { View, Text, Modal, TextInput, Pressable } from 'react-native'
+import {
+  View,
+  Text,
+  Modal,
+  TextInput,
+  Pressable,
+  ActivityIndicator,
+} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Divider, Snackbar } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
@@ -71,6 +78,8 @@ const ApplicationAddPointReferenceModal = ({
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
   const [scaleVolume, setScaleVolume] = useState([])
+  const [pointtype, setPointtype] = useState([])
+  const [isButtonLoading, setIsButtonLoading] = useState(false)
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
@@ -81,9 +90,7 @@ const ApplicationAddPointReferenceModal = ({
     reset,
     setValue,
     formState: { errors },
-  } = useForm<CreatePointFormData>({
-    resolver: zodResolver(createPointSchema),
-  })
+  } = useForm({})
 
   if (applicatorId) {
     setValue('applicator', applicatorId)
@@ -106,6 +113,7 @@ const ApplicationAddPointReferenceModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      setIsButtonLoading(true)
       await doPointReferenceOffline(
         data.name,
         data.latitude,
@@ -122,8 +130,9 @@ const ApplicationAddPointReferenceModal = ({
       setModalVisible(!modalVisible)
       refetch()
     } catch (error) {
-      // console.log('Erro ao criar ponto', error.message)
       setVisibleERROR(!visibleERROR)
+    } finally {
+      setIsButtonLoading(false)
     }
   })
 
@@ -153,11 +162,21 @@ const ApplicationAddPointReferenceModal = ({
   )
 
   const { data: configPointtypeOnline } = useQuery(
-    'application/pointtype/flatdata',
+    'config/configapp/?name="flatdata"',
     async () => {
       return await findPointTypeData().then((response) => response)
     },
   )
+
+  useEffect(() => {
+    if (configPointtype !== undefined) {
+      setPointtype(configPointtype)
+    } else {
+      if (configPointtypeOnline !== undefined) {
+        setPointtype(configPointtypeOnline)
+      }
+    }
+  }, [configPointtype, configPointtypeOnline])
 
   useEffect(() => {
     if (
@@ -174,6 +193,21 @@ const ApplicationAddPointReferenceModal = ({
       }
     }
   }, [configScaleVolume, configScaleVolumeOnline])
+
+  // console.log(configScaleVolume, configPointtype)
+
+  if (
+    scaleVolume === undefined &&
+    pointtype === undefined &&
+    scaleVolume.length <= 0 &&
+    pointtype.length <= 0
+  ) {
+    return (
+      <View className="h-[100px] w-full items-center justify-center bg-white p-5">
+        <Text>Carregando...</Text>
+      </View>
+    )
+  }
 
   return (
     <Modal
@@ -213,7 +247,6 @@ const ApplicationAddPointReferenceModal = ({
                       className="w-full p-4 text-lg placeholder:text-gray-300"
                       placeholder="Nome do ponto"
                       onChangeText={onChange}
-                      value={value}
                       editable={true}
                       onBlur={onBlur}
                     />
@@ -324,7 +357,6 @@ const ApplicationAddPointReferenceModal = ({
                       onValueChange={(value) => {
                         onChange(value)
                       }}
-                      value={value}
                       items={scaleVolume.map((item) => ({
                         label: item,
                         value: item,
@@ -348,20 +380,10 @@ const ApplicationAddPointReferenceModal = ({
                       onValueChange={(value) => {
                         onChange(value)
                       }}
-                      value={value}
-                      items={
-                        configPointtype !== undefined
-                          ? configPointtype.map((item) => ({
-                              label: item.name,
-                              value: Number(item.id),
-                            }))
-                          : configPointtypeOnline !== undefined
-                            ? configPointtypeOnline.map((item) => ({
-                                label: item.name,
-                                value: Number(item.point_code),
-                              }))
-                            : [] // provide an empty array as default value
-                      }
+                      items={pointtype.map((item) => ({
+                        label: item.name,
+                        value: item.id,
+                      }))}
                     />
                   </View>
                 </View>
@@ -385,7 +407,6 @@ const ApplicationAddPointReferenceModal = ({
                       className="w-full p-4 text-lg placeholder:text-gray-300"
                       placeholder="Observação"
                       onChangeText={onChange}
-                      value={value}
                       editable={true}
                       onBlur={onBlur}
                     />
@@ -394,12 +415,18 @@ const ApplicationAddPointReferenceModal = ({
               )}
             />
           </View>
-          <Pressable
-            className=" mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
-            onPress={onSubmit}
-          >
-            <Text className="text-2xl font-bold text-white">Finalizar</Text>
-          </Pressable>
+          {isButtonLoading ? (
+            <Pressable className=" mt-5 items-center justify-center rounded-md bg-blue-500 p-4 ">
+              <ActivityIndicator size={'large'} color={'#fff'} />
+            </Pressable>
+          ) : (
+            <Pressable
+              className=" mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
+              onPress={onSubmit}
+            >
+              <Text className="text-2xl font-bold text-white">Finalizar</Text>
+            </Pressable>
+          )}
         </View>
       </View>
 

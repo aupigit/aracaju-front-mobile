@@ -6,8 +6,6 @@ import { Alert } from 'react-native'
 export const findManyPointsReferences = async (
   updated_at: string | null,
 ): Promise<IPoint[]> => {
-  // console.log('UPDATED_AT', updated_at)
-
   const result = await get(
     `applications/pointreference/?updated_at=${updated_at}`,
   )

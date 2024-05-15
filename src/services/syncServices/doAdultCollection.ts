@@ -26,13 +26,10 @@ export const syncDoAdultCollection = async (deviceId: string) => {
             .set({ transmition: 'online' })
             .where(sql`${AdultCollection.id} = ${item.id}`)
             .execute()
-          console.info('Data updated successfully')
         }
       }
     } catch (error) {
       Alert.alert('An error occurred while syncing the data:', error.message)
     }
-
-    console.info('Dados da Coleta de insetos sincronizados com sucesso!')
   }
 }

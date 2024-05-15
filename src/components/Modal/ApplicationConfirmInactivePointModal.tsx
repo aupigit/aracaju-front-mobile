@@ -12,6 +12,7 @@ interface ApplicationConfirmInactivePointModalProps {
   setModalVisible: (modalVisible: boolean) => void
   selectedPoint: IPoint
   refetch: () => void
+  lastUpdatedAtRefetch: () => void
 }
 
 const editPointActiveSchema = z.object({
@@ -27,6 +28,7 @@ const ApplicationConfirmInactivePointModal = ({
   setModalVisible,
   selectedPoint,
   refetch,
+  lastUpdatedAtRefetch,
 }: ApplicationConfirmInactivePointModalProps) => {
   const {
     control,
@@ -39,8 +41,9 @@ const ApplicationConfirmInactivePointModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await adjustPointReferenceStatusOffline(Number(selectedPoint.id))
+      await adjustPointReferenceStatusOffline(Number(selectedPoint.pk))
       refetch()
+      lastUpdatedAtRefetch()
       setModalVisible(!modalVisible)
       reset()
     } catch (error) {
@@ -66,6 +69,8 @@ const ApplicationConfirmInactivePointModal = ({
             <Pressable
               onPress={() => {
                 setModalVisible(!modalVisible)
+                lastUpdatedAtRefetch()
+                refetch()
               }}
             >
               <Text className="text-xl">Fechar</Text>

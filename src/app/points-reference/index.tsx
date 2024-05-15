@@ -51,7 +51,11 @@ import {
   findManyPointsReferencesOffline,
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
-import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
+import {
+  formatDate,
+  formatDateToDDMMYYYY,
+  formatDateToTimezoneBrasil,
+} from '@/utils/Date'
 import { useDevice } from '@/contexts/DeviceContext'
 import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
 import { doTrailsOffline } from '@/services/offlineServices/trails'
@@ -66,10 +70,10 @@ import BtnApplication from '@/components/PointsReference/ApplicationButton'
 import MapViewComponent from '@/components/MapView/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
 import ButtonActions from '@/components/ButtonActions/ButtonActions'
-import { PointReference } from '@/db/pointreference'
+import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
 import { db } from '@/lib/database'
 import { eq } from 'drizzle-orm'
-import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
+import { PointReference } from '@/db/pointreference'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -169,6 +173,9 @@ const PointsReference = () => {
     updatedAtParameter = formatDate(updatedAtDate)
   }
 
+  // console.log('A ->', lastUpdatedAtData)
+  // console.log('U ->', updatedAtParameter)
+
   // GET - PointsReference/Online
   const {
     data: pointsData,
@@ -264,7 +271,7 @@ const PointsReference = () => {
         configPointRadiusOnline !== undefined &&
         configPointRadiusOnline.data_config !== undefined
       ) {
-        setSyncTimeRemaining(Number(configPointRadiusOnline.data_config))
+        setConfigsOfPointRadius(Number(configPointRadiusOnline.data_config))
       }
     }
   }, [configPointRadius, configPointRadiusOnline])
@@ -366,7 +373,6 @@ const PointsReference = () => {
   }, [])
 
   const handleSyncInformations = async () => {
-    console.log('Sincronização iniciando')
     setModalSync(true)
     setProgress(0) // Inicializa o progresso
 
@@ -417,58 +423,57 @@ const PointsReference = () => {
                 once(pullConfigAppData)(configAppData),
                 once(pullPointtypeFlatData)(pointtypeData),
               ].map(tick),
-            ).catch((error) => {
-              Alert.alert('Erro na sincronização:', error.message)
-            })
+            )
+              .then(() => {
+                // refetch()
+                // lastUpdatedAtRefetch()
+                // pointsDataRefetch()
+                // handleApplication()
+                // setSyncTimeRemaining(Number(configPushTime?.data_config))
+                // refetchLatestApplicationDates()
+                // configPushRefetch()
+                // configPointRadiusRefetch()
+                setTimeout(() => {
+                  setModalSync(false)
+                }, 3000)
+                console.log('Sincronização Completa')
+              })
+              .catch((error) => {
+                Alert.alert('Erro na sincronização:', error.message)
+              })
           }
         })
       })
       .catch((error) => {
         Alert.alert('Erro na sincronização:', error.message)
       })
-      .then(() => {
-        console.log('Sincronização completa')
-        refetch()
-        pointsDataRefetch()
-        handleApplication()
-        lastUpdatedAtRefetch()
-        setSyncTimeRemaining(Number(configPushTime?.data_config))
-        refetchLatestApplicationDates()
-        configPushRefetch()
-        configPointRadiusRefetch()
-        setTimeout(() => {
-          setModalSync(false)
-        }, 3000)
-      })
   }
 
-  console.log(firstTimeOnApplication)
+  // useEffect(() => {
+  //   if (firstTimeOnApplication === 1) {
+  //     handleSyncInformations()
+  //     AsyncStorage.setItem('first_time_on_application', '0')
+  //   }
+  //   const interval = setInterval(() => {
+  //     setSyncTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handleSyncInformations()
+  //         return Number(configPushTime?.data_config)
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-  useEffect(() => {
-    if (firstTimeOnApplication === 1) {
-      handleSyncInformations()
-      AsyncStorage.setItem('first_time_on_application', '0')
-    }
-    const interval = setInterval(() => {
-      setSyncTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handleSyncInformations()
-          return Number(configPushTime?.data_config)
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
+  //   return () => clearInterval(interval)
+  // }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       await adjustPointReferenceLocationOffline(
         data.longitude,
         data.latitude,
-        Number(selectedPoint.id),
+        Number(selectedPoint.pk),
       )
       setPointIsEditable(false)
       setCoordinateModal(false)
@@ -593,6 +598,17 @@ const PointsReference = () => {
     />
   )
 
+  console.log(
+    db
+      .select()
+      .from(PointReference)
+      .where(eq(PointReference.id, null))
+      .execute(),
+  )
+
+  console.log(lastUpdatedAtData)
+  console.log()
+
   // Loading de informações
   if (
     pointsLoading ||
@@ -604,7 +620,10 @@ const PointsReference = () => {
     pointtypeDataLoading ||
     latestApplicationDateLoading ||
     configPointRadiusIsLoadingOnline ||
-    configPushTimeIsLoadingOnline
+    configPushTimeIsLoadingOnline ||
+    configsOfPointRadius === undefined ||
+    configsOfPointRadius === 0 ||
+    syncTimeRemaining === undefined
   ) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -698,6 +717,7 @@ const PointsReference = () => {
             userLocation={userLocation}
             setPointIsEditable={setPointIsEditable}
             refetch={refetch}
+            lastUpdatedAtRefetch={lastUpdatedAtRefetch}
           />
 
           <ApplicationAdjustPointCoordinatesModal

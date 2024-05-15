@@ -26,8 +26,6 @@ export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
           },
         })
         .execute()
-
-      console.log('Data inserted or updated successfully in ConfigApp table')
     } catch (error) {
       Alert.alert('Error inserting or updating data: ', error.message)
       throw error

@@ -30,38 +30,38 @@ const BtnCollect = ({
   setModalButtonWarning,
 }: IButtonCollectAdultProps) => {
   const handlePressCollectButton = () => {
-    if (selectedPoint === null || selectedPoint.id === null) {
-      setModalButtonWarning(true)
+    const conflictPoints = getConflictPoints(location, pointsDataOffline)
+    if (conflictPoints.length >= 2) {
+      if (location) {
+        const distances = conflictPoints.map((point) =>
+          calculateDistance(location.coords, point),
+        )
+
+        const closestPointIndex = distances.indexOf(Math.min(...distances))
+
+        const closestPoint = conflictPoints[closestPointIndex]
+        setModalAdultCollection(true)
+        setSelectedPoint(closestPoint)
+      }
     } else {
-      const conflictPoints = getConflictPoints(location, pointsDataOffline)
-      if (conflictPoints.length >= 2) {
-        if (location) {
-          const distances = conflictPoints.map((point) =>
-            calculateDistance(location.coords, point),
-          )
-
-          const closestPointIndex = distances.indexOf(Math.min(...distances))
-
-          const closestPoint = conflictPoints[closestPointIndex]
-          setModalAdultCollection(true)
-          setSelectedPoint(closestPoint)
-        }
-      } else {
-        if (location) {
-          if (pointsDataOffline) {
-            for (const point of pointsDataOffline) {
-              if (
-                calculateDistance(location.coords, point) <=
-                Number(configPointRadius ?? 15)
-              ) {
-                setModalAdultCollection(true)
-                setSelectedPoint(point)
-                return
-              }
+      if (location) {
+        if (pointsDataOffline) {
+          for (const point of pointsDataOffline) {
+            if (
+              calculateDistance(location.coords, point) <=
+              Number(configPointRadius ?? 15)
+            ) {
+              setModalAdultCollection(true)
+              setSelectedPoint(point)
+              return
             }
           }
         }
       }
+    }
+
+    if (selectedPoint === null || selectedPoint.id === null) {
+      setModalButtonWarning(true)
     }
   }
 

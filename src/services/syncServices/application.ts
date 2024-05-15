@@ -29,13 +29,10 @@ export const syncApplication = async (
             .set({ transmition: 'online' })
             .where(sql`${Application.id} = ${item.id}`)
             .execute()
-          console.info('Data updated successfully')
         }
       }
     } catch (error) {
       Alert.alert('Erro ao criar aplicação: ', error.message)
     }
-
-    console.info('Dados da Aplicação sincronizados com sucesso!')
   }
 }

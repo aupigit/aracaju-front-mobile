@@ -10,6 +10,7 @@ import React, { useState } from 'react'
 import * as Application from 'expo-application'
 import * as Clipboard from 'expo-clipboard'
 import { useDevice } from '@/contexts/DeviceContext'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const DeviceNotAuthorized = () => {
   const [isCopied, setIsCopied] = useState(false)
@@ -28,7 +29,9 @@ const DeviceNotAuthorized = () => {
   const handlePress = async () => {
     try {
       setIsButtonLoading(true)
-      await fetchDeviceData()
+      Promise.all([AsyncStorage.removeItem('token')]).then(
+        async () => await fetchDeviceData(),
+      )
     } catch (error) {
       Alert.alert('Erro ao buscar informações do device', error.message)
     } finally {

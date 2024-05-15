@@ -7,7 +7,7 @@ import {
   doPointsReference,
 } from '../onlineServices/points'
 import { PointReference } from '@/db/pointreference'
-import { asc, sql } from 'drizzle-orm'
+import { and, asc, eq, not, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const syncPointsReferenceName = async (
@@ -25,6 +25,8 @@ export const syncPointsReferenceName = async (
       .limit(10)
       .execute()
 
+    console.log(JSON.stringify(data, null, 2))
+
     try {
       for (const item of data) {
         const response = await adjustPointReferenceName(
@@ -38,9 +40,8 @@ export const syncPointsReferenceName = async (
           await db
             .update(PointReference)
             .set({ edit_name: 0 })
-            .where(sql`${PointReference.id} = ${item.id}`)
+            .where(sql`${PointReference.pk} = ${item.pk}`)
             .execute()
-          console.info('Data updated successfully')
         }
       }
     } catch (error) {
@@ -78,9 +79,8 @@ export const syncPointsReferenceLocation = async (
           await db
             .update(PointReference)
             .set({ edit_location: 0 })
-            .where(sql`${PointReference.id} = ${item.id}`)
+            .where(sql`${PointReference.pk} = ${item.pk}`)
             .execute()
-          console.info('Data updated successfully')
         }
       }
     } catch (error) {
@@ -114,9 +114,8 @@ export const syncPointsReferenceStatus = async (
           await db
             .update(PointReference)
             .set({ edit_status: 0 })
-            .where(sql`${PointReference.id} = ${item.id}`)
+            .where(sql`${PointReference.pk} = ${item.pk}`)
             .execute()
-          console.info('Data updated successfully')
         }
       }
     } catch (error) {
@@ -146,10 +145,17 @@ export const syncPointsReferenceCreatedOffline = async () => {
           await db
             .update(PointReference)
             .set({ transmition: 'online' })
-            .where(sql`${PointReference.id} = ${item.id}`)
+            .where(sql`${PointReference.pk} = ${item.pk}`)
             .execute()
-          console.info('Data updated successfully')
         }
+        await db
+          .delete(PointReference)
+          .where(
+            and(
+              eq(PointReference.transmition, 'online'),
+              eq(PointReference.id, null),
+            ),
+          )
       }
     } catch (error) {
       Alert.alert('Erro ao criar um ponto: ', error.message)
@@ -162,6 +168,4 @@ export const syncPoints = async (applicatorId: string, deviceId: string) => {
   await syncPointsReferenceLocation(applicatorId, deviceId)
   await syncPointsReferenceStatus(applicatorId, deviceId)
   await syncPointsReferenceCreatedOffline()
-
-  console.log('Dados dos Pontos de referência sincronizados com sucesso!')
 }
