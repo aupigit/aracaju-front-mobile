@@ -19,6 +19,7 @@ export interface IAuthenticatedUser {
   user: IUser
   token: string
   refresh: string
+  is_staff: boolean
 }
 
 export default IUser

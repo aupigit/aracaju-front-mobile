@@ -25,8 +25,6 @@ export const syncPointsReferenceName = async (
       .limit(10)
       .execute()
 
-    console.log(JSON.stringify(data, null, 2))
-
     try {
       for (const item of data) {
         const response = await adjustPointReferenceName(

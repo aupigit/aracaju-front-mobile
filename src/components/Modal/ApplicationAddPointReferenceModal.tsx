@@ -169,32 +169,20 @@ const ApplicationAddPointReferenceModal = ({
   )
 
   useEffect(() => {
-    if (configPointtype !== undefined) {
+    if (configPointtype) {
       setPointtype(configPointtype)
-    } else {
-      if (configPointtypeOnline !== undefined) {
-        setPointtype(configPointtypeOnline)
-      }
+    } else if (configPointtypeOnline) {
+      setPointtype(configPointtypeOnline)
     }
   }, [configPointtype, configPointtypeOnline])
 
   useEffect(() => {
-    if (
-      configScaleVolume !== undefined &&
-      configScaleVolume.data_config !== undefined
-    ) {
+    if (configScaleVolume && configScaleVolume.data_config) {
       setScaleVolume(configScaleVolume.data_config.split(';'))
-    } else {
-      if (
-        configScaleVolumeOnline !== undefined &&
-        configScaleVolumeOnline.data_config !== undefined
-      ) {
-        setScaleVolume(configScaleVolumeOnline.data_config.split(';'))
-      }
+    } else if (configScaleVolumeOnline && configScaleVolumeOnline.data_config) {
+      setScaleVolume(configScaleVolumeOnline.data_config.split(';'))
     }
   }, [configScaleVolume, configScaleVolumeOnline])
-
-  // console.log(configScaleVolume, configPointtype)
 
   if (
     scaleVolume === undefined &&

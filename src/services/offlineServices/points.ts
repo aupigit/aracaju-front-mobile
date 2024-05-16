@@ -47,8 +47,6 @@ export const adjustPointReferenceNameOffline = async (
       })
       .where(eq(PointReference.pk, pk))
       .execute()
-
-    console.log(response)
   } catch (error) {
     Alert.alert('Error updating data: ', error.message)
     throw error
@@ -124,8 +122,6 @@ export const doPointReferenceOffline = async (
   }
 
   const data = await db.insert(PointReference).values(body)
-
-  console.log(data)
 
   return data
 }

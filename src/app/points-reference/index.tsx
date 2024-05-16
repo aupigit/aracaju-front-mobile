@@ -173,9 +173,6 @@ const PointsReference = () => {
     updatedAtParameter = formatDate(updatedAtDate)
   }
 
-  // console.log('A ->', lastUpdatedAtData)
-  // console.log('U ->', updatedAtParameter)
-
   // GET - PointsReference/Online
   const {
     data: pointsData,
@@ -184,9 +181,11 @@ const PointsReference = () => {
   } = useQuery(
     'application/pointreference',
     async () => {
-      return await findManyPointsReferences(updatedAtParameter).then(
-        (response) => response,
-      )
+      const response = await findManyPointsReferences(updatedAtParameter)
+      // Call refetch functions here if needed
+      lastUpdatedAtRefetch()
+      refetch()
+      return response
     },
     {
       enabled: lastUpdatedAtSuccess,
@@ -258,21 +257,12 @@ const PointsReference = () => {
     },
   )
 
-  const [configsOfPointRadius, setConfigsOfPointRadius] = useState(0)
-
+  const [configsOfPointRadius, setConfigsOfPointRadius] = useState(15)
   useEffect(() => {
-    if (
-      configPointRadius !== undefined &&
-      configPointRadius.data_config !== undefined
-    ) {
+    if (configPointRadius && configPointRadius.data_config) {
       setConfigsOfPointRadius(Number(configPointRadius.data_config))
-    } else {
-      if (
-        configPointRadiusOnline !== undefined &&
-        configPointRadiusOnline.data_config !== undefined
-      ) {
-        setConfigsOfPointRadius(Number(configPointRadiusOnline.data_config))
-      }
+    } else if (configPointRadiusOnline && configPointRadiusOnline.data_config) {
+      setConfigsOfPointRadius(Number(configPointRadiusOnline.data_config))
     }
   }, [configPointRadius, configPointRadiusOnline])
 
@@ -425,14 +415,14 @@ const PointsReference = () => {
               ].map(tick),
             )
               .then(() => {
-                // refetch()
-                // lastUpdatedAtRefetch()
-                // pointsDataRefetch()
-                // handleApplication()
-                // setSyncTimeRemaining(Number(configPushTime?.data_config))
-                // refetchLatestApplicationDates()
-                // configPushRefetch()
-                // configPointRadiusRefetch()
+                refetch()
+                lastUpdatedAtRefetch()
+                pointsDataRefetch()
+                handleApplication()
+                setSyncTimeRemaining(Number(configPushTime?.data_config))
+                refetchLatestApplicationDates()
+                configPushRefetch()
+                configPointRadiusRefetch()
                 setTimeout(() => {
                   setModalSync(false)
                 }, 3000)
@@ -449,24 +439,24 @@ const PointsReference = () => {
       })
   }
 
-  // useEffect(() => {
-  //   if (firstTimeOnApplication === 1) {
-  //     handleSyncInformations()
-  //     AsyncStorage.setItem('first_time_on_application', '0')
-  //   }
-  //   const interval = setInterval(() => {
-  //     setSyncTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handleSyncInformations()
-  //         return Number(configPushTime?.data_config)
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  useEffect(() => {
+    // if (firstTimeOnApplication === 1) {
+    //   handleSyncInformations()
+    //   AsyncStorage.setItem('first_time_on_application', '0')
+    // }
+    const interval = setInterval(() => {
+      setSyncTimeRemaining((prevTime) => {
+        if (prevTime === 0) {
+          handleSyncInformations()
+          return Number(configPushTime?.data_config)
+        } else {
+          return prevTime - 1
+        }
+      })
+    }, 1000)
 
-  //   return () => clearInterval(interval)
-  // }, [])
+    return () => clearInterval(interval)
+  }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -547,7 +537,12 @@ const PointsReference = () => {
   useEffect(() => {
     if (location) {
       if (pointsDataOffline) {
-        for (const point of pointsDataOffline) {
+        for (const point of pointsDataOffline.filter((point) =>
+          isPointInRegion(point, {
+            latitude: userLocation[0],
+            longitude: userLocation[1],
+          }),
+        )) {
           if (
             calculateDistance(location?.coords, point) <=
             Number(configsOfPointRadius)
@@ -561,7 +556,6 @@ const PointsReference = () => {
               setShowButton(true)
               setShowCollectButton(false)
             }
-
             return
           }
         }
@@ -598,17 +592,6 @@ const PointsReference = () => {
     />
   )
 
-  console.log(
-    db
-      .select()
-      .from(PointReference)
-      .where(eq(PointReference.id, null))
-      .execute(),
-  )
-
-  console.log(lastUpdatedAtData)
-  console.log()
-
   // Loading de informações
   if (
     pointsLoading ||
@@ -622,8 +605,9 @@ const PointsReference = () => {
     configPointRadiusIsLoadingOnline ||
     configPushTimeIsLoadingOnline ||
     configsOfPointRadius === undefined ||
-    configsOfPointRadius === 0 ||
-    syncTimeRemaining === undefined
+    Number(configsOfPointRadius) === 0 ||
+    syncTimeRemaining === undefined ||
+    location === null
   ) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -631,6 +615,7 @@ const PointsReference = () => {
       </View>
     )
   }
+
   return (
     <DrawerLayoutAndroid
       ref={drawerRef}
