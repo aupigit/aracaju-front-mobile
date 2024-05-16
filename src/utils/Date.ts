@@ -29,3 +29,8 @@ export function formatDateToTimezone(date: Date) {
 
   return formattedDate
 }
+
+export function convertIsoDateToSeconds(isoDate) {
+  const date = new Date(isoDate)
+  return Math.floor(date.getTime() / 1000)
+}

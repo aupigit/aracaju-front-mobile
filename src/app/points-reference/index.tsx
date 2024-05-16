@@ -5,6 +5,7 @@ import {
   ScrollView,
   Alert,
   DrawerLayoutAndroid,
+  AppState,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
@@ -51,11 +52,7 @@ import {
   findManyPointsReferencesOffline,
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
-import {
-  formatDate,
-  formatDateToDDMMYYYY,
-  formatDateToTimezoneBrasil,
-} from '@/utils/Date'
+import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
 import { useDevice } from '@/contexts/DeviceContext'
 import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
 import { doTrailsOffline } from '@/services/offlineServices/trails'
@@ -71,9 +68,7 @@ import MapViewComponent from '@/components/MapView/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
 import ButtonActions from '@/components/ButtonActions/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
-import { db } from '@/lib/database'
-import { eq } from 'drizzle-orm'
-import { PointReference } from '@/db/pointreference'
+import * as Notifications from 'expo-notifications'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -352,9 +347,6 @@ const PointsReference = () => {
         setLastSyncTime(new Date(value))
       }
     })
-  }, [])
-
-  useEffect(() => {
     AsyncStorage.getItem('first_time_on_application').then((value) => {
       if (value) {
         setFirstTimeOnApplication(Number(value))
@@ -365,7 +357,6 @@ const PointsReference = () => {
   const handleSyncInformations = async () => {
     setModalSync(true)
     setProgress(0) // Inicializa o progresso
-
     const totalPromises = 9 // Corrigido para 8
     let completedPromises = 0
 
@@ -439,24 +430,20 @@ const PointsReference = () => {
       })
   }
 
-  useEffect(() => {
-    // if (firstTimeOnApplication === 1) {
-    //   handleSyncInformations()
-    //   AsyncStorage.setItem('first_time_on_application', '0')
-    // }
-    const interval = setInterval(() => {
-      setSyncTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handleSyncInformations()
-          return Number(configPushTime?.data_config)
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setSyncTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handleSyncInformations()
+  //         return Number(configPushTime?.data_config)
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-    return () => clearInterval(interval)
-  }, [])
+  //   return () => clearInterval(interval)
+  // }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -498,16 +485,42 @@ const PointsReference = () => {
           timeInterval: 30000,
         },
         async (newLocation) => {
-          setLocation(newLocation)
-          await AsyncStorage.setItem('location', JSON.stringify(newLocation))
-          refetch()
-          setRoutes((currentLocations) => [...currentLocations, newLocation])
+          if (newLocation) {
+            setLocation(newLocation)
+
+            const existingLocations = await AsyncStorage.getItem('locations')
+            const locationsArray = existingLocations
+              ? JSON.parse(existingLocations)
+              : []
+
+            // Add new location to the array
+            locationsArray.push(newLocation)
+
+            // Save the updated array back to AsyncStorage
+            await AsyncStorage.setItem(
+              'locations',
+              JSON.stringify(locationsArray),
+            )
+
+            refetch()
+            setRoutes((currentLocations) => [...currentLocations, newLocation])
+          }
         },
       )
     }
 
     startWatching()
   }, [])
+
+  const [routesOffline, setRoutesOffline] = useState([])
+
+  useEffect(() => {
+    AsyncStorage.getItem('locations').then((value) => {
+      if (value) {
+        setRoutesOffline(JSON.parse(value))
+      }
+    })
+  })
 
   // POST - Trails/Offline
   useEffect(() => {
@@ -583,6 +596,67 @@ const PointsReference = () => {
     setMarkerVisible(false)
   }
 
+  // Notificação do aplicativo rodando em segundo plano
+  async function requestNotificationPermission() {
+    const { status } = await Notifications.requestPermissionsAsync()
+    if (status !== 'granted') {
+      alert(
+        'No notification permissions. You might want to enable notifications for this app from the settings.',
+      )
+      return false
+    }
+    return true
+  }
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  })
+
+  const appState = useRef(AppState.currentState)
+  // const [appStateVisible, setAppStateVisible] = useState(appState.current)
+
+  useEffect(() => {
+    requestNotificationPermission()
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      async (nextAppState) => {
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === 'active'
+        ) {
+          console.log('App has come to the foreground!')
+          await AsyncStorage.setItem('activeTime', new Date().toISOString())
+        } else if (nextAppState === 'background') {
+          console.log('App has gone to the background!')
+          await schedulePushNotification()
+          await AsyncStorage.setItem('backgroundTime', new Date().toISOString())
+        }
+
+        appState.current = nextAppState
+        // setAppStateVisible(appState.current)
+        console.log('AppState', appState.current)
+      },
+    )
+
+    return () => {
+      appStateSubscription.remove()
+    }
+  }, [])
+
+  async function schedulePushNotification() {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'App in background',
+        body: 'The app has gone to the background.',
+      },
+      trigger: null,
+    })
+  }
+
   // Menu lateral
   const navigationView = () => (
     <Sidebar
@@ -603,11 +677,7 @@ const PointsReference = () => {
     pointtypeDataLoading ||
     latestApplicationDateLoading ||
     configPointRadiusIsLoadingOnline ||
-    configPushTimeIsLoadingOnline ||
-    configsOfPointRadius === undefined ||
-    Number(configsOfPointRadius) === 0 ||
-    syncTimeRemaining === undefined ||
-    location === null
+    configPushTimeIsLoadingOnline
   ) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -646,6 +716,7 @@ const PointsReference = () => {
             setPreviewCoordinate={setPreviewCoordinate}
             setValue={setValue}
             userLocation={userLocation}
+            offlineRoutes={routesOffline}
           />
 
           <ApplicationPointUsageModal

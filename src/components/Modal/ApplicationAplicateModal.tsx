@@ -24,6 +24,7 @@ import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
+import { findConfigAppByName } from '@/services/onlineServices/configApp'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -179,11 +180,22 @@ const ApplicationApplicateModal = ({
     },
   )
 
+  const { data: configScaleVolumeOnline } = useQuery(
+    'config/configapp/?name="volume_bti"',
+    async () => {
+      return await findConfigAppByName('volume_escala').then(
+        (response) => response,
+      )
+    },
+  )
+
   useEffect(() => {
-    if (configScaleVolume?.data_config) {
+    if (configScaleVolume && configScaleVolume.data_config) {
       setScaleVolume(configScaleVolume.data_config.split(';'))
+    } else if (configScaleVolumeOnline && configScaleVolumeOnline.data_config) {
+      setScaleVolume(configScaleVolumeOnline.data_config.split(';'))
     }
-  }, [configScaleVolume])
+  }, [configScaleVolume, configScaleVolumeOnline])
 
   return (
     <Modal

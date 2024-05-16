@@ -44,7 +44,7 @@ const BtnApplication = ({
         setSelectedPoint(closestPoint)
 
         // Abra o modal com o ponto mais próximo
-        if (selectedPoint === null || selectedPoint.id === null) {
+        if (closestPoint === null || closestPoint.id === null) {
           setModalButtonWarning(true)
         } else {
           setModalApplicate(true)
@@ -61,7 +61,7 @@ const BtnApplication = ({
               setSelectedPoint(point)
 
               // Abra o modal com o ponto mais próximo
-              if (selectedPoint === null || selectedPoint.id === null) {
+              if (point === null || point.id === null) {
                 setModalButtonWarning(true)
               } else {
                 setModalApplicate(true)

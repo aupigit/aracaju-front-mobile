@@ -1,7 +1,6 @@
 import { View, Text, Pressable } from 'react-native'
 import React from 'react'
-import { Feather } from '@expo/vector-icons'
-import { formatTimer } from '@/utils/formatTimer'
+import Feather from '@expo/vector-icons/Feather'
 import { useUser } from '@/contexts/UserContext'
 
 interface IButtonsActionsProps {
@@ -43,7 +42,7 @@ const ButtonActions = ({
             <Feather name="git-pull-request" size={24} color="gray" />
             <Text>Sincronizar</Text>
           </View>
-          <Text>{formatTimer(Number(syncTimeRemaining))}</Text>
+          {/* <Text>{formatTimer(Number(syncTimeRemaining))}</Text> */}
         </Pressable>
       </View>
 

@@ -2,8 +2,7 @@ import { sql } from 'drizzle-orm'
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const Application = sqliteTable('Application', {
-  pk: integer('pk').primaryKey(),
-  id: integer('id').unique(),
+  id: integer('id').primaryKey().unique(),
   pointreference: integer('pointreference'),
   device: integer('device'),
   applicator: integer('applicator'),

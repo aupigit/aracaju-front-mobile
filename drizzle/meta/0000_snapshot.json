@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "2e8f9758-aa0d-4d36-8094-8ccb232fa53f",
+  "id": "36effc23-4813-4424-94ee-6de3aae1d0d9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "City": {
@@ -440,18 +440,11 @@
     "Application": {
       "name": "Application",
       "columns": {
-        "pk": {
-          "name": "pk",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
         "id": {
           "name": "id",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
+          "primaryKey": true,
+          "notNull": true,
           "autoincrement": false
         },
         "pointreference": {
@@ -620,18 +613,11 @@
     "AdultCollection": {
       "name": "AdultCollection",
       "columns": {
-        "pk": {
-          "name": "pk",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
         "id": {
           "name": "id",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
+          "primaryKey": true,
+          "notNull": true,
           "autoincrement": false
         },
         "pointreference": {
@@ -1627,18 +1613,11 @@
     "Tracking": {
       "name": "Tracking",
       "columns": {
-        "pk": {
-          "name": "pk",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
         "id": {
           "name": "id",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
+          "primaryKey": true,
+          "notNull": true,
           "autoincrement": false
         },
         "device": {
