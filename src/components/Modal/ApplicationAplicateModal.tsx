@@ -86,7 +86,7 @@ const ApplicationApplicateModal = ({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [9, 16],
-        quality: 0,
+        quality: 0.75,
         base64: true,
       })
 

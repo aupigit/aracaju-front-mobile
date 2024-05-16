@@ -16,14 +16,10 @@ export const doLogin = async (
     const { user, access, refresh } = data
 
     const authenticatedUser: IAuthenticatedUser = {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        is_staff: user.is_staff,
-      },
+      user,
       token: access,
       refresh,
+      is_staff: user.is_staff,
     }
 
     await AsyncStorage.setItem('userId', user.id.toString())

@@ -49,7 +49,6 @@ const Home = () => {
   const { success, error } = useMigrations(db, migrations)
 
   if (error) {
-    console.log(error.message)
     return (
       <View className="flex-1 items-center justify-center">
         <Text>Migration error: {error.message}</Text>
@@ -58,7 +57,6 @@ const Home = () => {
   }
 
   if (!success) {
-    console.log('Migration is in progress...')
     return (
       <View className="flex-1 items-center justify-center">
         <Text>Migration is in progress...</Text>

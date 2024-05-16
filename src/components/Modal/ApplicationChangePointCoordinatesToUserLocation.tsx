@@ -13,6 +13,7 @@ interface ApplicationChangePointCoordinatesToUserLocationProps {
   userLocation: number[]
   selectedPoint: IPoint
   refetch: () => void
+  lastUpdatedAtRefetch: () => void
 }
 
 const editPointCoordinatesSchema = z.object({
@@ -31,6 +32,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
   userLocation,
   refetch,
   selectedPoint,
+  lastUpdatedAtRefetch,
 }: ApplicationChangePointCoordinatesToUserLocationProps) => {
   const {
     control,
@@ -51,6 +53,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
       )
       setModalVisible(false)
       refetch()
+      lastUpdatedAtRefetch()
       reset()
     } catch (error) {
       Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
@@ -77,6 +80,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
             <Pressable
               onPress={() => {
                 setModalVisible(!modalVisible)
+                lastUpdatedAtRefetch()
               }}
             >
               <Text className="text-xl">Fechar</Text>

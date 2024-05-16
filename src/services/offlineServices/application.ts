@@ -45,7 +45,6 @@ export const doApplicationOffline = async (
 
   try {
     const data = await db.insert(Application).values(body)
-    // console.log('Data inserted successfully in Application table')
     return data
   } catch (error) {
     Alert.alert('Error inserting data: ', error.message)
@@ -58,7 +57,6 @@ export const findManyApplicationsOffline = async (): Promise<
 > => {
   try {
     const result = await db.select().from(Application)
-    // console.log('Data retrieved successfully from Application table')
     return result as unknown as Promise<IApplication[]>
   } catch (error) {
     Alert.alert('Error retrieving data: ', error.message)

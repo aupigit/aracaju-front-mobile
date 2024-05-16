@@ -27,39 +27,46 @@ const BtnApplication = ({
   setModalButtonWarning,
 }: IButtonApplicationProps) => {
   const handlePressButtonApplication = () => {
-    if (selectedPoint === null || selectedPoint.id === null) {
-      setModalButtonWarning(true)
-    } else {
-      // Verifique se há conflito (usuário dentro do raio de dois pontos)
-      const conflictPoints = getConflictPoints(location, pointsDataOffline)
-      if (conflictPoints.length >= 2) {
-        if (location) {
-          // Calcule a distância entre a localização atual e cada ponto de conflito
-          const distances = conflictPoints.map((point) =>
-            calculateDistance(location.coords, point),
-          )
+    // Verifique se há conflito (usuário dentro do raio de dois pontos)
+    const conflictPoints = getConflictPoints(location, pointsDataOffline)
+    if (conflictPoints.length >= 2) {
+      if (location) {
+        // Calcule a distância entre a localização atual e cada ponto de conflito
+        const distances = conflictPoints.map((point) =>
+          calculateDistance(location.coords, point),
+        )
 
-          // Encontre o índice do ponto com a menor distância
-          const closestPointIndex = distances.indexOf(Math.min(...distances))
+        // Encontre o índice do ponto com a menor distância
+        const closestPointIndex = distances.indexOf(Math.min(...distances))
 
-          // Use o índice para encontrar o ponto mais próximo
-          const closestPoint = conflictPoints[closestPointIndex]
-          // Abra o modal com o ponto mais próximo
+        // Use o índice para encontrar o ponto mais próximo
+        const closestPoint = conflictPoints[closestPointIndex]
+        setSelectedPoint(closestPoint)
+
+        // Abra o modal com o ponto mais próximo
+        if (selectedPoint === null || selectedPoint.id === null) {
+          setModalButtonWarning(true)
+        } else {
           setModalApplicate(true)
-          setSelectedPoint(closestPoint)
         }
-      } else {
-        if (location) {
-          if (pointsDataOffline) {
-            for (const point of pointsDataOffline) {
-              if (
-                calculateDistance(location.coords, point) <=
-                Number(configPointRadius ?? 15)
-              ) {
+      }
+    } else {
+      if (location) {
+        if (pointsDataOffline) {
+          for (const point of pointsDataOffline) {
+            if (
+              calculateDistance(location.coords, point) <=
+              Number(configPointRadius ?? 15)
+            ) {
+              setSelectedPoint(point)
+
+              // Abra o modal com o ponto mais próximo
+              if (selectedPoint === null || selectedPoint.id === null) {
+                setModalButtonWarning(true)
+              } else {
                 setModalApplicate(true)
-                setSelectedPoint(point)
-                return
               }
+              return
             }
           }
         }

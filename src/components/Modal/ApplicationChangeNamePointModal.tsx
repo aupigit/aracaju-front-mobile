@@ -13,6 +13,7 @@ interface ApplicationChangeNamePointModalProps {
   errors: any
   onSubmit: () => void
   setIsEditable: (isEditable: boolean) => void
+  lastUpdatedAtRefetch: () => void
 }
 
 const ApplicationChangeNamePointModal = ({
@@ -24,6 +25,7 @@ const ApplicationChangeNamePointModal = ({
   onSubmit,
   selectedPoint,
   setIsEditable,
+  lastUpdatedAtRefetch,
 }: ApplicationChangeNamePointModalProps) => {
   return (
     <Modal
@@ -43,6 +45,7 @@ const ApplicationChangeNamePointModal = ({
               onPress={() => {
                 setModalVisible(!modalVisible)
                 setIsEditable(!isEditable)
+                lastUpdatedAtRefetch()
               }}
             >
               <Text className="text-xl">Fechar</Text>

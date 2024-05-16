@@ -32,13 +32,10 @@ export const syncTrails = async (applicatorId: number, deviceId: number) => {
             .set({ transmition: 'online' })
             .where(sql`${Tracking.id} = ${item.id}`)
             .execute()
-          console.info('Data updated successfully')
         }
       }
     } catch (error) {
       Alert.alert('Erro ao criar uma rota: ', error.message)
     }
-
-    console.info('Dados das Rotas sincronizados com sucesso!')
   }
 }
