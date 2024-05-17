@@ -2,11 +2,11 @@ import { View, Text, Modal, Pressable, TextInput } from 'react-native'
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import { Divider } from 'react-native-paper'
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
 interface ApplicationAdjustPointCoordinatesModalProps {
   modalVisible: boolean
   setModalVisible: (modalVisible: boolean) => void
-  setSelectedPoint: (point: number | null) => void
   onSubmit: () => void
   control: any
   setPreviewCoordinate: (coordinate: number[] | null) => void
@@ -17,13 +17,14 @@ interface ApplicationAdjustPointCoordinatesModalProps {
 const ApplicationAdjustPointCoordinatesModal = ({
   modalVisible,
   setModalVisible,
-  setSelectedPoint,
   onSubmit,
   control,
   setPreviewCoordinate,
   errors,
   setPointIsEditable,
 }: ApplicationAdjustPointCoordinatesModalProps) => {
+  const { setSelectedPoint } = usePointsReference()
+
   return (
     <Modal
       animationType="slide"

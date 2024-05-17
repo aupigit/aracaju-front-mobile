@@ -18,6 +18,7 @@ interface DeviceContextProps {
 interface DeviceContextData {
   device: IDevices | null
   fetchDeviceData: () => Promise<void>
+  cleatDeviceData: () => void
 }
 
 const DeviceContext = createContext<DeviceContextData | undefined>(undefined)
@@ -32,12 +33,12 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
       setDevice(deviceData)
 
       if (!deviceData || deviceData.authorized === false) {
-        router.replace('device-not-authorized')
+        router.replace('/device-not-authorized')
       } else {
         router.replace('/')
       }
     } catch (error) {
-      router.replace('device-not-authorized')
+      router.replace('/device-not-authorized')
       Alert.alert('Erro ao buscar informações do device:', error.message)
     }
   }
@@ -46,9 +47,14 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
     fetchDeviceData()
   }, [])
 
+  const cleatDeviceData = () => {
+    setDevice(null)
+  }
+
   const value = {
     device,
     fetchDeviceData,
+    cleatDeviceData,
   }
 
   return (

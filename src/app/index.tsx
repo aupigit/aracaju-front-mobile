@@ -12,8 +12,10 @@ import { db } from '@/lib/database'
 
 const Home = () => {
   const { isAuthenticated, logoutUser, loginUser } = useUser()
-  const { device } = useDevice()
+  const { device, fetchDeviceData } = useDevice()
   const handleEnterLead = async () => {
+    await fetchDeviceData()
+
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
     if (isAuthenticated && !tokenServiceId) {
       router.replace('points-reference')
@@ -23,6 +25,8 @@ const Home = () => {
   }
 
   const handleEnterApplicator = async () => {
+    await fetchDeviceData()
+
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
     if (tokenServiceId && !isAuthenticated) {
       try {

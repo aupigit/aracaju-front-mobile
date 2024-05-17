@@ -32,6 +32,23 @@ export const findManyPointsReferencesOffline = async (
   }
 }
 
+export const findOnePointReferenceByIdOffline = async (
+  point_id: number,
+): Promise<IPoint> => {
+  try {
+    const result = await db
+      .select()
+      .from(PointReference)
+      .where(eq(PointReference.id, point_id))
+      .execute()
+
+    return result[0] as unknown as Promise<IPoint>
+  } catch (error) {
+    Alert.alert('Error retrieving data: ', error.message)
+    throw error
+  }
+}
+
 export const adjustPointReferenceNameOffline = async (
   name: string,
   pointId: number,

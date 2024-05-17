@@ -17,15 +17,9 @@ import {
 } from 'expo-location'
 import calculateDistance from '@/utils/calculateDistance'
 import isPointInRegion from '@/utils/isPointInRegion'
-import ApplicationPointUsageModal from '@/components/Modal/ApplicationPointUsageModal'
-import ApplicationPointsInformationModal from '@/components/Modal/ApplicationPointsInformationModal'
-import ApplicationConflictPointsModal from '@/components/Modal/ApplicationConflictPointsModal'
-import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { findManyPointsReferences } from '@/services/onlineServices/points'
 import { useQuery } from 'react-query'
-import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
-import ApplicationEditPointModal from '@/components/Modal/ApplicationEditPointModal'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -70,6 +64,7 @@ import Sidebar from '@/components/Sidebar/Sidebar'
 import ButtonActions from '@/components/ButtonActions/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
 import * as Notifications from 'expo-notifications'
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -86,31 +81,27 @@ export type EditPointCoordinateFormData = z.infer<
 const PointsReference = () => {
   const [location, setLocation] = useState<LocationObject | null>(null)
   const [routes, setRoutes] = useState([])
-  const [modalVisible, setModalVisible] = useState(false)
   const [showButton, setShowButton] = useState(false)
   const [showCollectButton, setShowCollectButton] = useState(false)
   const [showPointDetails, setShowPointDetails] = useState(false)
-  const [modalConflict, setModalConflict] = useState(false)
-  const [modalInfoPoints, setModalInfoPoints] = useState(false)
-  const [modalApplicate, setModalApplicate] = useState(false)
-  const [modalAdultCollection, setModalAdultCollection] = useState(false)
   const [modalAddPointReference, setModalAddPointReference] = useState(false)
-  const [selectedPoint, setSelectedPoint] = useState(null)
-  const [conflictPoints, setConflictPoints] = useState([])
-  const [modalEditPoint, setModalEditPoint] = useState(false)
-  const [pointIsEditable, setPointIsEditable] = useState(false)
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [modalButtonWarning, setModalButtonWarning] = useState(false)
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
   const [modalSync, setModalSync] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [firstTimeOnApplication, setFirstTimeOnApplication] = useState(1)
 
   // Context services
   const { applicator } = useApplicator()
   const { device } = useDevice()
   const { user } = useUser()
+  const {
+    pointIsEditable,
+    setPointIsEditable,
+    selectedPoint,
+    setSelectedPoint,
+  } = usePointsReference()
 
   const insets = useSafeAreaInsets()
   const mapRef = useRef(null)
@@ -348,11 +339,11 @@ const PointsReference = () => {
         setLastSyncTime(new Date(value))
       }
     })
-    AsyncStorage.getItem('first_time_on_application').then((value) => {
-      if (value) {
-        setFirstTimeOnApplication(Number(value))
-      }
-    })
+    // AsyncStorage.getItem('first_time_on_application').then((value) => {
+    //   if (value) {
+    //     setFirstTimeOnApplication(Number(value))
+    //   }
+    // })
   }, [])
 
   const handleSyncInformations = async () => {
@@ -561,6 +552,7 @@ const PointsReference = () => {
   useEffect(() => {
     if (location) {
       if (pointsDataOffline) {
+        const validPoints = []
         for (const point of pointsDataOffline.filter((point) =>
           isPointInRegion(point, {
             latitude: userLocation[0],
@@ -571,22 +563,34 @@ const PointsReference = () => {
             calculateDistance(location?.coords, point) <=
             Number(configsOfPointRadius)
           ) {
-            setShowPointDetails(true)
-            if (Number(point.pointtype) === 2) {
-              setShowCollectButton(true)
-              setShowButton(false)
-            }
-            if (Number(point.pointtype) === 1) {
-              setShowButton(true)
-              setShowCollectButton(false)
-            }
-            return
+            validPoints.push(point)
           }
         }
+
+        if (validPoints.length > 0) {
+          const distances = validPoints.map((point) =>
+            calculateDistance(location.coords, point),
+          )
+
+          const closestPointIndex = distances.indexOf(Math.min(...distances))
+
+          const closestPoint = validPoints[closestPointIndex]
+
+          setShowPointDetails(true)
+          if (Number(closestPoint.pointtype) === 2) {
+            setShowCollectButton(true)
+            setShowButton(false)
+          }
+          if (Number(closestPoint.pointtype) === 1) {
+            setShowButton(true)
+            setShowCollectButton(false)
+          }
+        } else {
+          setShowButton(false)
+          setShowCollectButton(false)
+          setShowPointDetails(false)
+        }
       }
-      setShowButton(false)
-      setShowCollectButton(false)
-      setShowPointDetails(false)
     }
   }, [pointsDataOffline, location])
 
@@ -607,75 +611,73 @@ const PointsReference = () => {
     setMarkerVisible(false)
   }
 
+  // ------------------------------------------------------------
+  // TODO - Melhorar esse sistema de notificações
   // Notificação do aplicativo rodando em segundo plano
-  async function requestNotificationPermission() {
-    const { status } = await Notifications.requestPermissionsAsync()
-    if (status !== 'granted') {
-      alert(
-        'No notification permissions. You might want to enable notifications for this app from the settings.',
-      )
-      return false
-    }
-    return true
-  }
-
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-    }),
-  })
-
-  const appState = useRef(AppState.currentState)
+  // async function requestNotificationPermission() {
+  //   const { status } = await Notifications.requestPermissionsAsync()
+  //   if (status !== 'granted') {
+  //     alert(
+  //       'No notification permissions. You might want to enable notifications for this app from the settings.',
+  //     )
+  //     return false
+  //   }
+  //   return true
+  // }
+  // Notifications.setNotificationHandler({
+  //   handleNotification: async () => ({
+  //     shouldShowAlert: true,
+  //     shouldPlaySound: false,
+  //     shouldSetBadge: false,
+  //   }),
+  // })
+  // const appState = useRef(AppState.currentState)
   // const [appStateVisible, setAppStateVisible] = useState(appState.current)
+  // useEffect(() => {
+  //   requestNotificationPermission()
+  //   const appStateSubscription = AppState.addEventListener(
+  //     'change',
+  //     async (nextAppState) => {
+  //       if (
+  //         appState.current.match(/inactive|background/) &&
+  //         nextAppState === 'active'
+  //       ) {
+  //         console.log('App has come to the foreground!')
+  //         await AsyncStorage.setItem('activeTime', new Date().toISOString())
+  //       } else if (nextAppState === 'background') {
+  //         console.log('App has gone to the background!')
+  //         await schedulePushNotification()
+  //         await AsyncStorage.setItem('backgroundTime', new Date().toISOString())
+  //       }
 
-  useEffect(() => {
-    requestNotificationPermission()
-    const appStateSubscription = AppState.addEventListener(
-      'change',
-      async (nextAppState) => {
-        if (
-          appState.current.match(/inactive|background/) &&
-          nextAppState === 'active'
-        ) {
-          console.log('App has come to the foreground!')
-          await AsyncStorage.setItem('activeTime', new Date().toISOString())
-        } else if (nextAppState === 'background') {
-          console.log('App has gone to the background!')
-          await schedulePushNotification()
-          await AsyncStorage.setItem('backgroundTime', new Date().toISOString())
-        }
+  //       appState.current = nextAppState
+  //       // setAppStateVisible(appState.current)
+  //       console.log('AppState', appState.current)
+  //     },
+  //   )
 
-        appState.current = nextAppState
-        // setAppStateVisible(appState.current)
-        console.log('AppState', appState.current)
-      },
-    )
+  //   return () => {
+  //     appStateSubscription.remove()
+  //   }
+  // }, [])
 
-    return () => {
-      appStateSubscription.remove()
-    }
-  }, [])
-
-  async function schedulePushNotification() {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'App in background',
-        body: 'The app has gone to the background.',
-      },
-      trigger: null,
-    })
-  }
+  // async function schedulePushNotification() {
+  //   await Notifications.scheduleNotificationAsync({
+  //     content: {
+  //       title: 'App in background',
+  //       body: 'The app has gone to the background.',
+  //     },
+  //     trigger: null,
+  //   })
+  // }
+  // -------------------------------------------------------------
 
   // Menu lateral
   const navigationView = () => (
-    <Sidebar
-      insets={insets}
-      setModalAdultCollection={setModalAdultCollection}
-      closeDrawer={closeDrawer}
-    />
+    <Sidebar insets={insets} closeDrawer={closeDrawer} />
   )
+
+  // console.log(device.id)
 
   // Loading de informações
   if (
@@ -730,67 +732,9 @@ const PointsReference = () => {
             offlineRoutes={routesOffline}
           />
 
-          <ApplicationPointUsageModal
-            modalVisible={modalVisible}
-            setModalVisible={setModalVisible}
-            selectedPoint={selectedPoint}
-            setModalApplicate={setModalApplicate}
-            setSelectedPoint={setSelectedPoint}
-            refetch={refetch}
-            setPointIsEditable={setPointIsEditable}
-            userLocation={userLocation}
-            modalApplicate={modalApplicate}
-          />
-
-          <ApplicationPointsInformationModal
-            modalInfoPoints={modalInfoPoints}
-            setModalInfoPoints={setModalInfoPoints}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-          />
-
-          <ApplicationConflictPointsModal
-            conflictPoints={conflictPoints}
-            modalConflict={modalConflict}
-            modalVisible={modalVisible}
-            setModalConflict={setModalConflict}
-            setModalVisible={setModalVisible}
-            setSelectedPoint={setSelectedPoint}
-          />
-
-          <ApplicationApplicateModal
-            modalVisible={modalApplicate}
-            setModalVisible={setModalApplicate}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-            userLocation={userLocation}
-            refetchLatestApplicationDates={refetchLatestApplicationDates}
-            refetch={refetch}
-            handleApplication={handleApplication}
-          />
-          <AdultCollectionModal
-            modalVisible={modalAdultCollection}
-            setModalVisible={setModalAdultCollection}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-            userLocation={userLocation}
-          />
-
-          <ApplicationEditPointModal
-            modalVisible={modalEditPoint}
-            setModalVisible={setModalEditPoint}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-            userLocation={userLocation}
-            setPointIsEditable={setPointIsEditable}
-            refetch={refetch}
-            lastUpdatedAtRefetch={lastUpdatedAtRefetch}
-          />
-
           <ApplicationAdjustPointCoordinatesModal
             modalVisible={coordinateModal}
             setModalVisible={setCoordinateModal}
-            setSelectedPoint={setSelectedPoint}
             onSubmit={onSubmit}
             control={control}
             setPreviewCoordinate={setPreviewCoordinate}
@@ -823,32 +767,27 @@ const PointsReference = () => {
             configPointRadius={configsOfPointRadius}
             location={location}
             pointsDataOffline={pointsDataOffline}
-            setModalAdultCollection={setModalAdultCollection}
-            setSelectedPoint={setSelectedPoint}
             user={user}
             showCollectButton={showCollectButton}
-            selectedPoint={selectedPoint}
             setModalButtonWarning={setModalButtonWarning}
+            userLocation={userLocation}
           />
 
           <BtnApplication
             configPointRadius={configsOfPointRadius}
             pointsDataOffline={pointsDataOffline}
-            setModalApplicate={setModalApplicate}
-            setSelectedPoint={setSelectedPoint}
             location={location}
             showButton={showButton}
-            selectedPoint={selectedPoint}
             setModalButtonWarning={setModalButtonWarning}
+            userLocation={userLocation}
           />
 
           <BtnPointInformations
             configPointRadius={configsOfPointRadius}
             location={location}
             pointsDataOffline={pointsDataOffline}
-            setSelectedPoint={setSelectedPoint}
-            setModalEditPoint={setModalEditPoint}
             showPointDetails={showPointDetails}
+            userLocation={userLocation}
           />
 
           {lastSyncTime && (

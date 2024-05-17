@@ -1,17 +1,16 @@
 import {
   View,
   Text,
-  Modal,
   Pressable,
+  ScrollView,
   TextInput,
   Image,
-  ScrollView,
   Alert,
 } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { IPoint } from '@/interfaces/IPoint'
+import React, { useState } from 'react'
+import { router, useLocalSearchParams } from 'expo-router'
 import { Divider, RadioButton, Snackbar } from 'react-native-paper'
-import { IImagesProps } from '../PhonePhotos'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AntDesign, Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as Crypto from 'expo-crypto'
@@ -25,17 +24,8 @@ import { useDevice } from '@/contexts/DeviceContext'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import { findConfigAppByName } from '@/services/onlineServices/configApp'
-
-interface ApplicationApplicateModalProps {
-  modalVisible: boolean
-  setModalVisible: (modalVisible: boolean) => void
-  selectedPoint: IPoint
-  setSelectedPoint: (point: number | null) => void
-  userLocation: number[]
-  refetchLatestApplicationDates: () => void
-  refetch: () => void
-  handleApplication: () => void
-}
+import { IImagesProps } from '@/components/PhonePhotos'
+import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
 
 export const applicationSchema = z.object({
   volumebti: z.number({
@@ -52,16 +42,9 @@ export const applicationSchema = z.object({
 
 export type ApplicationFormData = z.infer<typeof applicationSchema>
 
-const ApplicationApplicateModal = ({
-  modalVisible,
-  setModalVisible,
-  selectedPoint,
-  setSelectedPoint,
-  userLocation,
-  refetchLatestApplicationDates,
-  refetch,
-  handleApplication,
-}: ApplicationApplicateModalProps) => {
+const Applications = () => {
+  const insets = useSafeAreaInsets()
+
   const { applicator } = useApplicator()
   const { device } = useDevice()
   const [recipienteChecked, setRecipienteChecked] = useState(false)
@@ -122,7 +105,7 @@ const ApplicationApplicateModal = ({
         setVisibleOK(false)
         reset()
         handleClearImageToSend()
-        setModalVisible(false)
+        router.replace('/points-reference')
       }, 4000)
     } else if (type === 'error') {
       setVisibleERROR(true)
@@ -141,29 +124,42 @@ const ApplicationApplicateModal = ({
     }
   }
 
+  // Buscar o ponto pelo ID do parametro
+  const { id, lat, long } = useLocalSearchParams()
+  const point_id: string = Array.isArray(id) ? id[0] : id
+  const latitude: string = Array.isArray(lat) ? lat[0] : lat
+  const longitude: string = Array.isArray(long) ? long[0] : long
+
+  // GET - Pontos/Offline
+  const { data: point } = useQuery(
+    'application/pointsreference/id',
+    async () => {
+      return await findOnePointReferenceByIdOffline(Number(point_id)).then(
+        (response) => response,
+      )
+    },
+  )
+
   const onSubmit = handleSubmit(async (data) => {
     try {
       await doApplicationOffline(
-        [userLocation[1], userLocation[0]],
-        selectedPoint.latitude,
-        selectedPoint.longitude,
-        selectedPoint.altitude,
-        selectedPoint.accuracy,
+        [Number(latitude), Number(longitude)],
+        point.latitude,
+        point.longitude,
+        point.altitude,
+        point.accuracy,
         data.volumebti,
         recipienteChecked,
         fichaChecked,
         placaChecked,
         data.observation,
         data.image,
-        selectedPoint.contract,
-        Number(selectedPoint.id),
+        point.contract,
+        Number(point.id),
         Number(applicator.id),
         Number(device.id),
       )
       showSnackbar('success')
-      refetchLatestApplicationDates()
-      refetch()
-      handleApplication()
     } catch (error) {
       Alert.alert('Erro ao criar uma aplicação: ', error.message)
       showSnackbar('error')
@@ -189,72 +185,21 @@ const ApplicationApplicateModal = ({
   )
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => {
-        setModalVisible(!modalVisible)
-      }}
-    >
-      <Snackbar
-        style={{
-          zIndex: 9999,
-        }}
-        visible={visibleOK}
-        onDismiss={onDismissSnackBarOK}
-        action={{
-          textColor: '#00ff00',
-          maxFontSizeMultiplier: 1,
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-3xl text-zinc-700">
-          Aplicação realizada com sucesso.
-        </Text>
-      </Snackbar>
-      <Snackbar
-        visible={visibleERROR}
-        onDismiss={onDismissSnackBarERROR}
-        action={{
-          textColor: '#ff0000',
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-3xl text-red-500">
-          Algo deu errado. Tente novamente.
-        </Text>
-      </Snackbar>
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        }}
-      >
-        <ScrollView className="mx-5 max-h-screen w-[100%] overflow-hidden bg-white p-5 pb-5 ">
-          <View className="flex-col justify-between gap-2 p-2">
-            <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+    <ScrollView style={{ paddingTop: insets.top }} className="flex-1">
+      <View className="container flex-1 items-center justify-center bg-white">
+        <View className="flex-col justify-between gap-2">
+          <View className="w-full flex-row items-center justify-between">
+            <Text className="text-2xl font-bold">Executar Aplicação</Text>
+            <Pressable
+              onPress={() => {
+                router.replace('/points-reference')
+              }}
             >
-              <Text className="text-2xl font-bold">Executar aplicação</Text>
-              <Pressable
-                onPress={() => {
-                  setModalVisible(!modalVisible)
-                  setSelectedPoint(null)
-                }}
-              >
-                <Text className="text-xl">Fechar</Text>
-              </Pressable>
-            </View>
-            <Divider className="mb-5 mt-2" />
+              <Text className="text-xl">Voltar</Text>
+            </Pressable>
+          </View>
+          <Divider className="mb-5 mt-2" />
+          <View>
             <View className="mb-2 flex-col items-center">
               <Controller
                 control={control}
@@ -359,7 +304,7 @@ const ApplicationApplicateModal = ({
                         .split(';')
                         .map((item) => ({
                           label: item,
-                          value: item,
+                          value: Number(item),
                         }))}
                     />
                   ) : (
@@ -372,7 +317,7 @@ const ApplicationApplicateModal = ({
                         .split(';')
                         .map((item) => ({
                           label: item,
-                          value: item,
+                          value: Number(item),
                         }))}
                     />
                   )}
@@ -434,10 +379,45 @@ const ApplicationApplicateModal = ({
               <Text className="text-2xl font-bold text-white">Finalizar</Text>
             </Pressable>
           </View>
-        </ScrollView>
+        </View>
       </View>
-    </Modal>
+
+      <Snackbar
+        style={{
+          zIndex: 9999,
+        }}
+        visible={visibleOK}
+        onDismiss={onDismissSnackBarOK}
+        action={{
+          textColor: '#00ff00',
+          maxFontSizeMultiplier: 1,
+          label: 'Fechar',
+          onPress: () => {
+            setVisibleOK(false)
+          },
+        }}
+      >
+        <Text className="text-3xl text-zinc-700">
+          Aplicação realizada com sucesso.
+        </Text>
+      </Snackbar>
+      <Snackbar
+        visible={visibleERROR}
+        onDismiss={onDismissSnackBarERROR}
+        action={{
+          textColor: '#ff0000',
+          label: 'Fechar',
+          onPress: () => {
+            setVisibleOK(false)
+          },
+        }}
+      >
+        <Text className="text-3xl text-red-500">
+          Algo deu errado. Tente novamente.
+        </Text>
+      </Snackbar>
+    </ScrollView>
   )
 }
 
-export default ApplicationApplicateModal
+export default Applications

@@ -1,32 +1,65 @@
-import { View, Text, Modal, Pressable, TextInput } from 'react-native'
+import { View, Text, Modal, Pressable, TextInput, Alert } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
-import { Controller } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { IPoint } from '@/interfaces/IPoint'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { adjustPointReferenceNameOffline } from '@/services/offlineServices/points'
+import { router } from 'expo-router'
 
 interface ApplicationChangeNamePointModalProps {
   modalVisible: boolean
   setModalVisible: (modalVisible: boolean) => void
-  control: any
   isEditable: boolean
   selectedPoint: IPoint
-  errors: any
-  onSubmit: () => void
   setIsEditable: (isEditable: boolean) => void
-  lastUpdatedAtRefetch: () => void
 }
+
+export const editPointSchema = z.object({
+  name: z.string({
+    required_error: 'Nome do ponto é obrigatório',
+  }),
+  description: z.string({
+    required_error: 'Justificativa é obrigatória',
+  }),
+})
+
+export type EditPointFormData = z.infer<typeof editPointSchema>
 
 const ApplicationChangeNamePointModal = ({
   modalVisible,
   setModalVisible,
-  control,
-  errors,
   isEditable,
-  onSubmit,
   selectedPoint,
   setIsEditable,
-  lastUpdatedAtRefetch,
 }: ApplicationChangeNamePointModalProps) => {
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<EditPointFormData>({
+    resolver: zodResolver(editPointSchema),
+  })
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      await adjustPointReferenceNameOffline(
+        data.name,
+        Number(selectedPoint.id),
+        Number(selectedPoint.pk),
+      )
+
+      setModalVisible(false)
+      router.replace('/points-reference')
+      reset()
+    } catch (error) {
+      Alert.alert('Erro ao alterar o nome do ponto: ', error.message)
+      throw error
+    }
+  })
+
   return (
     <Modal
       animationType="slide"
@@ -45,7 +78,7 @@ const ApplicationChangeNamePointModal = ({
               onPress={() => {
                 setModalVisible(!modalVisible)
                 setIsEditable(!isEditable)
-                lastUpdatedAtRefetch()
+                router.replace('/points-reference')
               }}
             >
               <Text className="text-xl">Fechar</Text>

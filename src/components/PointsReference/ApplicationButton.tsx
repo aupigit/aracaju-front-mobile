@@ -4,16 +4,16 @@ import getConflictPoints from '@/utils/getConflictPoints'
 import calculateDistance from '@/utils/calculateDistance'
 import { IPoint } from '@/interfaces/IPoint'
 import { LocationObject } from 'expo-location'
+import { router } from 'expo-router'
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
 interface IButtonApplicationProps {
   showButton?: boolean
   location?: LocationObject | null
   pointsDataOffline: IPoint[]
   configPointRadius: number
-  setModalApplicate: (modalVisible: boolean) => void
-  setSelectedPoint: (point: IPoint | null) => void
-  selectedPoint: IPoint
   setModalButtonWarning: (modalVisible: boolean) => void
+  userLocation: number[]
 }
 
 const BtnApplication = ({
@@ -21,11 +21,11 @@ const BtnApplication = ({
   location,
   pointsDataOffline,
   configPointRadius,
-  setModalApplicate,
-  setSelectedPoint,
-  selectedPoint,
   setModalButtonWarning,
+  userLocation,
 }: IButtonApplicationProps) => {
+  const { setSelectedPoint } = usePointsReference()
+
   const handlePressButtonApplication = () => {
     // Verifique se há conflito (usuário dentro do raio de dois pontos)
     const conflictPoints = getConflictPoints(location, pointsDataOffline)
@@ -47,7 +47,9 @@ const BtnApplication = ({
         if (closestPoint === null || closestPoint.id === null) {
           setModalButtonWarning(true)
         } else {
-          setModalApplicate(true)
+          router.replace(
+            `/applications/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
+          )
         }
       }
     } else {
@@ -64,7 +66,9 @@ const BtnApplication = ({
               if (point === null || point.id === null) {
                 setModalButtonWarning(true)
               } else {
-                setModalApplicate(true)
+                router.replace(
+                  `/applications/${point.id}/${userLocation[0]}/${userLocation[1]}`,
+                )
               }
               return
             }

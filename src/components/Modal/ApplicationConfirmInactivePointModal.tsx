@@ -6,13 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { IPoint } from '@/interfaces/IPoint'
 import { z } from 'zod'
 import { adjustPointReferenceStatusOffline } from '@/services/offlineServices/points'
+import { router } from 'expo-router'
 
 interface ApplicationConfirmInactivePointModalProps {
   modalVisible: boolean
   setModalVisible: (modalVisible: boolean) => void
   selectedPoint: IPoint
-  refetch: () => void
-  lastUpdatedAtRefetch: () => void
 }
 
 const editPointActiveSchema = z.object({
@@ -27,8 +26,6 @@ const ApplicationConfirmInactivePointModal = ({
   modalVisible,
   setModalVisible,
   selectedPoint,
-  refetch,
-  lastUpdatedAtRefetch,
 }: ApplicationConfirmInactivePointModalProps) => {
   const {
     control,
@@ -42,9 +39,8 @@ const ApplicationConfirmInactivePointModal = ({
   const onSubmit = handleSubmit(async (data) => {
     try {
       await adjustPointReferenceStatusOffline(Number(selectedPoint.pk))
-      refetch()
-      lastUpdatedAtRefetch()
       setModalVisible(!modalVisible)
+      router.replace('/points-reference')
       reset()
     } catch (error) {
       Alert.alert('Erro ao alterar o status do ponto: ', error.message)
@@ -69,8 +65,7 @@ const ApplicationConfirmInactivePointModal = ({
             <Pressable
               onPress={() => {
                 setModalVisible(!modalVisible)
-                lastUpdatedAtRefetch()
-                refetch()
+                router.replace('/points-reference')
               }}
             >
               <Text className="text-xl">Fechar</Text>

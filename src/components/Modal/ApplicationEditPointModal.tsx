@@ -68,7 +68,6 @@ const ApplicationEditPointModal = ({
         data.name,
         Number(selectedPoint.id),
         Number(selectedPoint.pk),
-        selectedPoint.updated_at,
       )
 
       setChangeNameModal(false)

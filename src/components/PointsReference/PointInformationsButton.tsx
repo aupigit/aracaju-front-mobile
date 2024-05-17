@@ -5,31 +5,30 @@ import calculateDistance from '@/utils/calculateDistance'
 import { IPoint } from '@/interfaces/IPoint'
 import { LocationObject } from 'expo-location'
 import { IConfigApp } from '@/interfaces/IConfigApp'
+import { router } from 'expo-router'
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
 interface IButtonPointInformationProps {
   showPointDetails?: boolean
   pointsDataOffline: IPoint[]
-  setModalEditPoint: (modalVisible: boolean) => void
-  setSelectedPoint: (point: IPoint | null) => void
   configPointRadius: number
   location: LocationObject | null
+  userLocation: number[]
 }
 
 const BtnPointInformations = ({
   showPointDetails,
   pointsDataOffline,
-  setModalEditPoint,
-  setSelectedPoint,
   configPointRadius,
   location,
+  userLocation,
 }: IButtonPointInformationProps) => {
+  const { setSelectedPoint } = usePointsReference()
+
   const handlePressPointDetails = () => {
     // Verifique se há conflito (usuário dentro do raio de dois pontos)
     const conflictPoints = getConflictPoints(location, pointsDataOffline)
     if (conflictPoints.length >= 2) {
-      // setConflictPoints(conflictPoints)
-      // setModalConflict(true)
-
       if (location) {
         // Calcule a distância entre a localização atual e cada ponto de conflito
         const distances = conflictPoints.map((point) =>
@@ -41,10 +40,12 @@ const BtnPointInformations = ({
 
         // Use o índice para encontrar o ponto mais próximo
         const closestPoint = conflictPoints[closestPointIndex]
+        setSelectedPoint(closestPoint)
 
         // Abra o modal com o ponto mais próximo
-        setModalEditPoint(true)
-        setSelectedPoint(closestPoint)
+        router.replace(
+          `/edit-point/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
+        )
       }
     } else {
       if (location) {
@@ -54,8 +55,10 @@ const BtnPointInformations = ({
               calculateDistance(location.coords, point) <=
               Number(configPointRadius ?? 15)
             ) {
-              setModalEditPoint(true)
               setSelectedPoint(point)
+              router.replace(
+                `/edit-point/${point.id}/${userLocation[0]}/${userLocation[1]}`,
+              )
               return
             }
           }
