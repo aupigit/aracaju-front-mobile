@@ -561,11 +561,17 @@ const PointsReference = () => {
             Number(configsOfPointRadius)
           ) {
             setShowPointDetails(true)
-            if (Number(point.pointtype) === 3) {
+            if (
+              Number(point.pointtype) === 2 &&
+              point.pointtype_detail === 'Coleta Adulto'
+            ) {
               setShowCollectButton(true)
               setShowButton(false)
             }
-            if (Number(point.pointtype) === 2) {
+            if (
+              Number(point.pointtype) === 1 &&
+              point.pointtype_detail === 'Aplicação'
+            ) {
               setShowButton(true)
               setShowCollectButton(false)
             }
