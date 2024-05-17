@@ -6,7 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Divider, Snackbar } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -15,7 +15,6 @@ import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import { doPointReferenceOffline } from '@/services/offlineServices/points'
 import { findPointTypeDataOffline } from '@/services/offlineServices/pointtype'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { findConfigAppByName } from '@/services/onlineServices/configApp'
 import { findPointTypeData } from '@/services/onlineServices/pointtype'
 
@@ -77,8 +76,6 @@ const ApplicationAddPointReferenceModal = ({
 }: ApplicationAddPointReferenceModalProps) => {
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
-  const [scaleVolume, setScaleVolume] = useState([])
-  const [pointtype, setPointtype] = useState([])
   const [isButtonLoading, setIsButtonLoading] = useState(false)
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
@@ -145,14 +142,14 @@ const ApplicationAddPointReferenceModal = ({
     },
   )
 
-  const { data: configScaleVolumeOnline } = useQuery(
-    'config/configapp/?name="volume_bti"',
-    async () => {
-      return await findConfigAppByName('volume_escala').then(
-        (response) => response,
-      )
-    },
-  )
+  const {
+    data: configScaleVolumeOnline,
+    isSuccess: configScaleVolumeOnlineSuccess,
+  } = useQuery('config/configapp/?name="volume_bti"', async () => {
+    return await findConfigAppByName('volume_escala').then(
+      (response) => response,
+    )
+  })
 
   const { data: configPointtype } = useQuery(
     'application/pointtype/flatdata',
@@ -161,41 +158,12 @@ const ApplicationAddPointReferenceModal = ({
     },
   )
 
-  const { data: configPointtypeOnline } = useQuery(
-    'config/configapp/?name="flatdata"',
-    async () => {
-      return await findPointTypeData().then((response) => response)
-    },
-  )
-
-  useEffect(() => {
-    if (configPointtype) {
-      setPointtype(configPointtype)
-    } else if (configPointtypeOnline) {
-      setPointtype(configPointtypeOnline)
-    }
-  }, [configPointtype, configPointtypeOnline])
-
-  useEffect(() => {
-    if (configScaleVolume && configScaleVolume.data_config) {
-      setScaleVolume(configScaleVolume.data_config.split(';'))
-    } else if (configScaleVolumeOnline && configScaleVolumeOnline.data_config) {
-      setScaleVolume(configScaleVolumeOnline.data_config.split(';'))
-    }
-  }, [configScaleVolume, configScaleVolumeOnline])
-
-  if (
-    scaleVolume === undefined &&
-    pointtype === undefined &&
-    scaleVolume.length <= 0 &&
-    pointtype.length <= 0
-  ) {
-    return (
-      <View className="h-[100px] w-full items-center justify-center bg-white p-5">
-        <Text>Carregando...</Text>
-      </View>
-    )
-  }
+  const {
+    data: configPointtypeOnline,
+    isSuccess: configPointtypeOnlineSuccess,
+  } = useQuery('config/configapp/?name="flatdata"', async () => {
+    return await findPointTypeData().then((response) => response)
+  })
 
   return (
     <Modal
@@ -340,16 +308,33 @@ const ApplicationAddPointReferenceModal = ({
                 <View className="mb-2 w-full">
                   <Text>Volume do BTI</Text>
                   <View className="border border-zinc-700/20">
-                    <RNPickerSelect
-                      placeholder={{ label: 'Volume BTI', value: 0 }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      items={scaleVolume.map((item) => ({
-                        label: item,
-                        value: item,
-                      }))}
-                    />
+                    {configScaleVolume && configScaleVolume.id !== undefined ? (
+                      <RNPickerSelect
+                        placeholder={{ label: 'Volume BTI', value: 0 }}
+                        onValueChange={(value) => {
+                          onChange(value)
+                        }}
+                        items={configScaleVolume.data_config
+                          .split(';')
+                          .map((item) => ({
+                            label: item,
+                            value: item,
+                          }))}
+                      />
+                    ) : (
+                      <RNPickerSelect
+                        placeholder={{ label: 'Volume BTI', value: 0 }}
+                        onValueChange={(value) => {
+                          onChange(value)
+                        }}
+                        items={configScaleVolumeOnline.data_config
+                          .split(';')
+                          .map((item) => ({
+                            label: item,
+                            value: item,
+                          }))}
+                      />
+                    )}
                   </View>
                 </View>
               )}
@@ -363,16 +348,31 @@ const ApplicationAddPointReferenceModal = ({
                 <View className="mb-2 w-full">
                   <Text>Tipo do ponto</Text>
                   <View className="border border-zinc-700/20">
-                    <RNPickerSelect
-                      placeholder={{ label: 'Tipo do ponto', value: 0 }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      items={pointtype.map((item) => ({
-                        label: item.name,
-                        value: item.id,
-                      }))}
-                    />
+                    {configPointtype &&
+                    configPointtype.length > 0 &&
+                    configPointtype[0].id !== undefined ? (
+                      <RNPickerSelect
+                        placeholder={{ label: 'Tipo do ponto', value: 0 }}
+                        onValueChange={(value) => {
+                          onChange(value)
+                        }}
+                        items={configPointtype.map((item) => ({
+                          label: item.name,
+                          value: item.id,
+                        }))}
+                      />
+                    ) : (
+                      <RNPickerSelect
+                        placeholder={{ label: 'Tipo do ponto', value: 0 }}
+                        onValueChange={(value) => {
+                          onChange(value)
+                        }}
+                        items={configPointtypeOnline.map((item) => ({
+                          label: item.name,
+                          value: item.id,
+                        }))}
+                      />
+                    )}
                   </View>
                 </View>
               )}
