@@ -13,6 +13,7 @@ import {
   LocationObject,
   watchPositionAsync,
   LocationAccuracy,
+  requestBackgroundPermissionsAsync,
 } from 'expo-location'
 import calculateDistance from '@/utils/calculateDistance'
 import isPointInRegion from '@/utils/isPointInRegion'
@@ -472,6 +473,16 @@ const PointsReference = () => {
         'É necessário permitir o acesso à localização para utilizar este aplicativo.',
       )
     }
+
+    const { granted: backgroundPermiissionsGranted } =
+      await requestBackgroundPermissionsAsync()
+
+    if (!backgroundPermiissionsGranted) {
+      Alert.alert(
+        'Permissão de localização',
+        'É necessário permitir o acesso à localização para utilizar este aplicativo.',
+      )
+    }
   }
 
   // Localização do usuário
@@ -561,17 +572,11 @@ const PointsReference = () => {
             Number(configsOfPointRadius)
           ) {
             setShowPointDetails(true)
-            if (
-              Number(point.pointtype) === 2 &&
-              point.pointtype_detail === 'Coleta Adulto'
-            ) {
+            if (Number(point.pointtype) === 2) {
               setShowCollectButton(true)
               setShowButton(false)
             }
-            if (
-              Number(point.pointtype) === 1 &&
-              point.pointtype_detail === 'Aplicação'
-            ) {
+            if (Number(point.pointtype) === 1) {
               setShowButton(true)
               setShowCollectButton(false)
             }
