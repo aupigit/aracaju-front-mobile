@@ -70,7 +70,6 @@ const ApplicationApplicateModal = ({
   const [images, setImages] = useState<IImagesProps[]>([])
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
-  const [scaleVolume, setScaleVolume] = useState([])
   const {
     control,
     handleSubmit,
@@ -188,14 +187,6 @@ const ApplicationApplicateModal = ({
       )
     },
   )
-
-  useEffect(() => {
-    if (configScaleVolume && configScaleVolume.data_config) {
-      setScaleVolume(configScaleVolume.data_config.split(';'))
-    } else if (configScaleVolumeOnline && configScaleVolumeOnline.data_config) {
-      setScaleVolume(configScaleVolumeOnline.data_config.split(';'))
-    }
-  }, [configScaleVolume, configScaleVolumeOnline])
 
   return (
     <Modal
@@ -358,17 +349,33 @@ const ApplicationApplicateModal = ({
               name="volumebti"
               render={({ field: { onChange, value } }) => (
                 <View className="mb-2 border border-zinc-700/20">
-                  <RNPickerSelect
-                    placeholder={{ label: 'Volume BTI', value: 0 }}
-                    onValueChange={(value) => {
-                      onChange(value)
-                    }}
-                    value={value}
-                    items={scaleVolume.map((item) => ({
-                      label: item,
-                      value: Number(item),
-                    }))}
-                  />
+                  {configScaleVolume && configScaleVolume.id !== undefined ? (
+                    <RNPickerSelect
+                      placeholder={{ label: 'Volume BTI', value: 0 }}
+                      onValueChange={(value) => {
+                        onChange(value)
+                      }}
+                      items={configScaleVolume.data_config
+                        .split(';')
+                        .map((item) => ({
+                          label: item,
+                          value: item,
+                        }))}
+                    />
+                  ) : (
+                    <RNPickerSelect
+                      placeholder={{ label: 'Volume BTI', value: 0 }}
+                      onValueChange={(value) => {
+                        onChange(value)
+                      }}
+                      items={configScaleVolumeOnline.data_config
+                        .split(';')
+                        .map((item) => ({
+                          label: item,
+                          value: item,
+                        }))}
+                    />
+                  )}
                 </View>
               )}
             />
