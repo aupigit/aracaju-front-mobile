@@ -24,6 +24,7 @@ import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useDevice } from '@/contexts/DeviceContext'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
+import { findConfigAppByName } from '@/services/onlineServices/configApp'
 
 interface ApplicationApplicateModalProps {
   modalVisible: boolean
@@ -59,8 +60,8 @@ const AdultCollectionModal = ({
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
   const [images, setImages] = useState<IImagesProps[]>([])
-  const [windCollection, setWindCollection] = useState([])
-  const [climateCollection, setClimateCollection] = useState([])
+  // const [windCollection, setWindCollection] = useState([])
+  // const [climateCollection, setClimateCollection] = useState([])
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
@@ -160,11 +161,14 @@ const AdultCollectionModal = ({
       )
     })
 
-  useEffect(() => {
-    if (configWindCollection?.data_config) {
-      setWindCollection(configWindCollection.data_config.split(';'))
-    }
-  }, [configWindCollection])
+  const {
+    data: configWindCollectionOnline,
+    isSuccess: configWindCollectionOnlineSuccess,
+  } = useQuery('config/configapp/?name="coleta_vento"', async () => {
+    return await findConfigAppByName('coleta_vento').then(
+      (response) => response,
+    )
+  })
 
   const {
     data: configClimateWindCollection,
@@ -175,11 +179,14 @@ const AdultCollectionModal = ({
     )
   })
 
-  useEffect(() => {
-    if (configClimateWindCollection?.data_config) {
-      setClimateCollection(configClimateWindCollection.data_config.split(';'))
-    }
-  }, [configClimateWindCollection])
+  const {
+    data: configClimateWindCollectionOnline,
+    isSuccess: configClimateWindCollectionOnlineSuccess,
+  } = useQuery('config/configapp/?name="coleta_clima"', async () => {
+    return await findConfigAppByName('coleta_clima').then(
+      (response) => response,
+    )
+  })
 
   return (
     <>
@@ -260,17 +267,42 @@ const AdultCollectionModal = ({
                   name="wind"
                   render={({ field: { onChange, value } }) => (
                     <View className=" border border-zinc-700/20 ">
-                      <RNPickerSelect
-                        placeholder={{ label: 'Selecione um valor', value: 0 }}
-                        onValueChange={(value) => {
-                          onChange(value)
-                        }}
-                        value={value}
-                        items={windCollection.map((wind) => ({
-                          label: wind,
-                          value: wind,
-                        }))}
-                      />
+                      {configWindCollection &&
+                      configWindCollection.id !== undefined ? (
+                        <RNPickerSelect
+                          placeholder={{
+                            label: 'Selecione um valor',
+                            value: 0,
+                          }}
+                          onValueChange={(value) => {
+                            onChange(value)
+                          }}
+                          value={value}
+                          items={configWindCollection.data_config
+                            .split(';')
+                            .map((wind) => ({
+                              label: wind,
+                              value: wind,
+                            }))}
+                        />
+                      ) : (
+                        <RNPickerSelect
+                          placeholder={{
+                            label: 'Selecione um valor',
+                            value: 0,
+                          }}
+                          onValueChange={(value) => {
+                            onChange(value)
+                          }}
+                          value={value}
+                          items={configWindCollectionOnline.data_config
+                            .split(';')
+                            .map((wind) => ({
+                              label: wind,
+                              value: wind,
+                            }))}
+                        />
+                      )}
                     </View>
                   )}
                 />
@@ -288,17 +320,42 @@ const AdultCollectionModal = ({
                   name="climate"
                   render={({ field: { onChange, value } }) => (
                     <View className="border border-zinc-700/20 ">
-                      <RNPickerSelect
-                        placeholder={{ label: 'Selecione um valor', value: 0 }}
-                        onValueChange={(value) => {
-                          onChange(value)
-                        }}
-                        value={value}
-                        items={climateCollection.map((climate) => ({
-                          label: climate,
-                          value: climate,
-                        }))}
-                      />
+                      {configClimateWindCollection &&
+                      configClimateWindCollection.id !== undefined ? (
+                        <RNPickerSelect
+                          placeholder={{
+                            label: 'Selecione um valor',
+                            value: 0,
+                          }}
+                          onValueChange={(value) => {
+                            onChange(value)
+                          }}
+                          value={value}
+                          items={configClimateWindCollection.data_config
+                            .split(';')
+                            .map((climate) => ({
+                              label: climate,
+                              value: climate,
+                            }))}
+                        />
+                      ) : (
+                        <RNPickerSelect
+                          placeholder={{
+                            label: 'Selecione um valor',
+                            value: 0,
+                          }}
+                          onValueChange={(value) => {
+                            onChange(value)
+                          }}
+                          value={value}
+                          items={configClimateWindCollectionOnline.data_config
+                            .split(';')
+                            .map((climate) => ({
+                              label: climate,
+                              value: climate,
+                            }))}
+                        />
+                      )}
                     </View>
                   )}
                 />
