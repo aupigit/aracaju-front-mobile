@@ -166,23 +166,29 @@ const Applications = () => {
     }
   })
 
-  const { data: configScaleVolume } = useQuery(
-    'config/configapp/?name="volume_bti"',
-    async () => {
+  const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
+    useQuery('config/configapp/?name="volume_bti"', async () => {
       return await findConfigAppByNameOffline('volume_escala').then(
         (response) => response,
       )
-    },
-  )
+    })
 
-  const { data: configScaleVolumeOnline } = useQuery(
-    'config/configapp/?name="volume_bti"',
-    async () => {
-      return await findConfigAppByName('volume_escala').then(
-        (response) => response,
-      )
-    },
-  )
+  const {
+    data: configScaleVolumeOnline,
+    isSuccess: configScaleVolumeOnlineIsSuccess,
+  } = useQuery('config/configapp/?name="volume_bti"', async () => {
+    return await findConfigAppByName('volume_escala').then(
+      (response) => response,
+    )
+  })
+
+  if (configScaleVolumeLoading || configScaleVolumeOnlineIsSuccess) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Carregando...</Text>
+      </View>
+    )
+  }
 
   return (
     <ScrollView style={{ paddingTop: insets.top }} className="flex-1">
