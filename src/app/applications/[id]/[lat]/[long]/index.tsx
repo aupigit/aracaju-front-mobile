@@ -175,14 +175,14 @@ const Applications = () => {
 
   const {
     data: configScaleVolumeOnline,
-    isSuccess: configScaleVolumeOnlineIsSuccess,
+    isLoading: configScaleVolumeOnlineIsLoading,
   } = useQuery('config/configapp/?name="volume_bti"', async () => {
     return await findConfigAppByName('volume_escala').then(
       (response) => response,
     )
   })
 
-  if (configScaleVolumeLoading || configScaleVolumeOnlineIsSuccess) {
+  if (configScaleVolumeLoading || configScaleVolumeOnlineIsLoading) {
     return (
       <View className="flex-1 items-center justify-center">
         <Text>Carregando...</Text>
