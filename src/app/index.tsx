@@ -9,12 +9,15 @@ import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from '../../drizzle/migrations'
 import { db } from '@/lib/database'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 
 const Home = () => {
   const { isAuthenticated, logoutUser, loginUser } = useUser()
   const { device, fetchDeviceData } = useDevice()
+  const { fetchApplicatorData } = useApplicator()
   const handleEnterLead = async () => {
     await fetchDeviceData()
+    await fetchApplicatorData()
 
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
     if (isAuthenticated && !tokenServiceId) {

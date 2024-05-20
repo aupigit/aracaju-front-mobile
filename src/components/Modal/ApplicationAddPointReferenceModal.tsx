@@ -314,7 +314,7 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configScaleVolume.data_config
+                        items={configScaleVolume?.data_config
                           .split(';')
                           .map((item) => ({
                             label: item,
@@ -327,7 +327,7 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configScaleVolumeOnline.data_config
+                        items={configScaleVolumeOnline?.data_config
                           .split(';')
                           .map((item) => ({
                             label: item,

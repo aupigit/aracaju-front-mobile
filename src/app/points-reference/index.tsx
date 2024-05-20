@@ -246,10 +246,13 @@ const PointsReference = () => {
 
   const [configsOfPointRadius, setConfigsOfPointRadius] = useState(15)
   useEffect(() => {
-    if (configPointRadius && configPointRadius.data_config) {
-      setConfigsOfPointRadius(Number(configPointRadius.data_config))
-    } else if (configPointRadiusOnline && configPointRadiusOnline.data_config) {
-      setConfigsOfPointRadius(Number(configPointRadiusOnline.data_config))
+    if (configPointRadius && configPointRadius?.data_config) {
+      setConfigsOfPointRadius(Number(configPointRadius?.data_config))
+    } else if (
+      configPointRadiusOnline &&
+      configPointRadiusOnline?.data_config
+    ) {
+      setConfigsOfPointRadius(Number(configPointRadiusOnline?.data_config))
     }
   }, [configPointRadius, configPointRadiusOnline])
 
@@ -320,15 +323,15 @@ const PointsReference = () => {
   useEffect(() => {
     if (
       configPushTime !== undefined &&
-      configPushTime.data_config !== undefined
+      configPushTime?.data_config !== undefined
     ) {
-      setSyncTimeRemaining(Number(configPushTime.data_config))
+      setSyncTimeRemaining(Number(configPushTime?.data_config))
     } else {
       if (
         configPushTimeOnline !== undefined &&
-        configPushTimeOnline.data_config !== undefined
+        configPushTimeOnline?.data_config !== undefined
       ) {
-        setSyncTimeRemaining(Number(configPushTimeOnline.data_config))
+        setSyncTimeRemaining(Number(configPushTimeOnline?.data_config))
       }
     }
   }, [configPushTime, configPushTimeOnline])
@@ -427,7 +430,7 @@ const PointsReference = () => {
   //     setSyncTimeRemaining((prevTime) => {
   //       if (prevTime === 0) {
   //         handleSyncInformations()
-  //         return Number(configPushTime?.data_config)
+  //         return Number(configPushTime??.data_config)
   //       } else {
   //         return prevTime - 1
   //       }
@@ -528,7 +531,7 @@ const PointsReference = () => {
   useEffect(() => {
     const postTrails = async () => {
       const lastLocation = routes[routes.length - 1]
-      if (!lastLocation) {
+      if (!lastLocation || !applicator || !device) {
         return
       }
 

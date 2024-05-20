@@ -232,7 +232,7 @@ const AdultCollection = () => {
                         onChange(value)
                       }}
                       value={value}
-                      items={configWindCollection.data_config
+                      items={configWindCollection?.data_config
                         .split(';')
                         .map((wind) => ({
                           label: wind,
@@ -249,7 +249,7 @@ const AdultCollection = () => {
                         onChange(value)
                       }}
                       value={value}
-                      items={configWindCollectionOnline.data_config
+                      items={configWindCollectionOnline?.data_config
                         .split(';')
                         .map((wind) => ({
                           label: wind,
@@ -285,7 +285,7 @@ const AdultCollection = () => {
                         onChange(value)
                       }}
                       value={value}
-                      items={configClimateWindCollection.data_config
+                      items={configClimateWindCollection?.data_config
                         .split(';')
                         .map((climate) => ({
                           label: climate,
@@ -302,7 +302,7 @@ const AdultCollection = () => {
                         onChange(value)
                       }}
                       value={value}
-                      items={configClimateWindCollectionOnline.data_config
+                      items={configClimateWindCollectionOnline?.data_config
                         .split(';')
                         .map((climate) => ({
                           label: climate,
