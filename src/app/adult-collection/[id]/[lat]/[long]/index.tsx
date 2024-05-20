@@ -199,6 +199,19 @@ const AdultCollection = () => {
     )
   })
 
+  if (
+    configWindCollectionLoading ||
+    configWindCollectionOnlineSuccess ||
+    configClimateWindCollectionLoading ||
+    configClimateWindCollectionOnlineSuccess
+  ) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Carregando...</Text>
+      </View>
+    )
+  }
+
   return (
     <ScrollView style={{ paddingTop: insets.top }} className="flex-1">
       <View className="container flex-1 items-center justify-center bg-white">
