@@ -29,6 +29,7 @@ const Home = () => {
 
   const handleEnterApplicator = async () => {
     await fetchDeviceData()
+    await fetchApplicatorData()
 
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
     if (tokenServiceId && !isAuthenticated) {
