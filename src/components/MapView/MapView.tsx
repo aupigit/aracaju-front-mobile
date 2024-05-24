@@ -20,6 +20,7 @@ interface IMapViewProps {
     longitude: number
   }) => void
   routes: { coords: { latitude: number; longitude: number } }[]
+  offlineRoutes: { coords: { latitude: number; longitude: number } }[]
   pointsDataOffline: IPoint[]
   userLocation: number[]
   previewCoordinate: { latitude: number; longitude: number } | null
@@ -41,6 +42,7 @@ const MapViewComponent = ({
   latestApplicationDates,
   markerVisible,
   userLocation,
+  offlineRoutes,
 }: IMapViewProps) => {
   return (
     <>
@@ -69,7 +71,6 @@ const MapViewComponent = ({
           showsCompass={true} // mostra a bússola
           showsScale={true} // mostra a escala
           showsMyLocationButton={true} // mostra o botão de localização do usuário
-          zoomControlEnabled={true} // habilita o controle de zoom
           scrollEnabled={true} // habilita o scroll
           userLocationPriority="high" // prioridade da localização do usuário
           userLocationUpdateInterval={1000} // intervalo de atualização da localização do usuário
@@ -83,6 +84,12 @@ const MapViewComponent = ({
             strokeColor="#0000ff"
             strokeWidth={6}
             coordinates={routes.map((loc) => loc.coords)}
+          />
+
+          <Polyline
+            strokeColor="#000000"
+            strokeWidth={6}
+            coordinates={offlineRoutes.map((loc) => loc.coords)}
           />
 
           {pointsDataOffline

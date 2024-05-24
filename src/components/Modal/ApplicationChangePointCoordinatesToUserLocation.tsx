@@ -6,14 +6,14 @@ import { IPoint } from '@/interfaces/IPoint'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { adjustPointReferenceLocationOffline } from '@/services/offlineServices/points'
+import { router } from 'expo-router'
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
 interface ApplicationChangePointCoordinatesToUserLocationProps {
   modalVisible: boolean
   setModalVisible: (modalVisible: boolean) => void
   userLocation: number[]
   selectedPoint: IPoint
-  refetch: () => void
-  lastUpdatedAtRefetch: () => void
 }
 
 const editPointCoordinatesSchema = z.object({
@@ -30,14 +30,13 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
   modalVisible,
   setModalVisible,
   userLocation,
-  refetch,
   selectedPoint,
-  lastUpdatedAtRefetch,
 }: ApplicationChangePointCoordinatesToUserLocationProps) => {
+  const { setSelectedPoint } = usePointsReference()
+
   const {
     control,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<EditPointCoordinatesFormData>({
     resolver: zodResolver(editPointCoordinatesSchema),
@@ -46,15 +45,13 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
   const onSubmit = handleSubmit(async (data) => {
     try {
       await adjustPointReferenceLocationOffline(
-        userLocation[1], // longitude
-        userLocation[0], // latitude
+        userLocation[1],
+        userLocation[0],
         // data.description,
         Number(selectedPoint.id),
       )
       setModalVisible(false)
-      refetch()
-      lastUpdatedAtRefetch()
-      reset()
+      router.replace('/points-reference')
     } catch (error) {
       Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
       throw error
@@ -80,7 +77,8 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
             <Pressable
               onPress={() => {
                 setModalVisible(!modalVisible)
-                lastUpdatedAtRefetch()
+                router.replace('/points-reference')
+                setSelectedPoint(null)
               }}
             >
               <Text className="text-xl">Fechar</Text>

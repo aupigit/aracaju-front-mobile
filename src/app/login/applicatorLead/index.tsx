@@ -11,6 +11,8 @@ import FormControl from './FormControl'
 import { doLogin } from '@/services/onlineServices/authenticate'
 import { Snackbar } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useDevice } from '@/contexts/DeviceContext'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 
 const authSchema = z.object({
   email: z
@@ -37,6 +39,9 @@ const Login = () => {
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
 
+  const { fetchDeviceData } = useDevice()
+  const { fetchApplicatorData } = useApplicator()
+
   const {
     control,
     handleSubmit,
@@ -51,6 +56,8 @@ const Login = () => {
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
   const onSubmit = handleSubmit(async (data) => {
+    await fetchDeviceData()
+    await fetchApplicatorData()
     try {
       setButtonLoading(true)
 

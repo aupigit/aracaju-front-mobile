@@ -1,8 +1,10 @@
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 import { IPoint } from '@/interfaces/IPoint'
 import IUser from '@/interfaces/IUser'
 import calculateDistance from '@/utils/calculateDistance'
 import getConflictPoints from '@/utils/getConflictPoints'
 import { LocationObject } from 'expo-location'
+import { router } from 'expo-router'
 import React from 'react'
 import { Pressable, Text } from 'react-native'
 
@@ -10,25 +12,23 @@ interface IButtonCollectAdultProps {
   showCollectButton?: boolean
   user: IUser
   pointsDataOffline: IPoint[]
-  setModalAdultCollection: (modalVisible: boolean) => void
-  setSelectedPoint: (point: IPoint | null) => void
   configPointRadius: number
   location: LocationObject | null
-  selectedPoint: IPoint
   setModalButtonWarning: (modalVisible: boolean) => void
+  userLocation: number[]
 }
 
 const BtnCollect = ({
   showCollectButton,
   user,
   pointsDataOffline,
-  setModalAdultCollection,
-  setSelectedPoint,
   configPointRadius,
   location,
-  selectedPoint,
   setModalButtonWarning,
+  userLocation,
 }: IButtonCollectAdultProps) => {
+  const { setSelectedPoint } = usePointsReference()
+
   const handlePressCollectButton = () => {
     const conflictPoints = getConflictPoints(location, pointsDataOffline)
     if (conflictPoints.length >= 2) {
@@ -40,8 +40,17 @@ const BtnCollect = ({
         const closestPointIndex = distances.indexOf(Math.min(...distances))
 
         const closestPoint = conflictPoints[closestPointIndex]
-        setModalAdultCollection(true)
+
         setSelectedPoint(closestPoint)
+
+        // Abra o modal com o ponto mais próximo
+        if (closestPoint === null || closestPoint.id === null) {
+          setModalButtonWarning(true)
+        } else {
+          router.replace(
+            `/adult-collection/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
+          )
+        }
       }
     } else {
       if (location) {
@@ -51,17 +60,20 @@ const BtnCollect = ({
               calculateDistance(location.coords, point) <=
               Number(configPointRadius ?? 15)
             ) {
-              setModalAdultCollection(true)
               setSelectedPoint(point)
+              // Abra o modal com o ponto mais próximo
+              if (point === null || point.id === null) {
+                setModalButtonWarning(true)
+              } else {
+                router.replace(
+                  `/adult-collection/${point.id}/${userLocation[0]}/${userLocation[1]}`,
+                )
+              }
               return
             }
           }
         }
       }
-    }
-
-    if (selectedPoint === null || selectedPoint.id === null) {
-      setModalButtonWarning(true)
     }
   }
 

@@ -62,8 +62,7 @@ CREATE TABLE `PointReference` (
 );
 --> statement-breakpoint
 CREATE TABLE `Application` (
-	`pk` integer PRIMARY KEY NOT NULL,
-	`id` integer,
+	`id` integer PRIMARY KEY NOT NULL,
 	`pointreference` integer,
 	`device` integer,
 	`applicator` integer,
@@ -88,8 +87,7 @@ CREATE TABLE `Application` (
 );
 --> statement-breakpoint
 CREATE TABLE `AdultCollection` (
-	`pk` integer PRIMARY KEY NOT NULL,
-	`id` integer,
+	`id` integer PRIMARY KEY NOT NULL,
 	`pointreference` integer,
 	`device` integer,
 	`applicator` integer,
@@ -235,8 +233,7 @@ CREATE TABLE `ConfigApp` (
 );
 --> statement-breakpoint
 CREATE TABLE `Tracking` (
-	`pk` integer PRIMARY KEY NOT NULL,
-	`id` integer,
+	`id` integer PRIMARY KEY NOT NULL,
 	`device` integer,
 	`applicator` integer,
 	`created_ondevice_at` text,

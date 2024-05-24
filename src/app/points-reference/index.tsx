@@ -5,6 +5,7 @@ import {
   ScrollView,
   Alert,
   DrawerLayoutAndroid,
+  AppState,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
@@ -12,18 +13,13 @@ import {
   LocationObject,
   watchPositionAsync,
   LocationAccuracy,
+  requestBackgroundPermissionsAsync,
 } from 'expo-location'
 import calculateDistance from '@/utils/calculateDistance'
 import isPointInRegion from '@/utils/isPointInRegion'
-import ApplicationPointUsageModal from '@/components/Modal/ApplicationPointUsageModal'
-import ApplicationPointsInformationModal from '@/components/Modal/ApplicationPointsInformationModal'
-import ApplicationConflictPointsModal from '@/components/Modal/ApplicationConflictPointsModal'
-import ApplicationApplicateModal from '@/components/Modal/ApplicationAplicateModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { findManyPointsReferences } from '@/services/onlineServices/points'
 import { useQuery } from 'react-query'
-import AdultCollectionModal from '@/components/Modal/AdultCollectionModal'
-import ApplicationEditPointModal from '@/components/Modal/ApplicationEditPointModal'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -51,11 +47,7 @@ import {
   findManyPointsReferencesOffline,
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
-import {
-  formatDate,
-  formatDateToDDMMYYYY,
-  formatDateToTimezoneBrasil,
-} from '@/utils/Date'
+import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
 import { useDevice } from '@/contexts/DeviceContext'
 import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
 import { doTrailsOffline } from '@/services/offlineServices/trails'
@@ -71,9 +63,8 @@ import MapViewComponent from '@/components/MapView/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
 import ButtonActions from '@/components/ButtonActions/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
-import { db } from '@/lib/database'
-import { eq } from 'drizzle-orm'
-import { PointReference } from '@/db/pointreference'
+import * as Notifications from 'expo-notifications'
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -90,31 +81,27 @@ export type EditPointCoordinateFormData = z.infer<
 const PointsReference = () => {
   const [location, setLocation] = useState<LocationObject | null>(null)
   const [routes, setRoutes] = useState([])
-  const [modalVisible, setModalVisible] = useState(false)
   const [showButton, setShowButton] = useState(false)
   const [showCollectButton, setShowCollectButton] = useState(false)
   const [showPointDetails, setShowPointDetails] = useState(false)
-  const [modalConflict, setModalConflict] = useState(false)
-  const [modalInfoPoints, setModalInfoPoints] = useState(false)
-  const [modalApplicate, setModalApplicate] = useState(false)
-  const [modalAdultCollection, setModalAdultCollection] = useState(false)
   const [modalAddPointReference, setModalAddPointReference] = useState(false)
-  const [selectedPoint, setSelectedPoint] = useState(null)
-  const [conflictPoints, setConflictPoints] = useState([])
-  const [modalEditPoint, setModalEditPoint] = useState(false)
-  const [pointIsEditable, setPointIsEditable] = useState(false)
   const [coordinateModal, setCoordinateModal] = useState(false)
   const [modalButtonWarning, setModalButtonWarning] = useState(false)
   const [previewCoordinate, setPreviewCoordinate] = useState(null)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
   const [modalSync, setModalSync] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [firstTimeOnApplication, setFirstTimeOnApplication] = useState(1)
 
   // Context services
   const { applicator } = useApplicator()
   const { device } = useDevice()
   const { user } = useUser()
+  const {
+    pointIsEditable,
+    setPointIsEditable,
+    selectedPoint,
+    setSelectedPoint,
+  } = usePointsReference()
 
   const insets = useSafeAreaInsets()
   const mapRef = useRef(null)
@@ -259,10 +246,13 @@ const PointsReference = () => {
 
   const [configsOfPointRadius, setConfigsOfPointRadius] = useState(15)
   useEffect(() => {
-    if (configPointRadius && configPointRadius.data_config) {
-      setConfigsOfPointRadius(Number(configPointRadius.data_config))
-    } else if (configPointRadiusOnline && configPointRadiusOnline.data_config) {
-      setConfigsOfPointRadius(Number(configPointRadiusOnline.data_config))
+    if (configPointRadius && configPointRadius?.data_config) {
+      setConfigsOfPointRadius(Number(configPointRadius?.data_config))
+    } else if (
+      configPointRadiusOnline &&
+      configPointRadiusOnline?.data_config
+    ) {
+      setConfigsOfPointRadius(Number(configPointRadiusOnline?.data_config))
     }
   }, [configPointRadius, configPointRadiusOnline])
 
@@ -333,15 +323,15 @@ const PointsReference = () => {
   useEffect(() => {
     if (
       configPushTime !== undefined &&
-      configPushTime.data_config !== undefined
+      configPushTime?.data_config !== undefined
     ) {
-      setSyncTimeRemaining(Number(configPushTime.data_config))
+      setSyncTimeRemaining(Number(configPushTime?.data_config))
     } else {
       if (
         configPushTimeOnline !== undefined &&
-        configPushTimeOnline.data_config !== undefined
+        configPushTimeOnline?.data_config !== undefined
       ) {
-        setSyncTimeRemaining(Number(configPushTimeOnline.data_config))
+        setSyncTimeRemaining(Number(configPushTimeOnline?.data_config))
       }
     }
   }, [configPushTime, configPushTimeOnline])
@@ -352,20 +342,16 @@ const PointsReference = () => {
         setLastSyncTime(new Date(value))
       }
     })
-  }, [])
-
-  useEffect(() => {
-    AsyncStorage.getItem('first_time_on_application').then((value) => {
-      if (value) {
-        setFirstTimeOnApplication(Number(value))
-      }
-    })
+    // AsyncStorage.getItem('first_time_on_application').then((value) => {
+    //   if (value) {
+    //     setFirstTimeOnApplication(Number(value))
+    //   }
+    // })
   }, [])
 
   const handleSyncInformations = async () => {
     setModalSync(true)
     setProgress(0) // Inicializa o progresso
-
     const totalPromises = 9 // Corrigido para 8
     let completedPromises = 0
 
@@ -439,24 +425,20 @@ const PointsReference = () => {
       })
   }
 
-  useEffect(() => {
-    // if (firstTimeOnApplication === 1) {
-    //   handleSyncInformations()
-    //   AsyncStorage.setItem('first_time_on_application', '0')
-    // }
-    const interval = setInterval(() => {
-      setSyncTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          handleSyncInformations()
-          return Number(configPushTime?.data_config)
-        } else {
-          return prevTime - 1
-        }
-      })
-    }, 1000)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setSyncTimeRemaining((prevTime) => {
+  //       if (prevTime === 0) {
+  //         handleSyncInformations()
+  //         return Number(configPushTime??.data_config)
+  //       } else {
+  //         return prevTime - 1
+  //       }
+  //     })
+  //   }, 1000)
 
-    return () => clearInterval(interval)
-  }, [])
+  //   return () => clearInterval(interval)
+  // }, [])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -485,6 +467,16 @@ const PointsReference = () => {
         'É necessário permitir o acesso à localização para utilizar este aplicativo.',
       )
     }
+
+    const { granted: backgroundPermiissionsGranted } =
+      await requestBackgroundPermissionsAsync()
+
+    if (!backgroundPermiissionsGranted) {
+      Alert.alert(
+        'Permissão de localização',
+        'É necessário permitir o acesso à localização para utilizar este aplicativo.',
+      )
+    }
   }
 
   // Localização do usuário
@@ -498,10 +490,26 @@ const PointsReference = () => {
           timeInterval: 30000,
         },
         async (newLocation) => {
-          setLocation(newLocation)
-          await AsyncStorage.setItem('location', JSON.stringify(newLocation))
-          refetch()
-          setRoutes((currentLocations) => [...currentLocations, newLocation])
+          if (newLocation) {
+            setLocation(newLocation)
+
+            const existingLocations = await AsyncStorage.getItem('locations')
+            const locationsArray = existingLocations
+              ? JSON.parse(existingLocations)
+              : []
+
+            // Add new location to the array
+            locationsArray.push(newLocation)
+
+            // Save the updated array back to AsyncStorage
+            await AsyncStorage.setItem(
+              'locations',
+              JSON.stringify(locationsArray),
+            )
+
+            refetch()
+            setRoutes((currentLocations) => [...currentLocations, newLocation])
+          }
         },
       )
     }
@@ -509,11 +517,21 @@ const PointsReference = () => {
     startWatching()
   }, [])
 
+  const [routesOffline, setRoutesOffline] = useState([])
+
+  useEffect(() => {
+    AsyncStorage.getItem('locations').then((value) => {
+      if (value) {
+        setRoutesOffline(JSON.parse(value))
+      }
+    })
+  })
+
   // POST - Trails/Offline
   useEffect(() => {
     const postTrails = async () => {
       const lastLocation = routes[routes.length - 1]
-      if (!lastLocation) {
+      if (!lastLocation || !applicator || !device) {
         return
       }
 
@@ -537,6 +555,7 @@ const PointsReference = () => {
   useEffect(() => {
     if (location) {
       if (pointsDataOffline) {
+        const validPoints = []
         for (const point of pointsDataOffline.filter((point) =>
           isPointInRegion(point, {
             latitude: userLocation[0],
@@ -547,22 +566,34 @@ const PointsReference = () => {
             calculateDistance(location?.coords, point) <=
             Number(configsOfPointRadius)
           ) {
-            setShowPointDetails(true)
-            if (Number(point.pointtype) === 3) {
-              setShowCollectButton(true)
-              setShowButton(false)
-            }
-            if (Number(point.pointtype) === 2) {
-              setShowButton(true)
-              setShowCollectButton(false)
-            }
-            return
+            validPoints.push(point)
           }
         }
+
+        if (validPoints.length > 0) {
+          const distances = validPoints.map((point) =>
+            calculateDistance(location.coords, point),
+          )
+
+          const closestPointIndex = distances.indexOf(Math.min(...distances))
+
+          const closestPoint = validPoints[closestPointIndex]
+
+          setShowPointDetails(true)
+          if (Number(closestPoint.pointtype) === 2) {
+            setShowCollectButton(true)
+            setShowButton(false)
+          }
+          if (Number(closestPoint.pointtype) === 1) {
+            setShowButton(true)
+            setShowCollectButton(false)
+          }
+        } else {
+          setShowButton(false)
+          setShowCollectButton(false)
+          setShowPointDetails(false)
+        }
       }
-      setShowButton(false)
-      setShowCollectButton(false)
-      setShowPointDetails(false)
     }
   }, [pointsDataOffline, location])
 
@@ -583,13 +614,70 @@ const PointsReference = () => {
     setMarkerVisible(false)
   }
 
+  // ------------------------------------------------------------
+  // TODO - Melhorar esse sistema de notificações
+  // Notificação do aplicativo rodando em segundo plano
+  // async function requestNotificationPermission() {
+  //   const { status } = await Notifications.requestPermissionsAsync()
+  //   if (status !== 'granted') {
+  //     alert(
+  //       'No notification permissions. You might want to enable notifications for this app from the settings.',
+  //     )
+  //     return false
+  //   }
+  //   return true
+  // }
+  // Notifications.setNotificationHandler({
+  //   handleNotification: async () => ({
+  //     shouldShowAlert: true,
+  //     shouldPlaySound: false,
+  //     shouldSetBadge: false,
+  //   }),
+  // })
+  // const appState = useRef(AppState.currentState)
+  // const [appStateVisible, setAppStateVisible] = useState(appState.current)
+  // useEffect(() => {
+  //   requestNotificationPermission()
+  //   const appStateSubscription = AppState.addEventListener(
+  //     'change',
+  //     async (nextAppState) => {
+  //       if (
+  //         appState.current.match(/inactive|background/) &&
+  //         nextAppState === 'active'
+  //       ) {
+  //         console.log('App has come to the foreground!')
+  //         await AsyncStorage.setItem('activeTime', new Date().toISOString())
+  //       } else if (nextAppState === 'background') {
+  //         console.log('App has gone to the background!')
+  //         await schedulePushNotification()
+  //         await AsyncStorage.setItem('backgroundTime', new Date().toISOString())
+  //       }
+
+  //       appState.current = nextAppState
+  //       // setAppStateVisible(appState.current)
+  //       console.log('AppState', appState.current)
+  //     },
+  //   )
+
+  //   return () => {
+  //     appStateSubscription.remove()
+  //   }
+  // }, [])
+
+  // async function schedulePushNotification() {
+  //   await Notifications.scheduleNotificationAsync({
+  //     content: {
+  //       title: 'App in background',
+  //       body: 'The app has gone to the background.',
+  //     },
+  //     trigger: null,
+  //   })
+  // }
+  // -------------------------------------------------------------
+
   // Menu lateral
   const navigationView = () => (
-    <Sidebar
-      insets={insets}
-      setModalAdultCollection={setModalAdultCollection}
-      closeDrawer={closeDrawer}
-    />
+    <Sidebar insets={insets} closeDrawer={closeDrawer} />
   )
 
   // Loading de informações
@@ -603,11 +691,7 @@ const PointsReference = () => {
     pointtypeDataLoading ||
     latestApplicationDateLoading ||
     configPointRadiusIsLoadingOnline ||
-    configPushTimeIsLoadingOnline ||
-    configsOfPointRadius === undefined ||
-    Number(configsOfPointRadius) === 0 ||
-    syncTimeRemaining === undefined ||
-    location === null
+    configPushTimeIsLoadingOnline
   ) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -646,84 +730,30 @@ const PointsReference = () => {
             setPreviewCoordinate={setPreviewCoordinate}
             setValue={setValue}
             userLocation={userLocation}
+            offlineRoutes={routesOffline}
           />
+          {user.is_staff && (
+            <ApplicationAdjustPointCoordinatesModal
+              modalVisible={coordinateModal}
+              setModalVisible={setCoordinateModal}
+              onSubmit={onSubmit}
+              control={control}
+              setPreviewCoordinate={setPreviewCoordinate}
+              errors={errors}
+              setPointIsEditable={setPointIsEditable}
+            />
+          )}
 
-          <ApplicationPointUsageModal
-            modalVisible={modalVisible}
-            setModalVisible={setModalVisible}
-            selectedPoint={selectedPoint}
-            setModalApplicate={setModalApplicate}
-            setSelectedPoint={setSelectedPoint}
-            refetch={refetch}
-            setPointIsEditable={setPointIsEditable}
-            userLocation={userLocation}
-            modalApplicate={modalApplicate}
-          />
-
-          <ApplicationPointsInformationModal
-            modalInfoPoints={modalInfoPoints}
-            setModalInfoPoints={setModalInfoPoints}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-          />
-
-          <ApplicationConflictPointsModal
-            conflictPoints={conflictPoints}
-            modalConflict={modalConflict}
-            modalVisible={modalVisible}
-            setModalConflict={setModalConflict}
-            setModalVisible={setModalVisible}
-            setSelectedPoint={setSelectedPoint}
-          />
-
-          <ApplicationApplicateModal
-            modalVisible={modalApplicate}
-            setModalVisible={setModalApplicate}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-            userLocation={userLocation}
-            refetchLatestApplicationDates={refetchLatestApplicationDates}
-            refetch={refetch}
-            handleApplication={handleApplication}
-          />
-          <AdultCollectionModal
-            modalVisible={modalAdultCollection}
-            setModalVisible={setModalAdultCollection}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-            userLocation={userLocation}
-          />
-
-          <ApplicationEditPointModal
-            modalVisible={modalEditPoint}
-            setModalVisible={setModalEditPoint}
-            selectedPoint={selectedPoint}
-            setSelectedPoint={setSelectedPoint}
-            userLocation={userLocation}
-            setPointIsEditable={setPointIsEditable}
-            refetch={refetch}
-            lastUpdatedAtRefetch={lastUpdatedAtRefetch}
-          />
-
-          <ApplicationAdjustPointCoordinatesModal
-            modalVisible={coordinateModal}
-            setModalVisible={setCoordinateModal}
-            setSelectedPoint={setSelectedPoint}
-            onSubmit={onSubmit}
-            control={control}
-            setPreviewCoordinate={setPreviewCoordinate}
-            errors={errors}
-            setPointIsEditable={setPointIsEditable}
-          />
-
-          <ApplicationAddPointReferenceModal
-            modalVisible={modalAddPointReference}
-            setModalVisible={setModalAddPointReference}
-            refetch={refetch}
-            userLocation={userLocation}
-            applicatorId={Number(applicator.id)}
-            deviceId={Number(device.id)}
-          />
+          {user.is_staff && (
+            <ApplicationAddPointReferenceModal
+              modalVisible={modalAddPointReference}
+              setModalVisible={setModalAddPointReference}
+              refetch={refetch}
+              userLocation={userLocation}
+              applicatorId={Number(applicator.id)}
+              deviceId={Number(device.id)}
+            />
+          )}
           <SyncModal
             modalVisible={modalSync}
             setModalVisible={setModalSync}
@@ -737,37 +767,35 @@ const PointsReference = () => {
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
-          <BtnCollect
-            configPointRadius={configsOfPointRadius}
-            location={location}
-            pointsDataOffline={pointsDataOffline}
-            setModalAdultCollection={setModalAdultCollection}
-            setSelectedPoint={setSelectedPoint}
-            user={user}
-            showCollectButton={showCollectButton}
-            selectedPoint={selectedPoint}
-            setModalButtonWarning={setModalButtonWarning}
-          />
-
+          {user.is_staff && (
+            <BtnCollect
+              configPointRadius={configsOfPointRadius}
+              location={location}
+              pointsDataOffline={pointsDataOffline}
+              user={user}
+              showCollectButton={showCollectButton}
+              setModalButtonWarning={setModalButtonWarning}
+              userLocation={userLocation}
+            />
+          )}
           <BtnApplication
             configPointRadius={configsOfPointRadius}
             pointsDataOffline={pointsDataOffline}
-            setModalApplicate={setModalApplicate}
-            setSelectedPoint={setSelectedPoint}
             location={location}
             showButton={showButton}
-            selectedPoint={selectedPoint}
             setModalButtonWarning={setModalButtonWarning}
+            userLocation={userLocation}
+            latestApplicationDates={latestApplicationDates}
           />
-
-          <BtnPointInformations
-            configPointRadius={configsOfPointRadius}
-            location={location}
-            pointsDataOffline={pointsDataOffline}
-            setSelectedPoint={setSelectedPoint}
-            setModalEditPoint={setModalEditPoint}
-            showPointDetails={showPointDetails}
-          />
+          {user.is_staff && (
+            <BtnPointInformations
+              configPointRadius={configsOfPointRadius}
+              location={location}
+              pointsDataOffline={pointsDataOffline}
+              showPointDetails={showPointDetails}
+              userLocation={userLocation}
+            />
+          )}
 
           {lastSyncTime && (
             <View className="w-screen items-center justify-center bg-white">

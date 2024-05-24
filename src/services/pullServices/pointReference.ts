@@ -1,7 +1,7 @@
 import { PointReference } from '@/db/pointreference'
 import { IPoint } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
-import { asc, desc, eq, sql } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const pullPointData = async (pointData: IPoint[]) => {

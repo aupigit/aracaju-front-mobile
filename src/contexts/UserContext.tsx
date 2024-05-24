@@ -11,6 +11,7 @@ import { useQuery } from 'react-query'
 import NetInfo from '@react-native-community/netinfo'
 import { findUserById } from '@/services/onlineServices/user'
 import { router } from 'expo-router'
+import { useDevice } from './DeviceContext'
 
 interface UserContextProps {
   children: ReactNode
@@ -26,6 +27,7 @@ interface UserContextData {
 const UserContext = createContext<UserContextData | undefined>(undefined)
 
 const UserProvider: React.FC<UserContextProps> = ({ children }) => {
+  const { cleatDeviceData } = useDevice()
   const [user, setUser] = useState<IUser | null>(null)
   const isAuthenticated = !!user
 
@@ -36,7 +38,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
       const userId = await AsyncStorage.getItem('userId')
 
       if (token && userId) {
-        const response = await findUserById(userId, token)
+        const response = await findUserById(userId)
         return response
       } else {
         router.replace('/')
@@ -61,6 +63,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
     AsyncStorage.removeItem('token')
     AsyncStorage.removeItem('userId')
     AsyncStorage.removeItem('applicator_id')
+    cleatDeviceData()
     router.replace('/')
   }
 

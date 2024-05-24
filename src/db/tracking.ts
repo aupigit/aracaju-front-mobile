@@ -3,8 +3,7 @@ import { sql } from 'drizzle-orm'
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const Tracking = sqliteTable('Tracking', {
-  pk: integer('pk').primaryKey(),
-  id: integer('id').unique(),
+  id: integer('id').primaryKey().unique(),
   device: integer('device'),
   applicator: integer('applicator'),
   created_ondevice_at: text('created_ondevice_at'),

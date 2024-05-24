@@ -4,16 +4,17 @@ import getConflictPoints from '@/utils/getConflictPoints'
 import calculateDistance from '@/utils/calculateDistance'
 import { IPoint } from '@/interfaces/IPoint'
 import { LocationObject } from 'expo-location'
+import { router } from 'expo-router'
+import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
 interface IButtonApplicationProps {
   showButton?: boolean
   location?: LocationObject | null
   pointsDataOffline: IPoint[]
   configPointRadius: number
-  setModalApplicate: (modalVisible: boolean) => void
-  setSelectedPoint: (point: IPoint | null) => void
-  selectedPoint: IPoint
   setModalButtonWarning: (modalVisible: boolean) => void
+  userLocation: number[]
+  latestApplicationDates: { id: string; date: string }[]
 }
 
 const BtnApplication = ({
@@ -21,11 +22,19 @@ const BtnApplication = ({
   location,
   pointsDataOffline,
   configPointRadius,
-  setModalApplicate,
-  setSelectedPoint,
-  selectedPoint,
   setModalButtonWarning,
+  userLocation,
+  latestApplicationDates,
 }: IButtonApplicationProps) => {
+  const { setSelectedPoint } = usePointsReference()
+
+  let isToday: boolean
+  if (latestApplicationDates) {
+    const latestDateForPoint = latestApplicationDates[0]?.date
+    const latestDate = new Date(latestDateForPoint)
+    isToday = latestDate.toDateString() === new Date().toDateString()
+  }
+
   const handlePressButtonApplication = () => {
     // Verifique se há conflito (usuário dentro do raio de dois pontos)
     const conflictPoints = getConflictPoints(location, pointsDataOffline)
@@ -44,10 +53,12 @@ const BtnApplication = ({
         setSelectedPoint(closestPoint)
 
         // Abra o modal com o ponto mais próximo
-        if (selectedPoint === null || selectedPoint.id === null) {
+        if (closestPoint === null || closestPoint.id === null) {
           setModalButtonWarning(true)
         } else {
-          setModalApplicate(true)
+          router.replace(
+            `/applications/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
+          )
         }
       }
     } else {
@@ -61,10 +72,12 @@ const BtnApplication = ({
               setSelectedPoint(point)
 
               // Abra o modal com o ponto mais próximo
-              if (selectedPoint === null || selectedPoint.id === null) {
+              if (point === null || point.id === null) {
                 setModalButtonWarning(true)
               } else {
-                setModalApplicate(true)
+                router.replace(
+                  `/applications/${point.id}/${userLocation[0]}/${userLocation[1]}`,
+                )
               }
               return
             }
@@ -76,14 +89,28 @@ const BtnApplication = ({
   return (
     <>
       {showButton && (
-        <Pressable
-          className="w-screen bg-green-500 p-5"
-          onPress={handlePressButtonApplication}
-        >
-          <Text className="text-center text-lg font-bold text-white">
-            APLICAÇÃO
-          </Text>
-        </Pressable>
+        <>
+          {isToday ? (
+            <Pressable
+              disabled={isToday}
+              className="w-screen bg-green-200 p-5"
+              onPress={handlePressButtonApplication}
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                APLICAÇÃO
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              className="w-screen bg-green-500 p-5"
+              onPress={handlePressButtonApplication}
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                APLICAÇÃO
+              </Text>
+            </Pressable>
+          )}
+        </>
       )}
     </>
   )

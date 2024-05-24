@@ -15,7 +15,7 @@ export const findManyPointsReferencesOffline = async (
         .select()
         .from(PointReference)
         .where(
-          and(eq(PointReference.is_active, 1), eq(PointReference.pointtype, 2)),
+          and(eq(PointReference.is_active, 1), eq(PointReference.pointtype, 1)),
         )
     } else {
       query = db
@@ -26,6 +26,23 @@ export const findManyPointsReferencesOffline = async (
 
     const result = await query.execute()
     return result as unknown as Promise<IPoint[]>
+  } catch (error) {
+    Alert.alert('Error retrieving data: ', error.message)
+    throw error
+  }
+}
+
+export const findOnePointReferenceByIdOffline = async (
+  point_id: number,
+): Promise<IPoint> => {
+  try {
+    const result = await db
+      .select()
+      .from(PointReference)
+      .where(eq(PointReference.id, point_id))
+      .execute()
+
+    return result[0] as unknown as Promise<IPoint>
   } catch (error) {
     Alert.alert('Error retrieving data: ', error.message)
     throw error

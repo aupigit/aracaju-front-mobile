@@ -12,6 +12,7 @@ import { doLogin } from '@/services/onlineServices/authenticate'
 import { Snackbar } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useDevice } from '@/contexts/DeviceContext'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 
 const authSchema = z.object({
   password: z
@@ -25,7 +26,8 @@ const authSchema = z.object({
 export type AuthFormData = z.infer<typeof authSchema>
 
 const Login = () => {
-  const { device } = useDevice()
+  const { device, fetchDeviceData } = useDevice()
+  const { fetchApplicatorData } = useApplicator()
   const { loginUser } = useUser()
   const [showPassword, setShowPassword] = useState(false)
   const [buttonLoading, setButtonLoading] = useState(false)
@@ -44,6 +46,8 @@ const Login = () => {
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
   const onSubmit = handleSubmit(async (data) => {
+    await fetchDeviceData()
+    await fetchApplicatorData()
     try {
       setButtonLoading(true)
 
