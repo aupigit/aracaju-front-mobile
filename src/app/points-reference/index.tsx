@@ -93,7 +93,7 @@ const PointsReference = () => {
   const [progress, setProgress] = useState(0)
 
   // Context services
-  const { applicator } = useApplicator()
+  const { applicator, fetchApplicatorData } = useApplicator()
   const { device } = useDevice()
   const { user } = useUser()
   const {
@@ -114,6 +114,8 @@ const PointsReference = () => {
   const closeDrawer = () => {
     drawerRef.current?.closeDrawer()
   }
+
+  if (!applicator) fetchApplicatorData()
 
   // Formulário de ajuste de coordenadas
   const {
@@ -350,6 +352,7 @@ const PointsReference = () => {
   }, [])
 
   const handleSyncInformations = async () => {
+    if (!applicator && !device) return
     setModalSync(true)
     setProgress(0) // Inicializa o progresso
     const totalPromises = 9 // Corrigido para 8
@@ -680,6 +683,24 @@ const PointsReference = () => {
     <Sidebar insets={insets} closeDrawer={closeDrawer} />
   )
 
+  // console.log(
+  //   pointsLoading ||
+  //     applicatorLoading ||
+  //     userLoading ||
+  //     configAppLoading ||
+  //     configPointRadiusLoading ||
+  //     configPushTimeLoading ||
+  //     pointtypeDataLoading ||
+  //     latestApplicationDateLoading ||
+  //     configPointRadiusIsLoadingOnline ||
+  //     configPushTimeIsLoadingOnline ||
+  //     !applicator ||
+  //     !device,
+  // )
+
+  console.log(applicator)
+  console.log(device)
+
   // Loading de informações
   if (
     pointsLoading ||
@@ -691,7 +712,9 @@ const PointsReference = () => {
     pointtypeDataLoading ||
     latestApplicationDateLoading ||
     configPointRadiusIsLoadingOnline ||
-    configPushTimeIsLoadingOnline
+    configPushTimeIsLoadingOnline ||
+    !applicator ||
+    !device
   ) {
     return (
       <View className="flex-1 items-center justify-center">

@@ -14,7 +14,10 @@ import { useApplicator } from '@/contexts/ApplicatorContext'
 const Home = () => {
   const { isAuthenticated, logoutUser, loginUser } = useUser()
   const { device, fetchDeviceData } = useDevice()
-  const { fetchApplicatorData } = useApplicator()
+  const { fetchApplicatorData, logoutApplicator } = useApplicator()
+
+  if (!device) fetchDeviceData()
+
   const handleEnterLead = async () => {
     await fetchDeviceData()
     await fetchApplicatorData()
@@ -51,6 +54,7 @@ const Home = () => {
 
   const handleLogout = () => {
     logoutUser()
+    logoutApplicator()
   }
 
   // Migrações da aplicação
@@ -67,7 +71,15 @@ const Home = () => {
   if (!success) {
     return (
       <View className="flex-1 items-center justify-center">
-        <Text>Migration is in progress...</Text>
+        {/* <Text>Migration is in progress...</Text> */}
+      </View>
+    )
+  }
+
+  if (!device) {
+    return (
+      <View className=" flex-1 items-center justify-center">
+        <Text>Carregando...</Text>
       </View>
     )
   }
