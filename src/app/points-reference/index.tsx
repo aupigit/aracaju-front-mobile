@@ -680,8 +680,6 @@ const PointsReference = () => {
     <Sidebar insets={insets} closeDrawer={closeDrawer} />
   )
 
-  // console.log(device.id)
-
   // Loading de informações
   if (
     pointsLoading ||
@@ -734,25 +732,28 @@ const PointsReference = () => {
             userLocation={userLocation}
             offlineRoutes={routesOffline}
           />
+          {user.is_staff && (
+            <ApplicationAdjustPointCoordinatesModal
+              modalVisible={coordinateModal}
+              setModalVisible={setCoordinateModal}
+              onSubmit={onSubmit}
+              control={control}
+              setPreviewCoordinate={setPreviewCoordinate}
+              errors={errors}
+              setPointIsEditable={setPointIsEditable}
+            />
+          )}
 
-          <ApplicationAdjustPointCoordinatesModal
-            modalVisible={coordinateModal}
-            setModalVisible={setCoordinateModal}
-            onSubmit={onSubmit}
-            control={control}
-            setPreviewCoordinate={setPreviewCoordinate}
-            errors={errors}
-            setPointIsEditable={setPointIsEditable}
-          />
-
-          <ApplicationAddPointReferenceModal
-            modalVisible={modalAddPointReference}
-            setModalVisible={setModalAddPointReference}
-            refetch={refetch}
-            userLocation={userLocation}
-            applicatorId={Number(applicator.id)}
-            deviceId={Number(device.id)}
-          />
+          {user.is_staff && (
+            <ApplicationAddPointReferenceModal
+              modalVisible={modalAddPointReference}
+              setModalVisible={setModalAddPointReference}
+              refetch={refetch}
+              userLocation={userLocation}
+              applicatorId={Number(applicator.id)}
+              deviceId={Number(device.id)}
+            />
+          )}
           <SyncModal
             modalVisible={modalSync}
             setModalVisible={setModalSync}
@@ -766,16 +767,17 @@ const PointsReference = () => {
         </View>
 
         <View className="absolute bottom-0 left-0 items-center justify-center">
-          <BtnCollect
-            configPointRadius={configsOfPointRadius}
-            location={location}
-            pointsDataOffline={pointsDataOffline}
-            user={user}
-            showCollectButton={showCollectButton}
-            setModalButtonWarning={setModalButtonWarning}
-            userLocation={userLocation}
-          />
-
+          {user.is_staff && (
+            <BtnCollect
+              configPointRadius={configsOfPointRadius}
+              location={location}
+              pointsDataOffline={pointsDataOffline}
+              user={user}
+              showCollectButton={showCollectButton}
+              setModalButtonWarning={setModalButtonWarning}
+              userLocation={userLocation}
+            />
+          )}
           <BtnApplication
             configPointRadius={configsOfPointRadius}
             pointsDataOffline={pointsDataOffline}
@@ -783,15 +785,17 @@ const PointsReference = () => {
             showButton={showButton}
             setModalButtonWarning={setModalButtonWarning}
             userLocation={userLocation}
+            latestApplicationDates={latestApplicationDates}
           />
-
-          <BtnPointInformations
-            configPointRadius={configsOfPointRadius}
-            location={location}
-            pointsDataOffline={pointsDataOffline}
-            showPointDetails={showPointDetails}
-            userLocation={userLocation}
-          />
+          {user.is_staff && (
+            <BtnPointInformations
+              configPointRadius={configsOfPointRadius}
+              location={location}
+              pointsDataOffline={pointsDataOffline}
+              showPointDetails={showPointDetails}
+              userLocation={userLocation}
+            />
+          )}
 
           {lastSyncTime && (
             <View className="w-screen items-center justify-center bg-white">

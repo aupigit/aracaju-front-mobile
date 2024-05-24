@@ -14,6 +14,7 @@ interface IButtonApplicationProps {
   configPointRadius: number
   setModalButtonWarning: (modalVisible: boolean) => void
   userLocation: number[]
+  latestApplicationDates: { id: string; date: string }[]
 }
 
 const BtnApplication = ({
@@ -23,8 +24,16 @@ const BtnApplication = ({
   configPointRadius,
   setModalButtonWarning,
   userLocation,
+  latestApplicationDates,
 }: IButtonApplicationProps) => {
   const { setSelectedPoint } = usePointsReference()
+
+  let isToday: boolean
+  if (latestApplicationDates) {
+    const latestDateForPoint = latestApplicationDates[0]?.date
+    const latestDate = new Date(latestDateForPoint)
+    isToday = latestDate.toDateString() === new Date().toDateString()
+  }
 
   const handlePressButtonApplication = () => {
     // Verifique se há conflito (usuário dentro do raio de dois pontos)
@@ -80,14 +89,28 @@ const BtnApplication = ({
   return (
     <>
       {showButton && (
-        <Pressable
-          className="w-screen bg-green-500 p-5"
-          onPress={handlePressButtonApplication}
-        >
-          <Text className="text-center text-lg font-bold text-white">
-            APLICAÇÃO
-          </Text>
-        </Pressable>
+        <>
+          {isToday ? (
+            <Pressable
+              disabled={isToday}
+              className="w-screen bg-green-200 p-5"
+              onPress={handlePressButtonApplication}
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                APLICAÇÃO
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              className="w-screen bg-green-500 p-5"
+              onPress={handlePressButtonApplication}
+            >
+              <Text className="text-center text-lg font-bold text-white">
+                APLICAÇÃO
+              </Text>
+            </Pressable>
+          )}
+        </>
       )}
     </>
   )

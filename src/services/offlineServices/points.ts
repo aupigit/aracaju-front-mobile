@@ -15,7 +15,7 @@ export const findManyPointsReferencesOffline = async (
         .select()
         .from(PointReference)
         .where(
-          and(eq(PointReference.is_active, 1), eq(PointReference.pointtype, 2)),
+          and(eq(PointReference.is_active, 1), eq(PointReference.pointtype, 1)),
         )
     } else {
       query = db
