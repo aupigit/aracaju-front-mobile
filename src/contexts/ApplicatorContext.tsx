@@ -17,6 +17,7 @@ interface ApplicatorContextProps {
 interface ApplicatorContextData {
   applicator: IApplicator | null
   fetchApplicatorData: () => Promise<void>
+  logoutApplicator: () => void
 }
 
 const ApplicatorContext = createContext<ApplicatorContextData | undefined>(
@@ -39,6 +40,10 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
     }
   }
 
+  const logoutApplicator = () => {
+    setApplicator(null)
+  }
+
   useEffect(() => {
     fetchApplicatorData()
   }, [])
@@ -46,6 +51,7 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
   const value = {
     applicator,
     fetchApplicatorData,
+    logoutApplicator,
   }
 
   return (

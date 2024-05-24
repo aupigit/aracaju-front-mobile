@@ -2,7 +2,7 @@ import { View, Text, Pressable } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
 import { useUser } from '@/contexts/UserContext'
-import { router } from 'expo-router'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 
 interface ISidebarProps {
   insets: { top: number; bottom: number }
@@ -11,9 +11,11 @@ interface ISidebarProps {
 
 const Sidebar = ({ insets, closeDrawer }: ISidebarProps) => {
   const { logoutUser } = useUser()
+  const { logoutApplicator } = useApplicator()
 
   const handleLogout = () => {
     logoutUser()
+    logoutApplicator()
   }
 
   return (
