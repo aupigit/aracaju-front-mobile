@@ -175,7 +175,7 @@ const AdultCollection = () => {
   const {
     data: configWindCollectionOnline,
     isLoading: configWindCollectionOnlineLoading,
-  } = useQuery('config/configapp/?name="coleta_vento"', async () => {
+  } = useQuery('config/configapp/online/?name="coleta_vento"', async () => {
     return await findConfigAppByName('coleta_vento').then(
       (response) => response,
     )
@@ -193,7 +193,7 @@ const AdultCollection = () => {
   const {
     data: configClimateWindCollectionOnline,
     isLoading: configClimateWindCollectionOnlineLoading,
-  } = useQuery('config/configapp/?name="coleta_clima"', async () => {
+  } = useQuery('config/configapp/online/?name="coleta_clima"', async () => {
     return await findConfigAppByName('coleta_clima').then(
       (response) => response,
     )

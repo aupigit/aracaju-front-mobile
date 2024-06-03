@@ -166,23 +166,33 @@ const Applications = () => {
     }
   })
 
-  const { data: configScaleVolume, isLoading: configScaleVolumeLoading } =
-    useQuery('config/configapp/?name="volume_bti"', async () => {
-      return await findConfigAppByNameOffline('volume_escala').then(
-        (response) => response,
-      )
-    })
-
   const {
-    data: configScaleVolumeOnline,
-    isLoading: configScaleVolumeOnlineIsLoading,
-  } = useQuery('config/configapp/?name="volume_bti"', async () => {
-    return await findConfigAppByName('volume_escala').then(
+    data: configScaleVolume,
+    isLoading: configScaleVolumeLoading,
+    isSuccess: configScaleVolumeIsSuccess,
+  } = useQuery('config/configapp/?name="volume_escala"', async () => {
+    console.log('aaaaaaaa')
+    return await findConfigAppByNameOffline('volume_escala').then(
       (response) => response,
     )
   })
 
-  if (configScaleVolumeLoading || configScaleVolumeOnlineIsLoading) {
+  const {
+    data: configScaleVolumeOnline,
+    isLoading: configScaleVolumeOnlineIsLoading,
+    isSuccess: configScaleVolumeOnlineIsSuccess,
+  } = useQuery('config/configapp/online/?name="volume_escala"', async () => {
+    console.log('bbbbbbbbbb')
+    const response = await findConfigAppByName('volume_escala')
+    return response
+  })
+
+  if (
+    configScaleVolumeLoading ||
+    configScaleVolumeOnlineIsLoading ||
+    !configScaleVolumeOnlineIsSuccess ||
+    !configScaleVolumeIsSuccess
+  ) {
     return (
       <View className="flex-1 items-center justify-center">
         <Text>Carregando...</Text>
@@ -306,6 +316,7 @@ const Applications = () => {
                       onValueChange={(value) => {
                         onChange(value)
                       }}
+                      key={configScaleVolume.id}
                       items={configScaleVolume?.data_config
                         .split(';')
                         .map((item) => ({
@@ -319,6 +330,7 @@ const Applications = () => {
                       onValueChange={(value) => {
                         onChange(value)
                       }}
+                      key={configScaleVolumeOnline.id}
                       items={configScaleVolumeOnline?.data_config
                         .split(';')
                         .map((item) => ({

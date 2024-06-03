@@ -5,29 +5,41 @@ import { sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
+  console.log('Dados das configurações do app', configAppData)
+
   for (const data of configAppData) {
     try {
-      await db
-        .insert(ConfigApp)
-        .values({
-          id: Number(data.id),
-          name: data.name,
-          data_type: data.data_type,
-          data_config: data.data_config,
-          description: data.description,
-        })
-        .onConflictDoUpdate({
-          target: ConfigApp.id,
-          set: {
-            name: sql.raw(`excluded.${ConfigApp.name.name}`),
-            data_type: sql.raw(`excluded.${ConfigApp.data_type.name}`),
-            data_config: sql.raw(`excluded.${ConfigApp.data_config.name}`),
-            description: sql.raw(`excluded.${ConfigApp.description.name}`),
-          },
-        })
+      const existingConfigApps = await db
+        .select()
+        .from(ConfigApp)
+        .where(sql`${ConfigApp.id} = ${Number(data.id)}`)
         .execute()
+
+      if (existingConfigApps.length > 0) {
+        await db
+          .update(ConfigApp)
+          .set({
+            name: data.name,
+            data_type: data.data_type,
+            data_config: data.data_config,
+            description: data.description,
+          })
+          .where(sql`${ConfigApp.id} = ${Number(data.id)}`)
+          .execute()
+      } else {
+        await db
+          .insert(ConfigApp)
+          .values({
+            id: Number(data.id),
+            name: data.name,
+            data_type: data.data_type,
+            data_config: data.data_config,
+            description: data.description,
+          })
+          .execute()
+      }
     } catch (error) {
-      Alert.alert('Error inserting or updating data: ', error.message)
+      Alert.alert('Error inserting data: ', error.message)
       throw error
     }
   }

@@ -145,7 +145,7 @@ const ApplicationAddPointReferenceModal = ({
   const {
     data: configScaleVolumeOnline,
     isSuccess: configScaleVolumeOnlineSuccess,
-  } = useQuery('config/configapp/?name="volume_bti"', async () => {
+  } = useQuery('config/configapp/online/?name="volume_bti"', async () => {
     return await findConfigAppByName('volume_escala').then(
       (response) => response,
     )
@@ -161,7 +161,7 @@ const ApplicationAddPointReferenceModal = ({
   const {
     data: configPointtypeOnline,
     isSuccess: configPointtypeOnlineSuccess,
-  } = useQuery('config/configapp/?name="flatdata"', async () => {
+  } = useQuery('config/configapp/online/?name="flatdata"', async () => {
     return await findPointTypeData().then((response) => response)
   })
 
@@ -348,11 +348,9 @@ const ApplicationAddPointReferenceModal = ({
                 <View className="mb-2 w-full">
                   <Text>Tipo do ponto</Text>
                   <View className="border border-zinc-700/20">
-                    {configPointtype &&
-                    configPointtype.length > 0 &&
-                    configPointtype[0].id !== undefined ? (
+                    {configPointtype && configPointtype.length > 0 ? (
                       <RNPickerSelect
-                        placeholder={{ label: 'Tipo do ponto', value: 0 }}
+                        placeholder={{ label: 'Tipo do ponto 2', value: 0 }}
                         onValueChange={(value) => {
                           onChange(value)
                         }}
@@ -363,13 +361,13 @@ const ApplicationAddPointReferenceModal = ({
                       />
                     ) : (
                       <RNPickerSelect
-                        placeholder={{ label: 'Tipo do ponto', value: 0 }}
+                        placeholder={{ label: 'Tipo do ponto 1 ', value: 0 }}
                         onValueChange={(value) => {
                           onChange(value)
                         }}
                         items={configPointtypeOnline.map((item) => ({
                           label: item.name,
-                          value: item.id,
+                          value: item.point_code,
                         }))}
                       />
                     )}

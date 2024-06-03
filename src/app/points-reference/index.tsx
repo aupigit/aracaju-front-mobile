@@ -65,6 +65,10 @@ import ButtonActions from '@/components/ButtonActions/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
 import * as Notifications from 'expo-notifications'
 import { usePointsReference } from '@/contexts/PointsReferenceContext'
+import { db } from '@/lib/database'
+import { PointReference } from '@/db/pointreference'
+import { eq } from 'drizzle-orm'
+import { IPoint } from '@/interfaces/IPoint'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -141,11 +145,17 @@ const PointsReference = () => {
     data: pointsDataOffline,
     refetch,
     isSuccess,
-  } = useQuery('application/pointsreference/is_offline', async () => {
-    return await findManyPointsReferencesOffline(user?.is_staff).then(
-      (response) => response,
-    )
-  })
+  } = useQuery(
+    'application/pointsreference/is_offline',
+    async () => {
+      return await findManyPointsReferencesOffline(user?.is_staff).then(
+        (response) => response,
+      )
+    },
+    {
+      staleTime: 0,
+    },
+  )
 
   // GET - Última updated_at de Pontos/Offline
   const {
@@ -162,24 +172,7 @@ const PointsReference = () => {
     updatedAtParameter = formatDate(updatedAtDate)
   }
 
-  // GET - PointsReference/Online
-  const {
-    data: pointsData,
-    isLoading: pointsLoading,
-    refetch: pointsDataRefetch,
-  } = useQuery(
-    'application/pointreference',
-    async () => {
-      const response = await findManyPointsReferences(updatedAtParameter)
-      // Call refetch functions here if needed
-      lastUpdatedAtRefetch()
-      refetch()
-      return response
-    },
-    {
-      enabled: lastUpdatedAtSuccess,
-    },
-  )
+  // console.log(lastUpdatedAtData)
 
   // GET - Applicator/Online
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
@@ -344,104 +337,123 @@ const PointsReference = () => {
         setLastSyncTime(new Date(value))
       }
     })
-    // AsyncStorage.getItem('first_time_on_application').then((value) => {
-    //   if (value) {
-    //     setFirstTimeOnApplication(Number(value))
-    //   }
-    // })
   }, [])
 
+  // GET - PointsReference/Online
+  const [pointsData, setPointsData] = useState([])
+  const pointsDataRef = useRef(pointsData) // Create a ref for pointsData
+
+  const fetchData = async () => {
+    try {
+      const response = await findManyPointsReferences(updatedAtParameter)
+      console.log('BBBBBBBBBB', response)
+      setPointsData(response)
+      pointsDataRef.current = response // Update the ref when pointsData is updated
+      lastUpdatedAtRefetch()
+      refetch()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    if (lastUpdatedAtSuccess) {
+      fetchData()
+    }
+  }, [lastUpdatedAtSuccess, updatedAtParameter])
+
   const handleSyncInformations = async () => {
-    if (!applicator && !device) return
     setModalSync(true)
-    setProgress(0) // Inicializa o progresso
-    const totalPromises = 9 // Corrigido para 8
-    let completedPromises = 0
+    setProgress(0)
 
-    const updateProgress = () => {
-      completedPromises++
-      setProgress(+(completedPromises / totalPromises).toFixed(2))
-    }
+    console.log('Sincronização Iniciando')
+    Promise.all([
+      syncPoints(applicator.id, device.factory_id),
+      setProgress(0.1),
+    ]).then(() => {
+      Promise.all([
+        syncApplication(applicator.id, device.id),
+        setProgress(0.2),
 
-    const once = (fn) => {
-      let resolved = false
-      return (...args) => {
-        if (!resolved) {
-          resolved = true
-          return fn(...args)
-        }
-      }
-    }
+        syncDoAdultCollection(device.id),
+        setProgress(0.3),
 
-    const tick = (promise) => {
-      return promise.then(() => {
-        updateProgress()
-      })
-    }
+        syncTrails(Number(applicator.id), Number(device.id)),
+        setProgress(0.4),
+      ])
+        .then(() => {
+          const now = new Date()
+          setLastSyncTime(now)
+          AsyncStorage.setItem('lastSyncTime', now.toISOString())
+          console.log('PULL INICIANDO')
 
-    Promise.all([once(syncPoints)(applicator.id, device.factory_id)].map(tick)) // Faz o push de pontos primeiro
-      .then(() => {
-        Promise.all(
-          [
-            // Aguarda o push de pontos para ai sim fazer o push dos outros dados
-            once(syncApplication)(applicator.id, device.id),
-            once(syncDoAdultCollection)(device.id),
-            once(syncTrails)(Number(applicator.id), Number(device.id)),
-          ].map(tick),
-        ).then(() => {
-          if (pointsData && applicatorData && userData && configAppData) {
-            const now = new Date()
-            setLastSyncTime(now)
-            AsyncStorage.setItem('lastSyncTime', now.toISOString())
-            Promise.all(
-              [
-                // Espera o push de dados para ai sim realizar o pull de dados
-                once(pullPointData)(pointsData),
-                once(pullApplicatorData)(applicatorData),
-                once(pullUserData)(userData),
-                once(pullConfigAppData)(configAppData),
-                once(pullPointtypeFlatData)(pointtypeData),
-              ].map(tick),
-            )
+          Promise.all([fetchData(), setProgress(0.5)]).then(() => {
+            Promise.all([
+              pullPointData(pointsDataRef.current ?? []),
+              setProgress(0.6),
+              pullApplicatorData(applicatorData ?? []),
+              setProgress(0.7),
+
+              pullUserData(userData ?? []),
+              setProgress(0.8),
+
+              pullConfigAppData(configAppData ?? []),
+              setProgress(0.9),
+
+              pullPointtypeFlatData(pointtypeData ?? []),
+            ])
               .then(() => {
-                refetch()
-                lastUpdatedAtRefetch()
-                pointsDataRefetch()
-                handleApplication()
-                setSyncTimeRemaining(Number(configPushTime?.data_config))
-                refetchLatestApplicationDates()
-                configPushRefetch()
-                configPointRadiusRefetch()
                 setTimeout(() => {
                   setModalSync(false)
                 }, 3000)
                 console.log('Sincronização Completa')
+                handleApplication()
+                refetch()
+                setProgress(1)
               })
               .catch((error) => {
                 Alert.alert('Erro na sincronização:', error.message)
               })
-          }
+          })
         })
-      })
-      .catch((error) => {
-        Alert.alert('Erro na sincronização:', error.message)
-      })
+        .catch((error) => {
+          Alert.alert('Erro na sincronização:', error.message)
+        })
+    })
   }
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setSyncTimeRemaining((prevTime) => {
-  //       if (prevTime === 0) {
-  //         handleSyncInformations()
-  //         return Number(configPushTime??.data_config)
-  //       } else {
-  //         return prevTime - 1
-  //       }
-  //     })
-  //   }, 1000)
+  const handlePushInformations = async () => {
+    Promise.all([
+      syncPoints(applicator.id, device.factory_id),
+      syncApplication(applicator.id, device.id),
+      syncDoAdultCollection(device.id),
+      syncTrails(Number(applicator.id), Number(device.id)),
+    ]).catch((error) => {
+      Alert.alert('Erro na sincronização:', error.message)
+    })
+  }
 
-  //   return () => clearInterval(interval)
-  // }, [])
+  const handlePullInformations = async () => {
+    console.log('PULL INICIANDO')
+
+    Promise.all([fetchData()]).then(() => {
+      console.log('AAAAAAAA', pointsDataRef.current) // Use pointsDataRef.current instead of pointsData
+      Promise.all([
+        pullPointData(pointsDataRef.current ?? []),
+        pullApplicatorData(applicatorData ?? []),
+        pullUserData(userData ?? []),
+        pullConfigAppData(configAppData ?? []),
+        pullPointtypeFlatData(pointtypeData ?? []),
+      ])
+        .then(() => {
+          console.log('PULL TERMINADO')
+          handleApplication()
+        })
+        .catch((error) => {
+          Alert.alert('Erro na sincronização:', error.message)
+        })
+    })
+  }
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -617,93 +629,13 @@ const PointsReference = () => {
     setMarkerVisible(false)
   }
 
-  // ------------------------------------------------------------
-  // TODO - Melhorar esse sistema de notificações
-  // Notificação do aplicativo rodando em segundo plano
-  // async function requestNotificationPermission() {
-  //   const { status } = await Notifications.requestPermissionsAsync()
-  //   if (status !== 'granted') {
-  //     alert(
-  //       'No notification permissions. You might want to enable notifications for this app from the settings.',
-  //     )
-  //     return false
-  //   }
-  //   return true
-  // }
-  // Notifications.setNotificationHandler({
-  //   handleNotification: async () => ({
-  //     shouldShowAlert: true,
-  //     shouldPlaySound: false,
-  //     shouldSetBadge: false,
-  //   }),
-  // })
-  // const appState = useRef(AppState.currentState)
-  // const [appStateVisible, setAppStateVisible] = useState(appState.current)
-  // useEffect(() => {
-  //   requestNotificationPermission()
-  //   const appStateSubscription = AppState.addEventListener(
-  //     'change',
-  //     async (nextAppState) => {
-  //       if (
-  //         appState.current.match(/inactive|background/) &&
-  //         nextAppState === 'active'
-  //       ) {
-  //         console.log('App has come to the foreground!')
-  //         await AsyncStorage.setItem('activeTime', new Date().toISOString())
-  //       } else if (nextAppState === 'background') {
-  //         console.log('App has gone to the background!')
-  //         await schedulePushNotification()
-  //         await AsyncStorage.setItem('backgroundTime', new Date().toISOString())
-  //       }
-
-  //       appState.current = nextAppState
-  //       // setAppStateVisible(appState.current)
-  //       console.log('AppState', appState.current)
-  //     },
-  //   )
-
-  //   return () => {
-  //     appStateSubscription.remove()
-  //   }
-  // }, [])
-
-  // async function schedulePushNotification() {
-  //   await Notifications.scheduleNotificationAsync({
-  //     content: {
-  //       title: 'App in background',
-  //       body: 'The app has gone to the background.',
-  //     },
-  //     trigger: null,
-  //   })
-  // }
-  // -------------------------------------------------------------
-
   // Menu lateral
   const navigationView = () => (
     <Sidebar insets={insets} closeDrawer={closeDrawer} />
   )
 
-  // console.log(
-  //   pointsLoading ||
-  //     applicatorLoading ||
-  //     userLoading ||
-  //     configAppLoading ||
-  //     configPointRadiusLoading ||
-  //     configPushTimeLoading ||
-  //     pointtypeDataLoading ||
-  //     latestApplicationDateLoading ||
-  //     configPointRadiusIsLoadingOnline ||
-  //     configPushTimeIsLoadingOnline ||
-  //     !applicator ||
-  //     !device,
-  // )
-
-  console.log(applicator)
-  console.log(device)
-
   // Loading de informações
   if (
-    pointsLoading ||
     applicatorLoading ||
     userLoading ||
     configAppLoading ||
@@ -732,6 +664,8 @@ const PointsReference = () => {
     >
       <ScrollView style={{ paddingTop: insets.top }}>
         <ButtonActions
+          handlePullInformations={handlePullInformations}
+          handlePushInformations={handlePushInformations}
           handleSyncInformations={handleSyncInformations}
           modalAddPointReference={modalAddPointReference}
           openDrawer={openDrawer}
@@ -781,6 +715,7 @@ const PointsReference = () => {
             modalVisible={modalSync}
             setModalVisible={setModalSync}
             progress={progress}
+            pointsLength={pointsDataRef.current.length}
           />
           <ButtonWarningModal
             modalVisible={modalButtonWarning}
