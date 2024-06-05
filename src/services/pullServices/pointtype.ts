@@ -7,23 +7,35 @@ import { Alert } from 'react-native'
 export const pullPointtypeFlatData = async (
   pointtypeFlatData: IPointType[],
 ) => {
+  console.log('Dados dos tipos de ponto', pointtypeFlatData)
+
   for (const data of pointtypeFlatData) {
     try {
-      await db
-        .insert(PointType)
-        .values({
-          id: Number(data.id),
-          name: data.name,
-        })
-        .onConflictDoUpdate({
-          target: PointType.id,
-          set: {
-            name: sql.raw(`excluded.${PointType.name.name}`),
-          },
-        })
+      const existingPointTypes = await db
+        .select()
+        .from(PointType)
+        .where(sql`${PointType.id} = ${Number(data.id)}`)
         .execute()
+
+      if (existingPointTypes.length > 0) {
+        await db
+          .update(PointType)
+          .set({
+            name: data.name,
+          })
+          .where(sql`${PointType.id} = ${Number(data.id)}`)
+          .execute()
+      } else {
+        await db
+          .insert(PointType)
+          .values({
+            id: Number(data.id),
+            name: data.name,
+          })
+          .execute()
+      }
     } catch (error) {
-      Alert.alert('Erro ao inserir valores de pointtype: ', error.message)
+      Alert.alert('Error inserting data: ', error.message)
       throw error
     }
   }

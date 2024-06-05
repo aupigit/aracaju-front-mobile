@@ -19,7 +19,7 @@ export const doTrails = async (
     const response = await post('applications/trails/push/', {
       body: newData,
     })
-    return response.data
+    return response
   } catch (error) {
     Alert.alert('Erro ao enviar os dados de rota: ', error.message)
     return null

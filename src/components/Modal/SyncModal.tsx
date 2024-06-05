@@ -6,12 +6,14 @@ interface SyncModalProps {
   modalVisible: boolean
   setModalVisible: (modalVisible: boolean) => void
   progress: number
+  pointsLength: number
 }
 
 const SyncModal = ({
   modalVisible,
   setModalVisible,
   progress,
+  pointsLength,
 }: SyncModalProps) => {
   return (
     <Modal
@@ -35,6 +37,9 @@ const SyncModal = ({
 
             <Text className="text-center text-lg font-medium">
               {(progress * 100).toFixed(2)}%
+            </Text>
+            <Text className="text-center  text-sm font-medium text-zinc-300">
+              Baixando {pointsLength ?? '...'} pontos
             </Text>
           </View>
         </View>

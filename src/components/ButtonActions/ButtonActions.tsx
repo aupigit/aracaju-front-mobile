@@ -5,6 +5,8 @@ import { useUser } from '@/contexts/UserContext'
 
 interface IButtonsActionsProps {
   openDrawer: () => void
+  handlePushInformations: () => void
+  handlePullInformations: () => void
   handleSyncInformations: () => void
   syncTimeRemaining: number
   setModalAddPointReference: (modalVisible: boolean) => void
@@ -12,7 +14,9 @@ interface IButtonsActionsProps {
 }
 
 const ButtonActions = ({
+  handlePushInformations,
   handleSyncInformations,
+  handlePullInformations,
   modalAddPointReference,
   openDrawer,
   setModalAddPointReference,
@@ -42,7 +46,6 @@ const ButtonActions = ({
             <Feather name="git-pull-request" size={24} color="white" />
             <Text className="font-bold uppercase text-white">Sincronizar</Text>
           </View>
-          {/* <Text>{formatTimer(Number(syncTimeRemaining))}</Text> */}
         </Pressable>
       </View>
 
