@@ -1,17 +1,58 @@
-# Expo Router and Tailwind CSS
+This is a Aupi Project!
 
-Use [Expo Router](https://docs.expo.dev/router/introduction/) with [Nativewind](https://www.nativewind.dev/v4/overview/) styling.
+## Getting Started
 
-## 🚀 How to use
-
-```sh
-npx create-expo-app -e with-router-tailwind
+Use the following branch:
+```bash
+git pull 
+git checkout dev
 ```
 
-# Migrations no Drizzle:
+First, install the dependencies:
 
--> Para fazer migrações no drizzle será necessário rodar o seguinte comando:
-
-```sh
-  bunx drizzle-kit generate:sqlite
+```bash
+bun install
 ```
+
+Then, run the following command
+
+```bash
+cp .env.example .env
+```
+
+Then, run the development server:
+
+```bash
+bun run start
+# or
+bunx expo start
+```
+
+To make migrations with drizzle
+
+```bash
+bunx drizzle-kit generate:sqlite
+```
+
+#### Error with Android Path
+
+```bash
+Logs for your project will appear below. Press Ctrl+C to exit.
+› Opening on Android...
+Failed to resolve the Android SDK path. Default install location not found: /home/felipe/Android/sdk. Use ANDROID_HOME to set the Android SDK location.
+```
+
+To resolve this possibly error:
+
+The React Native tools require some environment variables to be set up in order to build apps with native code.
+
+Add the following lines to your `$HOME/.bash_profile` or $HOME/.bashrc (if you are using zsh then ~/.zprofile or ~/.zshrc) config file:
+
+```bash
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
+    .bash_profile is specific to bash. If you're using another shell, you will need to edit the appropriate shell-specific config file.
+
+Type `source $HOME/.bashrc` for bash or `source $HOME/.zshrc` to load the config into your current shell. Verify that ANDROID_HOME has been set by running echo $ANDROID_HOME and the appropriate directories have been added to your path by running echo $PATH.

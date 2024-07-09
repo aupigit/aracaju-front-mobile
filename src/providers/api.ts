@@ -46,7 +46,7 @@ const httpRequest = async (
     const response = await axios(endpoint, params)
     return response.data
   } catch (error) {
-    Alert.alert('Axios error. Reveja conexão com a internet ', error.message)
+    console.error('Axios error. Reveja conexão com a internet ', error.message)
     if (
       error instanceof AxiosError &&
       error?.response?.status &&
@@ -71,7 +71,7 @@ const httpRequest = async (
             refreshError instanceof AxiosError &&
             refreshError?.response?.data?.code !== 'token_not_valid'
           ) {
-            Alert.alert('error revalidando usuário')
+            console.error('error revalidando usuário')
             return
           }
         }
