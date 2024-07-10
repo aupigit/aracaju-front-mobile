@@ -67,31 +67,10 @@ const MapViewComponent = ({
               setPreviewCoordinate({ latitude, longitude })
             }
           }}
-          showsUserLocation={true} // mostra a localização do usuário
-          // showsCompass={true} // mostra a bússola
-          // showsScale={true} // mostra a escala
-          showsMyLocationButton={true} // mostra o botão de localização do usuário
-          scrollEnabled={true} // habilita o scroll
-          userLocationPriority="high" // prioridade da localização do usuário
-          userLocationUpdateInterval={30000} // intervalo de atualização da localização do usuário
-          // loadingEnabled={true}
-          // loadingBackgroundColor={'#fff'}
-          // toolbarEnabled={false}
-          mapPadding={{ top: 10, right: 20, bottom: 60, left: 20 }}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
           mapType="hybrid"
         >
-          {/* <Polyline
-            strokeColor="#0000ff"
-            strokeWidth={6}
-            coordinates={routes.map((loc) => loc.coords)}
-          />
-
-          <Polyline
-            strokeColor="#000000"
-            strokeWidth={6}
-            coordinates={offlineRoutes.map((loc) => loc.coords)}
-          /> */}
-
           {pointsDataOffline
             ?.filter((point) =>
               isPointInRegion(point, {

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Alert } from 'react-native'
+import { View, Text, Pressable, Alert, ActivityIndicator } from 'react-native'
 import React from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
@@ -6,15 +6,37 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { doLogin } from '@/services/onlineServices/authenticate'
 import { useDevice } from '@/contexts/DeviceContext'
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
+import { useApplicator } from '@/contexts/ApplicatorContext'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from '../../drizzle/migrations'
-import { db } from '@/lib/database'
-import { useApplicator } from '@/contexts/ApplicatorContext'
+
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin'
+import { db, expoDB } from '@/lib/database'
 
 const Home = () => {
+  const { success, error } = useMigrations(db, migrations)
+
+  useDrizzleStudio(expoDB)
+
   const { isAuthenticated, logoutUser, loginUser } = useUser()
   const { device, fetchDeviceData } = useDevice()
   const { fetchApplicatorData, logoutApplicator } = useApplicator()
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>{error.message}</Text>
+      </View>
+    )
+  }
+
+  if (!success) {
+    return (
+      <ActivityIndicator
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+      />
+    )
+  }
 
   if (!device) fetchDeviceData()
 
@@ -24,9 +46,9 @@ const Home = () => {
 
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
     if (isAuthenticated && !tokenServiceId) {
-      router.replace('points-reference')
+      router.navigate('points-reference')
     } else {
-      router.replace('login/applicatorLead')
+      router.navigate('login/applicatorLead')
     }
   }
 
@@ -42,12 +64,12 @@ const Home = () => {
       } catch (error) {
         Alert.alert('Erro ao realizar o login: ', error.message)
       }
-      router.replace('login/applicatorCpfVerificate')
+      router.navigate('login/applicatorCpfVerificate')
     } else {
       if (isAuthenticated && tokenServiceId) {
-        router.replace('points-reference')
+        router.navigate('points-reference')
       } else {
-        router.replace('login/applicatorNormal')
+        router.navigate('login/applicatorNormal')
       }
     }
   }
@@ -55,25 +77,6 @@ const Home = () => {
   const handleLogout = () => {
     logoutUser()
     logoutApplicator()
-  }
-
-  // Migrações da aplicação
-  const { success, error } = useMigrations(db, migrations)
-
-  if (error) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Migration error: {error.message}</Text>
-      </View>
-    )
-  }
-
-  if (!success) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        {/* <Text>Migration is in progress...</Text> */}
-      </View>
-    )
   }
 
   if (!device) {

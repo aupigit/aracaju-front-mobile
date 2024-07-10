@@ -56,7 +56,7 @@ const BtnApplication = ({
         if (closestPoint === null || closestPoint.id === null) {
           setModalButtonWarning(true)
         } else {
-          router.replace(
+          router.navigate(
             `/applications/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
           )
         }
@@ -75,7 +75,7 @@ const BtnApplication = ({
               if (point === null || point.id === null) {
                 setModalButtonWarning(true)
               } else {
-                router.replace(
+                router.navigate(
                   `/applications/${point.id}/${userLocation[0]}/${userLocation[1]}`,
                 )
               }

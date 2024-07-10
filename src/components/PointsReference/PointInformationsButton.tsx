@@ -43,7 +43,7 @@ const BtnPointInformations = ({
         setSelectedPoint(closestPoint)
 
         // Abra o modal com o ponto mais próximo
-        router.replace(
+        router.navigate(
           `/edit-point/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
         )
       }
@@ -56,7 +56,7 @@ const BtnPointInformations = ({
               Number(configPointRadius ?? 15)
             ) {
               setSelectedPoint(point)
-              router.replace(
+              router.navigate(
                 `/edit-point/${point.id}/${userLocation[0]}/${userLocation[1]}`,
               )
               return

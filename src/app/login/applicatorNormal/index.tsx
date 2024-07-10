@@ -45,7 +45,7 @@ const Login = () => {
   const onDismissSnackBarOK = () => setVisibleOK(false)
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = handleSubmit(async (data: AuthFormData) => {
     await fetchDeviceData()
     await fetchApplicatorData()
     try {
@@ -58,7 +58,7 @@ const Login = () => {
         AsyncStorage.setItem('token_service_id', data.password)
         setTimeout(() => {
           setVisibleOK(!visibleOK)
-          router.replace('/login/applicatorCpfVerificate')
+          router.navigate('/login/applicatorCpfVerificate')
         }, 1000)
 
         loginUser(response.user)
@@ -142,7 +142,9 @@ const Login = () => {
           },
         }}
       >
-        <Text className="text-zinc-700">Aplicador logado com sucesso.</Text>
+        <Text className="text-zinc-700">
+          Líder de equipe logado com sucesso.
+        </Text>
       </Snackbar>
       <Snackbar
         visible={visibleERROR}

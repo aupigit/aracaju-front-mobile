@@ -47,7 +47,7 @@ const BtnCollect = ({
         if (closestPoint === null || closestPoint.id === null) {
           setModalButtonWarning(true)
         } else {
-          router.replace(
+          router.navigate(
             `/adult-collection/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
           )
         }
@@ -65,7 +65,7 @@ const BtnCollect = ({
               if (point === null || point.id === null) {
                 setModalButtonWarning(true)
               } else {
-                router.replace(
+                router.navigate(
                   `/adult-collection/${point.id}/${userLocation[0]}/${userLocation[1]}`,
                 )
               }

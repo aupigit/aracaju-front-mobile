@@ -10,7 +10,9 @@ import { Controller } from 'react-hook-form'
 import { FontAwesome } from '@expo/vector-icons'
 
 interface FormControlProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors: any
   buttonLoading: boolean
   onSubmit: () => void

@@ -41,7 +41,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
         const response = await findUserById(userId)
         return response
       } else {
-        router.replace('/')
+        router.navigate('/')
         return null
       }
     },
@@ -64,7 +64,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
     AsyncStorage.removeItem('userId')
     AsyncStorage.removeItem('applicator_id')
     cleatDeviceData()
-    router.replace('/')
+    router.navigate('/')
   }
 
   return (

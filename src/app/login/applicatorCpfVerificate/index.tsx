@@ -56,7 +56,7 @@ const Login = () => {
         AsyncStorage.setItem('first_time_on_application', '1')
         setTimeout(() => {
           setVisibleOK(!visibleOK)
-          router.replace('/points-reference')
+          router.navigate('/points-reference')
         }, 1000)
       } else {
         setVisibleERROR(!visibleERROR)

@@ -52,7 +52,7 @@ const ApplicationChangeNamePointModal = ({
       )
 
       setModalVisible(false)
-      router.replace('/points-reference')
+      router.navigate('/points-reference')
       reset()
     } catch (error) {
       Alert.alert('Erro ao alterar o nome do ponto: ', error.message)
@@ -78,7 +78,7 @@ const ApplicationChangeNamePointModal = ({
               onPress={() => {
                 setModalVisible(!modalVisible)
                 setIsEditable(!isEditable)
-                router.replace('/points-reference')
+                router.navigate('/points-reference')
               }}
             >
               <Text className="text-xl">Fechar</Text>

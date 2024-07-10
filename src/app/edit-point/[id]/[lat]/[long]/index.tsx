@@ -48,7 +48,7 @@ const EditPoint = () => {
             <Text className="text-2xl font-bold">Executar Aplicação</Text>
             <Pressable
               onPress={() => {
-                router.replace('/points-reference')
+                router.navigate('/points-reference')
               }}
             >
               <Text className="text-xl">Voltar</Text>
@@ -84,7 +84,7 @@ const EditPoint = () => {
             <Pressable
               className="mt-2 h-auto w-auto rounded-sm bg-[#7c58d6] p-4"
               onPress={() => {
-                router.replace('/points-reference')
+                router.navigate('/points-reference')
                 setPointIsEditable(true)
                 setSelectedPoint(point)
               }}

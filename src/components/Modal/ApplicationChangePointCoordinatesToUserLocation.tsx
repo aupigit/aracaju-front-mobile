@@ -51,7 +51,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
         Number(selectedPoint.id),
       )
       setModalVisible(false)
-      router.replace('/points-reference')
+      router.navigate('/points-reference')
     } catch (error) {
       Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
       throw error
@@ -77,7 +77,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
             <Pressable
               onPress={() => {
                 setModalVisible(!modalVisible)
-                router.replace('/points-reference')
+                router.navigate('/points-reference')
                 setSelectedPoint(null)
               }}
             >

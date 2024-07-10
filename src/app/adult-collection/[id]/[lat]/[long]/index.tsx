@@ -105,7 +105,7 @@ const AdultCollection = () => {
       setTimeout(() => {
         setVisibleOK(false)
         reset()
-        router.replace('/points-reference')
+        router.navigate('/points-reference')
         handleClearImageToSend()
       }, 4000)
     } else if (type === 'error') {
@@ -220,7 +220,7 @@ const AdultCollection = () => {
             <Text className="text-2xl font-bold">Coleta inseto adulto</Text>
             <Pressable
               onPress={() => {
-                router.replace('/points-reference')
+                router.navigate('/points-reference')
               }}
             >
               <Text className="text-xl">Voltar</Text>

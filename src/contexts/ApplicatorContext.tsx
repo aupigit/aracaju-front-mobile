@@ -8,7 +8,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { findApplicatorById } from '@/services/onlineServices/applicator' // Assuming there's a service to find applicator by id
 import { IApplicator } from '@/interfaces/IApplicator'
-import { Alert } from 'react-native'
 
 interface ApplicatorContextProps {
   children: ReactNode
@@ -36,7 +35,7 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
         setApplicator(applicatorData)
       }
     } catch (error) {
-      Alert.alert('Erro ao buscar informações do aplicador:', error.message)
+      console.error('Erro ao buscar informações do aplicador:', error.message)
     }
   }
 

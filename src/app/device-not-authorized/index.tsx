@@ -10,30 +10,37 @@ import React, { useState } from 'react'
 import * as Application from 'expo-application'
 import * as Clipboard from 'expo-clipboard'
 import { useDevice } from '@/contexts/DeviceContext'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { findDeviceByFactoryId } from '@/services/onlineServices/device'
+import { router } from 'expo-router'
 
 const DeviceNotAuthorized = () => {
   const [isCopied, setIsCopied] = useState(false)
   const [isButtonLoading, setIsButtonLoading] = useState(false)
-  const { fetchDeviceData } = useDevice()
+  const { registerDeviceData } = useDevice()
   const factoryId = Application.getAndroidId()
 
   // Depois de Copiar o FactoryId, mostrar "Copiado" na tela por 10 segundos
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(factoryId)
     setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 10000)
+    setTimeout(() => setIsCopied(false), 5000)
   }
 
   // Botão para tentar buscar informações do device novamente
   const handlePress = async () => {
     try {
       setIsButtonLoading(true)
-      Promise.all([AsyncStorage.removeItem('token')]).then(
-        async () => await fetchDeviceData(),
-      )
+
+      const deviceData = await findDeviceByFactoryId(factoryId)
+      registerDeviceData(deviceData)
+
+      if (!deviceData || deviceData.authorized === false) {
+        router.navigate('/device-not-authorized')
+      }
+
+      router.navigate('/')
     } catch (error) {
-      Alert.alert('Erro ao buscar informações do device', error.message)
+      Alert.alert('Erro ao buscar informações do device:', error.message)
     } finally {
       setIsButtonLoading(false)
     }

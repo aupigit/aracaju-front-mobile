@@ -105,7 +105,7 @@ const Applications = () => {
         setVisibleOK(false)
         reset()
         handleClearImageToSend()
-        router.replace('/points-reference')
+        router.navigate('/points-reference')
       }, 4000)
     } else if (type === 'error') {
       setVisibleERROR(true)
@@ -208,7 +208,7 @@ const Applications = () => {
             <Text className="text-2xl font-bold">Executar Aplicação</Text>
             <Pressable
               onPress={() => {
-                router.replace('/points-reference')
+                router.navigate('/points-reference')
               }}
             >
               <Text className="text-xl">Voltar</Text>

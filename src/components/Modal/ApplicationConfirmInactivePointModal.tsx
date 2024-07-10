@@ -40,7 +40,7 @@ const ApplicationConfirmInactivePointModal = ({
     try {
       await adjustPointReferenceStatusOffline(Number(selectedPoint.pk))
       setModalVisible(!modalVisible)
-      router.replace('/points-reference')
+      router.navigate('/points-reference')
       reset()
     } catch (error) {
       Alert.alert('Erro ao alterar o status do ponto: ', error.message)
@@ -65,7 +65,7 @@ const ApplicationConfirmInactivePointModal = ({
             <Pressable
               onPress={() => {
                 setModalVisible(!modalVisible)
-                router.replace('/points-reference')
+                router.navigate('/points-reference')
               }}
             >
               <Text className="text-xl">Fechar</Text>
