@@ -27,8 +27,6 @@ const DeviceContext = createContext<DeviceContextData | undefined>(undefined)
 const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
   const factoryId = Application.getAndroidId()
 
-  console.log(factoryId)
-
   const [device, setDevice] = useState<IDevices | null>(null)
   const fetchDeviceData = async () => {
     try {

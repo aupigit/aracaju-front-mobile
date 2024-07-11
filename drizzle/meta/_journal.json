@@ -8,6 +8,13 @@
       "when": 1715890728739,
       "tag": "0000_broken_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1720638464958,
+      "tag": "0001_freezing_marauders",
+      "breakpoints": true
     }
   ]
 }

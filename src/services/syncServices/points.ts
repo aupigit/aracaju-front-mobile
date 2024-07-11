@@ -7,9 +7,10 @@ import {
   doPointsReference,
 } from '../onlineServices/points'
 import { PointReference } from '@/db/pointreference'
-import { and, asc, eq, not, sql } from 'drizzle-orm'
+import { asc, eq, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 import { pullPointData } from '../pullServices/pointReference'
+import { Logs } from '@/db/logs'
 
 export const syncPointsReferenceName = async (
   applicatorId: string,
@@ -27,8 +28,6 @@ export const syncPointsReferenceName = async (
         .orderBy(asc(PointReference.created_at))
         .limit(10)
         .execute()
-
-      console.log('Points Edit Name Data', data)
 
       if (data.length > 0) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
@@ -51,9 +50,14 @@ export const syncPointsReferenceName = async (
             }
           } catch (error) {
             Alert.alert(
-              'An error occurred while syncing the data:',
+              'Erro ao realizar o sync do nome do ponto:',
               error.message,
             )
+            await db.insert(Logs).values({
+              error: error.message,
+              payload: JSON.stringify(data),
+            })
+            break
           }
         }
       }
@@ -78,8 +82,6 @@ export const syncPointsReferenceLocation = async (
         .limit(10)
         .execute()
 
-      console.log('Points Edit Location Data', data)
-
       if (data.length > 0) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
           try {
@@ -102,9 +104,14 @@ export const syncPointsReferenceLocation = async (
             }
           } catch (error) {
             Alert.alert(
-              'An error occurred while syncing the data:',
+              'Erro ao realizar o sync da coordenada do ponto:',
               error.message,
             )
+            await db.insert(Logs).values({
+              error: error.message,
+              payload: JSON.stringify(data),
+            })
+            break
           }
         }
       }
@@ -127,14 +134,9 @@ export const syncPointsReferenceStatus = async (
         .where(sql`${PointReference.edit_status} = 1`)
         .execute()
 
-      console.log('Points Edit Status Data', data)
-
       if (data.length > 0) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
           try {
-            // const ten_firsts = data.slice(0, 10)
-
-            // console.log('Ten firsts points', ten_firsts)
             for (const item of data) {
               const response = await adjustPointStatus(
                 Number(item.id),
@@ -152,9 +154,14 @@ export const syncPointsReferenceStatus = async (
             }
           } catch (error) {
             Alert.alert(
-              'An error occurred while syncing the data:',
+              'Erro ao realizar o sync do status do ponto:',
               error.message,
             )
+            await db.insert(Logs).values({
+              error: error.message,
+              payload: JSON.stringify(data),
+            })
+            break
           }
         }
       }
@@ -176,17 +183,11 @@ export const syncPointsReferenceCreatedOffline = async () => {
         .orderBy(asc(PointReference.created_at))
         .execute()
 
-      console.log('Points Data', data)
-
       if (data.length > 0) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
           try {
             const ten_firsts = data.slice(0, 10)
-
-            console.log('Ten firsts points', ten_firsts)
-
             const response = await doPointsReference(ten_firsts)
-            console.log('Api response', response)
 
             if (response && response.success) {
               for (const item of ten_firsts) {
@@ -204,6 +205,11 @@ export const syncPointsReferenceCreatedOffline = async () => {
             }
           } catch (error) {
             Alert.alert('Erro ao criar um ponto: ', error.message)
+            await db.insert(Logs).values({
+              error: error.message,
+              payload: JSON.stringify(data),
+            })
+            break
           }
         }
       }

@@ -171,7 +171,6 @@ const Applications = () => {
     isLoading: configScaleVolumeLoading,
     isSuccess: configScaleVolumeIsSuccess,
   } = useQuery('config/configapp/?name="volume_escala"', async () => {
-    console.log('aaaaaaaa')
     return await findConfigAppByNameOffline('volume_escala').then(
       (response) => response,
     )
@@ -182,7 +181,6 @@ const Applications = () => {
     isLoading: configScaleVolumeOnlineIsLoading,
     isSuccess: configScaleVolumeOnlineIsSuccess,
   } = useQuery('config/configapp/online/?name="volume_escala"', async () => {
-    console.log('bbbbbbbbbb')
     const response = await findConfigAppByName('volume_escala')
     return response
   })

@@ -75,8 +75,11 @@ export const adjustPointReferenceLocationOffline = async (
   latitude: number,
   pk: number,
 ) => {
+  console.log(pk)
+  console.log(longitude)
+  console.log(latitude)
   try {
-    await db
+    const response = await db
       .update(PointReference)
       .set({
         longitude,
@@ -86,6 +89,7 @@ export const adjustPointReferenceLocationOffline = async (
       })
       .where(eq(PointReference.pk, pk))
       .execute()
+    console.log(response)
   } catch (error) {
     Alert.alert('Error updating data: ', error.message)
     throw error

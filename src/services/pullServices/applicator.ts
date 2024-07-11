@@ -5,8 +5,6 @@ import { sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const pullApplicatorData = async (applicatorData: IApplicator[]) => {
-  console.log('Dados dos applicadores', applicatorData)
-
   for (const data of applicatorData) {
     try {
       const existingApplicators = await db

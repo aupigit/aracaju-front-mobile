@@ -7,8 +7,6 @@ import { Alert } from 'react-native'
 export const pullPointtypeFlatData = async (
   pointtypeFlatData: IPointType[],
 ) => {
-  console.log('Dados dos tipos de ponto', pointtypeFlatData)
-
   for (const data of pointtypeFlatData) {
     try {
       const existingPointTypes = await db

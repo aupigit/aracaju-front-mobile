@@ -5,8 +5,6 @@ import { sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const pullConfigAppData = async (configAppData: IConfigApp[]) => {
-  console.log('Dados das configurações do app', configAppData)
-
   for (const data of configAppData) {
     try {
       const existingConfigApps = await db

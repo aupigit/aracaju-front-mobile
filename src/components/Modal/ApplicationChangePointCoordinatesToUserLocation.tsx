@@ -48,7 +48,7 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
         userLocation[1],
         userLocation[0],
         // data.description,
-        Number(selectedPoint.id),
+        Number(selectedPoint.pk),
       )
       setModalVisible(false)
       router.navigate('/points-reference')

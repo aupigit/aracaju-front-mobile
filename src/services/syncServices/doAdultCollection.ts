@@ -4,6 +4,7 @@ import { doAdultCollection } from '../onlineServices/doAdultCollection'
 import { AdultCollection } from '@/db/adultcollection'
 import { asc, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
+import { Logs } from '@/db/logs'
 
 export const syncDoAdultCollection = async (deviceId: string) => {
   const netInfo = await NetInfo.fetch()
@@ -19,13 +20,10 @@ export const syncDoAdultCollection = async (deviceId: string) => {
         .orderBy(asc(AdultCollection.created_at))
         .execute()
 
-      console.log('Adult Collections data', data)
-
       if (data.length > 0) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
           try {
             const ten_firsts = data.slice(0, 10)
-            console.log('Ten firsts adults collections', ten_firsts)
 
             const response = await doAdultCollection(ten_firsts)
             if (response && response.success) {
@@ -39,9 +37,14 @@ export const syncDoAdultCollection = async (deviceId: string) => {
             }
           } catch (error) {
             Alert.alert(
-              'An error occurred while syncing the data:',
+              'Erro ao realizar o sync da coleta adulto:',
               error.message,
             )
+            await db.insert(Logs).values({
+              error: error.message,
+              payload: JSON.stringify(data),
+            })
+            break
           }
         }
       }
