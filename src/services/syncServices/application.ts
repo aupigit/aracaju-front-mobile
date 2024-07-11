@@ -4,6 +4,7 @@ import NetInfo from '@react-native-community/netinfo'
 import { Application } from '@/db/application'
 import { asc, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
+import { Logs } from '@/db/logs'
 
 export const syncApplication = async (
   applicatorId: string,
@@ -22,18 +23,12 @@ export const syncApplication = async (
         .orderBy(asc(Application.created_at))
         .execute()
 
-      console.log('Application data', data)
-
       if (data.length > 0) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
           try {
             const ten_firsts = data.slice(0, 10)
 
-            console.log('Ten firsts applications', ten_firsts)
-
             const response = await doApplication(ten_firsts)
-
-            console.log('Api Response', response)
 
             if (response && response.success) {
               for (const item of ten_firsts) {
@@ -45,7 +40,12 @@ export const syncApplication = async (
               }
             }
           } catch (error) {
-            Alert.alert('Erro ao criar aplicação: ', error.message)
+            Alert.alert('Erro ao realizar o sync da aplicação: ', error.message)
+            await db.insert(Logs).values({
+              error: error.message,
+              payload: JSON.stringify(data),
+            })
+            break
           }
         }
       }

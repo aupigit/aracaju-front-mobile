@@ -8,10 +8,13 @@ import { DeviceProvider } from '@/contexts/DeviceContext'
 import { PointsReferenceProvider } from '@/contexts/PointsReferenceContext'
 import { SQLiteProvider } from 'expo-sqlite'
 import { DATABASE_NAME } from '@/lib/database'
+// import { useDrizzleStudio } from 'expo-drizzle-studio-plugin'
 const queryClient = new QueryClient()
 
 LogBox.ignoreLogs(['In React 18, SSRProvider is not necessary and is a noop.'])
 export function Providers({ children }: { children: React.ReactNode }) {
+  // useDrizzleStudio(expoDB)
+
   return (
     <SQLiteProvider databaseName={DATABASE_NAME}>
       <SafeAreaProvider

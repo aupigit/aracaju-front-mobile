@@ -9,9 +9,6 @@ export const findManyPointsReferences = async (
   const result = await get(
     `applications/pointreference/?updated_at=${updated_at}`,
   )
-  console.log('último updated_at', updated_at)
-
-  console.log('Points Data Result', result)
   return result as unknown as Promise<IPoint[]>
 }
 

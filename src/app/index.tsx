@@ -34,6 +34,7 @@ const Home = () => {
     return (
       <ActivityIndicator
         style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        size={'large'}
       />
     )
   }
@@ -81,8 +82,10 @@ const Home = () => {
 
   if (!device) {
     return (
-      <View className=" flex-1 items-center justify-center">
-        <Text>Carregando...</Text>
+      <View className=" flex-1 flex-col items-center justify-center gap-3">
+        <Text className="w-[60%] text-center text-lg font-bold">
+          Verificando se o dispositivo está autorizado. Aguarde um momento
+        </Text>
       </View>
     )
   }

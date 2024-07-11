@@ -5,8 +5,6 @@ import { useUser } from '@/contexts/UserContext'
 
 interface IButtonsActionsProps {
   openDrawer: () => void
-  handlePushInformations: () => void
-  handlePullInformations: () => void
   handleSyncInformations: () => void
   syncTimeRemaining: number
   setModalAddPointReference: (modalVisible: boolean) => void
@@ -14,9 +12,7 @@ interface IButtonsActionsProps {
 }
 
 const ButtonActions = ({
-  handlePushInformations,
   handleSyncInformations,
-  handlePullInformations,
   modalAddPointReference,
   openDrawer,
   setModalAddPointReference,

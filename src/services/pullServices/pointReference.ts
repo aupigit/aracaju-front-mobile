@@ -5,7 +5,6 @@ import { desc, eq } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const pullPointData = async (pointData: IPoint[]) => {
-  console.log('Dados dos pontos', pointData)
   for (const data of pointData) {
     try {
       const existingPoint = await db
@@ -84,8 +83,6 @@ export const pullPointData = async (pointData: IPoint[]) => {
         .select()
         .from(PointReference)
         .where(eq(PointReference.id, Number(data.id)))
-
-      console.log('Ponto atualizado', updatedPoint)
     } catch (error) {
       Alert.alert('Error inserting or updating data: ', error.message)
       throw error
@@ -101,8 +98,6 @@ export const pullPointLastUpdatedAt = async (): Promise<string> => {
       .orderBy(desc(PointReference.updated_at))
       .limit(1)
       .execute()
-
-    console.log(result)
 
     if (result && result.length > 0) {
       return result[0].updated_at

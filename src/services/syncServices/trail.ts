@@ -4,6 +4,7 @@ import { doTrails } from '../onlineServices/trails'
 import { Tracking } from '@/db/tracking'
 import { and, asc, eq, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
+import { Logs } from '@/db/logs'
 
 export const syncTrails = async (applicatorId: number, deviceId: number) => {
   const netInfo = await NetInfo.fetch()
@@ -19,18 +20,12 @@ export const syncTrails = async (applicatorId: number, deviceId: number) => {
         .orderBy(asc(Tracking.created_at))
         .execute()
 
-      console.log('Tracking data', data)
-
       if (data.length > 0) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
           try {
             const ten_firsts = data.slice(0, 100)
 
-            console.log('Ten firsts Tracking', ten_firsts)
-
             const response = await doTrails(ten_firsts)
-
-            console.log('Api Response', response)
 
             if (response && response.success) {
               for (const item of ten_firsts) {
@@ -42,7 +37,12 @@ export const syncTrails = async (applicatorId: number, deviceId: number) => {
               }
             }
           } catch (error) {
-            Alert.alert('Erro ao criar uma rota: ', error.message)
+            Alert.alert('Erro ao realizar o sync da rota: ', error.message)
+            await db.insert(Logs).values({
+              error: error.message,
+              payload: JSON.stringify(data),
+            })
+            break
           }
         }
       }

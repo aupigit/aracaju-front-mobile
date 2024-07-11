@@ -5,7 +5,7 @@ import {
   ScrollView,
   Alert,
   DrawerLayoutAndroid,
-  AppState,
+  ActivityIndicator,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
@@ -63,12 +63,7 @@ import MapViewComponent from '@/components/MapView/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
 import ButtonActions from '@/components/ButtonActions/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
-import * as Notifications from 'expo-notifications'
 import { usePointsReference } from '@/contexts/PointsReferenceContext'
-import { db } from '@/lib/database'
-import { PointReference } from '@/db/pointreference'
-import { eq } from 'drizzle-orm'
-import { IPoint } from '@/interfaces/IPoint'
 
 const editPointCoordinateSchema = z.object({
   longitude: z.number(),
@@ -96,7 +91,6 @@ const PointsReference = () => {
   const [modalSync, setModalSync] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  // Context services
   const { applicator, fetchApplicatorData } = useApplicator()
   const { device } = useDevice()
   const { user } = useUser()
@@ -171,8 +165,6 @@ const PointsReference = () => {
     const updatedAtDate = new Date(lastUpdatedAtData)
     updatedAtParameter = formatDate(updatedAtDate)
   }
-
-  // console.log(lastUpdatedAtData)
 
   // GET - Applicator/Online
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
@@ -346,7 +338,6 @@ const PointsReference = () => {
   const fetchData = async () => {
     try {
       const response = await findManyPointsReferences(updatedAtParameter)
-      console.log('BBBBBBBBBB', response)
       setPointsData(response)
       pointsDataRef.current = response // Update the ref when pointsData is updated
       lastUpdatedAtRefetch()
@@ -415,39 +406,6 @@ const PointsReference = () => {
                 Alert.alert('Erro na sincronização:', error.message)
               })
           })
-        })
-        .catch((error) => {
-          Alert.alert('Erro na sincronização:', error.message)
-        })
-    })
-  }
-
-  const handlePushInformations = async () => {
-    Promise.all([
-      syncPoints(applicator.id, device.factory_id),
-      syncApplication(applicator.id, device.id),
-      syncDoAdultCollection(device.id),
-      syncTrails(Number(applicator.id), Number(device.id)),
-    ]).catch((error) => {
-      Alert.alert('Erro na sincronização:', error.message)
-    })
-  }
-
-  const handlePullInformations = async () => {
-    console.log('PULL INICIANDO')
-
-    Promise.all([fetchData()]).then(() => {
-      console.log('AAAAAAAA', pointsDataRef.current) // Use pointsDataRef.current instead of pointsData
-      Promise.all([
-        pullPointData(pointsDataRef.current ?? []),
-        pullApplicatorData(applicatorData ?? []),
-        pullUserData(userData ?? []),
-        pullConfigAppData(configAppData ?? []),
-        pullPointtypeFlatData(pointtypeData ?? []),
-      ])
-        .then(() => {
-          console.log('PULL TERMINADO')
-          handleApplication()
         })
         .catch((error) => {
           Alert.alert('Erro na sincronização:', error.message)
@@ -649,8 +607,10 @@ const PointsReference = () => {
     !device
   ) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Carregando...</Text>
+      <View className=" flex-1 flex-col items-center justify-center gap-3">
+        <Text className="w-[60%] text-center text-lg font-bold">
+          Carregando o mapa e os pontos. Aguarde um momento
+        </Text>
       </View>
     )
   }
@@ -664,8 +624,6 @@ const PointsReference = () => {
     >
       <ScrollView style={{ paddingTop: insets.top }}>
         <ButtonActions
-          handlePullInformations={handlePullInformations}
-          handlePushInformations={handlePushInformations}
           handleSyncInformations={handleSyncInformations}
           modalAddPointReference={modalAddPointReference}
           openDrawer={openDrawer}

@@ -17,9 +17,13 @@ interface ApplicationChangeNamePointModalProps {
 }
 
 export const editPointSchema = z.object({
-  name: z.string({
-    required_error: 'Nome do ponto é obrigatório',
-  }),
+  name: z
+    .string({
+      required_error: 'Nome do ponto é obrigatório',
+    })
+    .max(50, {
+      message: 'O nome do ponto deve ter no máximo 50 caractéres',
+    }),
   description: z.string({
     required_error: 'Justificativa é obrigatória',
   }),

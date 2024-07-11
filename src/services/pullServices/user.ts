@@ -5,8 +5,6 @@ import { sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const pullUserData = async (userData: IUser[]) => {
-  console.log('Dados dos usuários', userData)
-
   for (const data of userData) {
     try {
       const existingUsers = await db
