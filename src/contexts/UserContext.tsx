@@ -8,7 +8,6 @@ import {
 } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useQuery } from 'react-query'
-import NetInfo from '@react-native-community/netinfo'
 import { findUserById } from '@/services/onlineServices/user'
 import { router } from 'expo-router'
 import { useDevice } from './DeviceContext'

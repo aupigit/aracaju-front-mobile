@@ -5,7 +5,6 @@ import {
   ScrollView,
   Alert,
   DrawerLayoutAndroid,
-  ActivityIndicator,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
@@ -215,21 +214,18 @@ const PointsReference = () => {
   )
 
   // GET - ConfigaApp Raio do ponto/Offline
-  const {
-    data: configPointRadius,
-    isLoading: configPointRadiusLoading,
-    refetch: configPointRadiusRefetch,
-  } = useQuery(
-    'config/configapp/?name="raio_do_ponto"',
-    async () => {
-      return await findConfigAppByNameOffline('raio_do_ponto').then(
-        (response) => response,
-      )
-    },
-    {
-      enabled: configAppSuccess,
-    },
-  )
+  const { data: configPointRadius, isLoading: configPointRadiusLoading } =
+    useQuery(
+      'config/configapp/?name="raio_do_ponto"',
+      async () => {
+        return await findConfigAppByNameOffline('raio_do_ponto').then(
+          (response) => response,
+        )
+      },
+      {
+        enabled: configAppSuccess,
+      },
+    )
 
   const [configsOfPointRadius, setConfigsOfPointRadius] = useState(15)
   useEffect(() => {
@@ -244,11 +240,7 @@ const PointsReference = () => {
   }, [configPointRadius, configPointRadiusOnline])
 
   // GET - ConfigaApp Tempo de sincronização/Offline
-  const {
-    data: configPushTime,
-    isLoading: configPushTimeLoading,
-    refetch: configPushRefetch,
-  } = useQuery(
+  const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
     'config/configapp/?name="tempo_entrega_sincronizacao"',
     async () => {
       return await findConfigAppByNameOffline(
@@ -272,7 +264,6 @@ const PointsReference = () => {
   const {
     data: latestApplicationDates,
     isLoading: latestApplicationDateLoading,
-    refetch: refetchLatestApplicationDates,
   } = useQuery(
     'application/application/latest',
     async () => {

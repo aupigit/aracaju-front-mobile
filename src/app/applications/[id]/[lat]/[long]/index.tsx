@@ -75,7 +75,7 @@ const Applications = () => {
 
       if (!result.canceled) {
         const updatedImages = images.filter((image) => image.title !== title)
-        setImages((prevImages) => [
+        setImages(() => [
           ...updatedImages,
           {
             title: Crypto.randomUUID(),
@@ -218,7 +218,7 @@ const Applications = () => {
               <Controller
                 control={control}
                 name="container"
-                render={({ field }) => (
+                render={() => (
                   <View style={{ marginBottom: 10 }}>
                     <Text className="text-center text-2xl font-bold">
                       Tem Recipiente?
@@ -243,7 +243,7 @@ const Applications = () => {
               <Controller
                 control={control}
                 name="card"
-                render={({ field }) => (
+                render={() => (
                   <View style={{ marginBottom: 10 }}>
                     <Text className="text-center text-2xl font-bold">
                       Tem Ficha?
@@ -267,7 +267,7 @@ const Applications = () => {
               <Controller
                 control={control}
                 name="plate"
-                render={({ field }) => (
+                render={() => (
                   <View style={{ marginBottom: 10 }}>
                     <Text className="text-center text-2xl font-bold">
                       Tem Placa?
@@ -306,7 +306,7 @@ const Applications = () => {
             <Controller
               control={control}
               name="volumebti"
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange } }) => (
                 <View className="mb-2 border border-zinc-700/20">
                   {configScaleVolume && configScaleVolume.id !== undefined ? (
                     <RNPickerSelect

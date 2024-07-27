@@ -77,7 +77,7 @@ const AdultCollection = () => {
 
       if (!result.canceled) {
         const updatedImages = images.filter((image) => image.title !== title)
-        setImages((prevImages) => [
+        setImages(() => [
           ...updatedImages,
           {
             title: Crypto.randomUUID(),

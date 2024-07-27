@@ -142,14 +142,14 @@ const ApplicationAddPointReferenceModal = ({
     },
   )
 
-  const {
-    data: configScaleVolumeOnline,
-    isSuccess: configScaleVolumeOnlineSuccess,
-  } = useQuery('config/configapp/online/?name="volume_bti"', async () => {
-    return await findConfigAppByName('volume_escala').then(
-      (response) => response,
-    )
-  })
+  const { data: configScaleVolumeOnline } = useQuery(
+    'config/configapp/online/?name="volume_bti"',
+    async () => {
+      return await findConfigAppByName('volume_escala').then(
+        (response) => response,
+      )
+    },
+  )
 
   const { data: configPointtype } = useQuery(
     'application/pointtype/flatdata',
@@ -158,12 +158,12 @@ const ApplicationAddPointReferenceModal = ({
     },
   )
 
-  const {
-    data: configPointtypeOnline,
-    isSuccess: configPointtypeOnlineSuccess,
-  } = useQuery('config/configapp/online/?name="flatdata"', async () => {
-    return await findPointTypeData().then((response) => response)
-  })
+  const { data: configPointtypeOnline } = useQuery(
+    'config/configapp/online/?name="flatdata"',
+    async () => {
+      return await findPointTypeData().then((response) => response)
+    },
+  )
 
   return (
     <Modal
@@ -195,7 +195,7 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="name"
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, onBlur } }) => (
                 <View className="w-[100%]">
                   <Text>Nome do ponto</Text>
                   <View className="border border-zinc-700/20">
@@ -304,7 +304,7 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="volumebti"
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange } }) => (
                 <View className="mb-2 w-full">
                   <Text>Volume do BTI</Text>
                   <View className="border border-zinc-700/20">
@@ -344,7 +344,7 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="pointtype"
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange } }) => (
                 <View className="mb-2 w-full">
                   <Text>Tipo do ponto</Text>
                   <View className="border border-zinc-700/20">
@@ -385,7 +385,7 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="observation"
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, onBlur } }) => (
                 <View className="w-[100%]">
                   <Text>Observação</Text>
                   <View className="border border-zinc-700/20">

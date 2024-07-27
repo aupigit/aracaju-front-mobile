@@ -4,7 +4,6 @@ import getConflictPoints from '@/utils/getConflictPoints'
 import calculateDistance from '@/utils/calculateDistance'
 import { IPoint } from '@/interfaces/IPoint'
 import { LocationObject } from 'expo-location'
-import { IConfigApp } from '@/interfaces/IConfigApp'
 import { router } from 'expo-router'
 import { usePointsReference } from '@/contexts/PointsReferenceContext'
 

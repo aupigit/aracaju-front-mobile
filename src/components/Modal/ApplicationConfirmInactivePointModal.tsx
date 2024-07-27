@@ -36,7 +36,7 @@ const ApplicationConfirmInactivePointModal = ({
     resolver: zodResolver(editPointActiveSchema),
   })
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = handleSubmit(async () => {
     try {
       await adjustPointReferenceStatusOffline(Number(selectedPoint.pk))
       setModalVisible(!modalVisible)
@@ -78,7 +78,7 @@ const ApplicationConfirmInactivePointModal = ({
             <Controller
               control={control}
               name="description"
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, onBlur } }) => (
                 <View className="w-full border border-zinc-700/20">
                   <TextInput
                     className="w-full p-4 text-lg placeholder:text-gray-300"

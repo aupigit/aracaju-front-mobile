@@ -6,7 +6,7 @@ import { asc, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 import { Logs } from '@/db/logs'
 
-export const syncDoAdultCollection = async (deviceId: string) => {
+export const syncDoAdultCollection = async (_deviceId: string) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {

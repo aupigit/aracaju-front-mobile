@@ -79,7 +79,7 @@ export const pullPointData = async (pointData: IPoint[]) => {
         })
       }
 
-      const updatedPoint = await db
+      await db
         .select()
         .from(PointReference)
         .where(eq(PointReference.id, Number(data.id)))

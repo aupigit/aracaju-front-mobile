@@ -2,7 +2,6 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 import { InvalidCredentialsError, UnauthorizedError } from '../errors/webapp'
 import getHeaders from './getHeaders'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { Alert } from 'react-native'
 
 export interface IHttpRequestParams {
   extraHeaders?: any

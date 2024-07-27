@@ -16,7 +16,6 @@ const ButtonActions = ({
   modalAddPointReference,
   openDrawer,
   setModalAddPointReference,
-  syncTimeRemaining,
 }: IButtonsActionsProps) => {
   const { user } = useUser()
 

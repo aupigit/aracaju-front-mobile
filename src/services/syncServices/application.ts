@@ -7,8 +7,8 @@ import { Alert } from 'react-native'
 import { Logs } from '@/db/logs'
 
 export const syncApplication = async (
-  applicatorId: string,
-  deviceId: string,
+  _applicatorId: string,
+  _deviceId: string,
 ) => {
   const netInfo = await NetInfo.fetch()
 
