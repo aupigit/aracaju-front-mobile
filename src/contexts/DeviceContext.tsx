@@ -7,9 +7,8 @@ import {
 } from 'react'
 import { IDevices } from '@/interfaces/IPoint'
 import { findDeviceByFactoryId } from '@/services/onlineServices/device'
-import * as Application from 'expo-application'
 import { router } from 'expo-router'
-import { Alert } from 'react-native'
+import { useDeviceFactoryId } from '@/hooks/use-device-factory-id'
 
 interface DeviceContextProps {
   children: ReactNode
@@ -25,7 +24,7 @@ interface DeviceContextData {
 const DeviceContext = createContext<DeviceContextData | undefined>(undefined)
 
 const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
-  const factoryId = Application.getAndroidId()
+  const factoryId = useDeviceFactoryId()
 
   const [device, setDevice] = useState<IDevices | null>(null)
   const fetchDeviceData = async () => {
