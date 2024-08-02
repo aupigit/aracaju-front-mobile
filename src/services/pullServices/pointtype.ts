@@ -4,10 +4,10 @@ import { db } from '@/lib/database'
 import { sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
-export const pullPointtypeFlatData = async (
-  pointtypeFlatData: IPointType[],
+export const pullPointTypeFlatData = async (
+  pointTypeFlatData: IPointType[],
 ) => {
-  for (const data of pointtypeFlatData) {
+  for (const data of pointTypeFlatData) {
     try {
       const existingPointTypes = await db
         .select()

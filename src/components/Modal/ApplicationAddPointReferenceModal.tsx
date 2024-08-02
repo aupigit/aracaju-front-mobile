@@ -151,14 +151,14 @@ const ApplicationAddPointReferenceModal = ({
     },
   )
 
-  const { data: configPointtype } = useQuery(
+  const { data: configPointType } = useQuery(
     'application/pointtype/flatdata',
     async () => {
       return await findPointTypeDataOffline().then((response) => response)
     },
   )
 
-  const { data: configPointtypeOnline } = useQuery(
+  const { data: configPointTypeOnline } = useQuery(
     'config/configapp/online/?name="flatdata"',
     async () => {
       return await findPointTypeData().then((response) => response)
@@ -348,13 +348,13 @@ const ApplicationAddPointReferenceModal = ({
                 <View className="mb-2 w-full">
                   <Text>Tipo do ponto</Text>
                   <View className="border border-zinc-700/20">
-                    {configPointtype && configPointtype.length > 0 ? (
+                    {configPointType && configPointType.length > 0 ? (
                       <RNPickerSelect
                         placeholder={{ label: 'Tipo do ponto 2', value: 0 }}
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configPointtype.map((item) => ({
+                        items={configPointType.map((item) => ({
                           label: item.name,
                           value: item.id,
                         }))}
@@ -365,7 +365,7 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configPointtypeOnline.map((item) => ({
+                        items={configPointTypeOnline.map((item) => ({
                           label: item.name,
                           value: item.point_code,
                         }))}

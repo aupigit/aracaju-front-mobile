@@ -52,11 +52,11 @@ import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices
 import { doTrailsOffline } from '@/services/offlineServices/trails'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import ApplicationAddPointReferenceModal from '@/components/Modal/ApplicationAddPointReferenceModal'
-import { pullPointtypeFlatData } from '@/services/pullServices/pointtype'
-import { findManyPointtype } from '@/services/onlineServices/pointtype'
+import { pullPointTypeFlatData } from '@/services/pullServices/pointtype'
+import { findManyPointType } from '@/services/onlineServices/pointtype'
 import SyncModal from '@/components/Modal/SyncModal'
 import BtnCollect from '@/components/PointsReference/CollectButton'
-import BtnPointInformations from '@/components/PointsReference/PointInformationsButton'
+import BtnPointInformation from '@/components/PointsReference/PointInformationButton'
 import BtnApplication from '@/components/PointsReference/ApplicationButton'
 import MapViewComponent from '@/components/MapView/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
@@ -253,10 +253,10 @@ const PointsReference = () => {
   )
 
   // GET - PointType/Online
-  const { data: pointtypeData, isLoading: pointtypeDataLoading } = useQuery(
+  const { data: pointTypeData, isLoading: pointTypeDataLoading } = useQuery(
     'applications/pointtype/',
     async () => {
-      return await findManyPointtype().then((response) => response)
+      return await findManyPointType().then((response) => response)
     },
   )
 
@@ -344,7 +344,7 @@ const PointsReference = () => {
     }
   }, [lastUpdatedAtSuccess, updatedAtParameter])
 
-  const handleSyncInformations = async () => {
+  const handleSyncInformation = async () => {
     setModalSync(true)
     setProgress(0)
 
@@ -382,7 +382,7 @@ const PointsReference = () => {
               pullConfigAppData(configAppData ?? []),
               setProgress(0.9),
 
-              pullPointtypeFlatData(pointtypeData ?? []),
+              pullPointTypeFlatData(pointTypeData ?? []),
             ])
               .then(() => {
                 setTimeout(() => {
@@ -432,10 +432,10 @@ const PointsReference = () => {
       )
     }
 
-    const { granted: backgroundPermiissionsGranted } =
+    const { granted: backgroundPermissionsGranted } =
       await requestBackgroundPermissionsAsync()
 
-    if (!backgroundPermiissionsGranted) {
+    if (!backgroundPermissionsGranted) {
       Alert.alert(
         'Permissão de localização',
         'É necessário permitir o acesso à localização para utilizar este aplicativo.',
@@ -590,7 +590,7 @@ const PointsReference = () => {
     configAppLoading ||
     configPointRadiusLoading ||
     configPushTimeLoading ||
-    pointtypeDataLoading ||
+    pointTypeDataLoading ||
     latestApplicationDateLoading ||
     configPointRadiusIsLoadingOnline ||
     configPushTimeIsLoadingOnline ||
@@ -615,7 +615,7 @@ const PointsReference = () => {
     >
       <ScrollView style={{ paddingTop: insets.top }}>
         <ButtonActions
-          handleSyncInformations={handleSyncInformations}
+          handleSyncInformations={handleSyncInformation}
           modalAddPointReference={modalAddPointReference}
           openDrawer={openDrawer}
           setModalAddPointReference={setModalAddPointReference}
@@ -695,7 +695,7 @@ const PointsReference = () => {
             latestApplicationDates={latestApplicationDates}
           />
           {user.is_staff && (
-            <BtnPointInformations
+            <BtnPointInformation
               configPointRadius={configsOfPointRadius}
               location={location}
               pointsDataOffline={pointsDataOffline}

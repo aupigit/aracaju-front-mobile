@@ -15,7 +15,7 @@ interface IButtonPointInformationProps {
   userLocation: number[]
 }
 
-const BtnPointInformations = ({
+const BtnPointInformation = ({
   showPointDetails,
   pointsDataOffline,
   configPointRadius,
@@ -82,4 +82,4 @@ const BtnPointInformations = ({
   )
 }
 
-export default BtnPointInformations
+export default BtnPointInformation
