@@ -6,7 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Divider, Snackbar } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -89,24 +89,26 @@ const ApplicationAddPointReferenceModal = ({
     formState: { errors },
   } = useForm({})
 
-  if (applicatorId) {
-    setValue('applicator', applicatorId)
-  }
-  if (deviceId) {
-    setValue('device', deviceId)
-  }
-  if (userLocation[0]) {
-    setValue('latitude', userLocation[0])
-  }
-  if (userLocation[1]) {
-    setValue('longitude', userLocation[1])
-  }
-  if (userLocation[2]) {
-    setValue('accuracy', userLocation[2])
-  }
-  if (userLocation[3]) {
-    setValue('altitude', userLocation[3])
-  }
+  useEffect(() => {
+    if (applicatorId) {
+      setValue('applicator', applicatorId)
+    }
+    if (deviceId) {
+      setValue('device', deviceId)
+    }
+    if (userLocation[0]) {
+      setValue('latitude', userLocation[0])
+    }
+    if (userLocation[1]) {
+      setValue('longitude', userLocation[1])
+    }
+    if (userLocation[2]) {
+      setValue('accuracy', userLocation[2])
+    }
+    if (userLocation[3]) {
+      setValue('altitude', userLocation[3])
+    }
+  }, [applicatorId, deviceId, setValue, userLocation])
 
   const onSubmit = handleSubmit(async (data) => {
     try {

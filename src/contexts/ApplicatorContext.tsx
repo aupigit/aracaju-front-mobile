@@ -4,6 +4,8 @@ import {
   ReactNode,
   useState,
   useEffect,
+  useCallback,
+  FC,
 } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { findApplicatorById } from '@/services/onlineServices/applicator' // Assuming there's a service to find applicator by id
@@ -23,10 +25,13 @@ const ApplicatorContext = createContext<ApplicatorContextData | undefined>(
   undefined,
 )
 
-const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
+export const ApplicatorProvider: FC<ApplicatorContextProps> = ({
+  children,
+}) => {
   const [applicator, setApplicator] = useState<IApplicator | null>(null)
 
-  const fetchApplicatorData = async () => {
+  // FIXME: use react query
+  const fetchApplicatorData = useCallback(async () => {
     const applicatorId = await AsyncStorage.getItem('applicator_id')
 
     try {
@@ -37,15 +42,15 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
     } catch (error) {
       console.error('Erro ao buscar informações do aplicador:', error.message)
     }
-  }
+  }, [])
 
-  const logoutApplicator = () => {
+  const logoutApplicator = useCallback(() => {
     setApplicator(null)
-  }
+  }, [])
 
   useEffect(() => {
     fetchApplicatorData()
-  }, [])
+  }, [fetchApplicatorData])
 
   const value = {
     applicator,
@@ -60,7 +65,7 @@ const ApplicatorProvider: React.FC<ApplicatorContextProps> = ({ children }) => {
   )
 }
 
-const useApplicator = (): ApplicatorContextData => {
+export const useApplicator = (): ApplicatorContextData => {
   const context = useContext(ApplicatorContext)
   if (!context) {
     throw new Error(
@@ -69,5 +74,3 @@ const useApplicator = (): ApplicatorContextData => {
   }
   return context
 }
-
-export { ApplicatorProvider, useApplicator }

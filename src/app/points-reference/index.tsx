@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -105,14 +105,18 @@ const PointsReference = () => {
 
   // Ações do Drawer
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
-  const openDrawer = () => {
+  const openDrawer = useCallback(() => {
     drawerRef.current?.openDrawer()
-  }
-  const closeDrawer = () => {
+  }, [])
+  const closeDrawer = useCallback(() => {
     drawerRef.current?.closeDrawer()
-  }
+  }, [])
 
-  if (!applicator) fetchApplicatorData()
+  useEffect(() => {
+    if (!applicator) {
+      fetchApplicatorData()
+    }
+  }, [applicator, fetchApplicatorData])
 
   // Formulário de ajuste de coordenadas
   const {
@@ -126,12 +130,15 @@ const PointsReference = () => {
   })
 
   // Localização do usuário
-  const userLocation = [
-    location?.coords.latitude,
-    location?.coords.longitude,
-    Number(location?.coords.accuracy.toString().slice(0, 2)),
-    Number(location?.coords.altitude.toString().slice(0, 2)),
-  ]
+  const userLocation = useMemo(
+    () => [
+      location?.coords.latitude,
+      location?.coords.longitude,
+      Number(location?.coords.accuracy.toString().slice(0, 2)),
+      Number(location?.coords.altitude.toString().slice(0, 2)),
+    ],
+    [location],
+  )
 
   // GET - Pontos/Offline
   const {
@@ -153,11 +160,13 @@ const PointsReference = () => {
     pullPointLastUpdatedAt(),
   )
 
-  let updatedAtParameter: string | null = null
-  if (lastUpdatedAtData) {
-    const updatedAtDate = new Date(lastUpdatedAtData)
-    updatedAtParameter = formatDate(updatedAtDate)
-  }
+  const updatedAtParameter = useMemo(() => {
+    if (lastUpdatedAtData) {
+      return formatDate(new Date(lastUpdatedAtData))
+    }
+
+    return null
+  }, [lastUpdatedAtData])
 
   // GET - Applicator/Online
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
@@ -202,16 +211,16 @@ const PointsReference = () => {
       { enabled: configAppSuccess },
     )
 
-  const [configsOfPointRadius, setConfigsOfPointRadius] = useState(15)
-  useEffect(() => {
-    if (configPointRadius && configPointRadius?.data_config) {
-      setConfigsOfPointRadius(Number(configPointRadius?.data_config))
-    } else if (
-      configPointRadiusOnline &&
-      configPointRadiusOnline?.data_config
-    ) {
-      setConfigsOfPointRadius(Number(configPointRadiusOnline?.data_config))
+  const configsOfPointRadius = useMemo(() => {
+    if (configPointRadius?.data_config) {
+      return Number(configPointRadius?.data_config)
     }
+
+    if (configPointRadiusOnline?.data_config) {
+      return Number(configPointRadiusOnline?.data_config)
+    }
+
+    return 15
   }, [configPointRadius, configPointRadiusOnline])
 
   // GET - ConfigaApp Tempo de sincronização/Offline
@@ -263,22 +272,16 @@ const PointsReference = () => {
     },
   )
 
-  const [syncTimeRemaining, setSyncTimeRemaining] = useState(0)
-
-  useEffect(() => {
-    if (
-      configPushTime !== undefined &&
-      configPushTime?.data_config !== undefined
-    ) {
-      setSyncTimeRemaining(Number(configPushTime?.data_config))
-    } else {
-      if (
-        configPushTimeOnline !== undefined &&
-        configPushTimeOnline?.data_config !== undefined
-      ) {
-        setSyncTimeRemaining(Number(configPushTimeOnline?.data_config))
-      }
+  const syncTimeRemaining = useMemo(() => {
+    if (configPushTime?.data_config) {
+      return Number(configPushTime?.data_config)
     }
+
+    if (configPushTimeOnline?.data_config) {
+      return Number(configPushTimeOnline?.data_config)
+    }
+
+    return 0
   }, [configPushTime, configPushTimeOnline])
 
   useEffect(() => {
@@ -413,43 +416,41 @@ const PointsReference = () => {
   // Localização do usuário
   useEffect(() => {
     requestLocationPermissions()
-    const startWatching = async () => {
-      await watchPositionAsync(
-        {
-          accuracy: LocationAccuracy.Highest,
-          distanceInterval: 2,
-          timeInterval: 30000,
-        },
-        async (newLocation) => {
-          if (newLocation) {
-            setLocation(newLocation)
 
-            const existingLocations = await AsyncStorage.getItem('locations')
-            const locationsArray = existingLocations
-              ? JSON.parse(existingLocations)
-              : []
+    const watcher = watchPositionAsync(
+      {
+        accuracy: LocationAccuracy.Highest,
+        distanceInterval: 2,
+        timeInterval: 30000,
+      },
+      async (newLocation) => {
+        if (!newLocation) {
+          return
+        }
 
-            // Add new location to the array
-            locationsArray.push(newLocation)
+        const existingLocations = await AsyncStorage.getItem('locations')
+        const locationsArray = existingLocations
+          ? JSON.parse(existingLocations)
+          : []
 
-            // Save the updated array back to AsyncStorage
-            await AsyncStorage.setItem(
-              'locations',
-              JSON.stringify(locationsArray),
-            )
+        // Add new location to the array
+        locationsArray.push(newLocation)
 
-            refetch()
-            setRoutes((currentLocations) => [...currentLocations, newLocation])
-          }
-        },
-      )
+        // Save the updated array back to AsyncStorage
+        await AsyncStorage.setItem('locations', JSON.stringify(locationsArray))
+
+        refetch()
+        setLocation(newLocation)
+        setRoutes((currentLocations) => [...currentLocations, newLocation])
+      },
+    )
+
+    return () => {
+      watcher.then((watcher) => watcher.remove())
     }
-
-    startWatching()
   }, [])
 
   const [routesOffline, setRoutesOffline] = useState([])
-
   useEffect(() => {
     AsyncStorage.getItem('locations').then((value) => {
       if (value) {
@@ -484,47 +485,43 @@ const PointsReference = () => {
 
   // Ações do usuário
   useEffect(() => {
-    if (location) {
-      if (pointsDataOffline) {
-        const validPoints = []
-        for (const point of pointsDataOffline.filter((point) =>
-          isPointInRegion(point, {
-            latitude: userLocation[0],
-            longitude: userLocation[1],
-          }),
-        )) {
-          if (
-            calculateDistance(location?.coords, point) <=
-            Number(configsOfPointRadius)
-          ) {
-            validPoints.push(point)
-          }
-        }
+    if (!location || !pointsDataOffline) {
+      return
+    }
 
-        if (validPoints.length > 0) {
-          const distances = validPoints.map((point) =>
-            calculateDistance(location.coords, point),
-          )
+    const validPoints = []
+    const pointsInRegion = pointsDataOffline.filter((point) =>
+      isPointInRegion(point, {
+        latitude: userLocation[0],
+        longitude: userLocation[1],
+      }),
+    )
 
-          const closestPointIndex = distances.indexOf(Math.min(...distances))
-
-          const closestPoint = validPoints[closestPointIndex]
-
-          setShowPointDetails(true)
-          if (Number(closestPoint.pointtype) === 2) {
-            setShowCollectButton(true)
-            setShowButton(false)
-          }
-          if (Number(closestPoint.pointtype) === 1) {
-            setShowButton(true)
-            setShowCollectButton(false)
-          }
-        } else {
-          setShowButton(false)
-          setShowCollectButton(false)
-          setShowPointDetails(false)
-        }
+    for (const point of pointsInRegion) {
+      if (
+        calculateDistance(location?.coords, point) <=
+        Number(configsOfPointRadius)
+      ) {
+        validPoints.push(point)
       }
+    }
+
+    if (validPoints.length > 0) {
+      const distances = validPoints.map((point) =>
+        calculateDistance(location.coords, point),
+      )
+
+      const closestPointIndex = distances.indexOf(Math.min(...distances))
+      const closestPoint = validPoints[closestPointIndex]
+      const pointType = Number(closestPoint.pointtype)
+
+      setShowPointDetails(true)
+      setShowCollectButton(pointType === 2)
+      setShowButton(pointType === 1)
+    } else {
+      setShowButton(false)
+      setShowCollectButton(false)
+      setShowPointDetails(false)
     }
   }, [pointsDataOffline, location])
 
