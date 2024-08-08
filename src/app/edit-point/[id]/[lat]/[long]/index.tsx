@@ -31,13 +31,8 @@ const EditPoint = () => {
   const longitude: string = Array.isArray(long) ? long[0] : long
 
   // GET - Pontos/Offline
-  const { data: point } = useQuery(
-    'application/pointsreference/id',
-    async () => {
-      return await findOnePointReferenceByIdOffline(Number(point_id)).then(
-        (response) => response,
-      )
-    },
+  const { data: point } = useQuery('application/pointsreference/id', () =>
+    findOnePointReferenceByIdOffline(Number(point_id)),
   )
 
   return (

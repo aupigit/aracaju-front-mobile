@@ -131,13 +131,8 @@ const Applications = () => {
   const longitude: string = Array.isArray(long) ? long[0] : long
 
   // GET - Pontos/Offline
-  const { data: point } = useQuery(
-    'application/pointsreference/id',
-    async () => {
-      return await findOnePointReferenceByIdOffline(Number(point_id)).then(
-        (response) => response,
-      )
-    },
+  const { data: point } = useQuery('application/pointsreference/id', () =>
+    findOnePointReferenceByIdOffline(Number(point_id)),
   )
 
   const onSubmit = handleSubmit(async (data) => {
@@ -170,20 +165,17 @@ const Applications = () => {
     data: configScaleVolume,
     isLoading: configScaleVolumeLoading,
     isSuccess: configScaleVolumeIsSuccess,
-  } = useQuery('config/configapp/?name="volume_escala"', async () => {
-    return await findConfigAppByNameOffline('volume_escala').then(
-      (response) => response,
-    )
-  })
+  } = useQuery('config/configapp/?name="volume_escala"', () =>
+    findConfigAppByNameOffline('volume_escala'),
+  )
 
   const {
     data: configScaleVolumeOnline,
     isLoading: configScaleVolumeOnlineIsLoading,
     isSuccess: configScaleVolumeOnlineIsSuccess,
-  } = useQuery('config/configapp/online/?name="volume_escala"', async () => {
-    const response = await findConfigAppByName('volume_escala')
-    return response
-  })
+  } = useQuery('config/configapp/online/?name="volume_escala"', () =>
+    findConfigAppByName('volume_escala'),
+  )
 
   if (
     configScaleVolumeLoading ||

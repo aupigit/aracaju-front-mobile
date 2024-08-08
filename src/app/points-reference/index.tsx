@@ -139,15 +139,9 @@ const PointsReference = () => {
     refetch,
     isSuccess,
   } = useQuery(
-    'application/pointsreference/is_offline',
-    async () => {
-      return await findManyPointsReferencesOffline(user?.is_staff).then(
-        (response) => response,
-      )
-    },
-    {
-      staleTime: 0,
-    },
+    ['application/pointsreference/is_offline', user?.is_staff],
+    () => findManyPointsReferencesOffline(user?.is_staff),
+    { staleTime: 0 },
   )
 
   // GET - Última updated_at de Pontos/Offline
@@ -155,9 +149,9 @@ const PointsReference = () => {
     data: lastUpdatedAtData,
     isSuccess: lastUpdatedAtSuccess,
     refetch: lastUpdatedAtRefetch,
-  } = useQuery('application/pointreference/last_updated_at', async () => {
-    return await pullPointLastUpdatedAt().then((response) => response)
-  })
+  } = useQuery('application/pointreference/last_updated_at', () =>
+    pullPointLastUpdatedAt(),
+  )
 
   let updatedAtParameter: string | null = null
   if (lastUpdatedAtData) {
@@ -168,17 +162,13 @@ const PointsReference = () => {
   // GET - Applicator/Online
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
     'application/applicator',
-    async () => {
-      return await findApplicator().then((response) => response)
-    },
+    () => findApplicator(),
   )
 
   // GET - User/Online
   const { data: userData, isLoading: userLoading } = useQuery(
     'operation/user',
-    async () => {
-      return await findUser().then((response) => response)
-    },
+    () => findUser(),
   )
 
   // GET - ConfigaApp/Online
@@ -186,45 +176,30 @@ const PointsReference = () => {
     data: configAppData,
     isLoading: configAppLoading,
     isSuccess: configAppSuccess,
-  } = useQuery('operation/configapp', async () => {
-    return await findConfigApp().then((response) => response)
-  })
+  } = useQuery('operation/configapp', () => findConfigApp())
 
   // GET - ConfigaApp Raio do Ponto/Online
   const {
     data: configPointRadiusOnline,
     isLoading: configPointRadiusIsLoadingOnline,
-  } = useQuery('operation/configapp/?name="raio_do_ponto"', async () => {
-    return await findConfigAppByName('raio_do_ponto').then(
-      (response) => response,
-    )
-  })
+  } = useQuery('operation/configapp/?name="raio_do_ponto"', () =>
+    findConfigAppByName('raio_do_ponto'),
+  )
 
   // GET - ConfigaApp Raio do Ponto/Online
   const {
     data: configPushTimeOnline,
     isLoading: configPushTimeIsLoadingOnline,
-  } = useQuery(
-    'operation/configapp/?name="tempo_entrega_sincronizacao"',
-    async () => {
-      return await findConfigAppByName('tempo_entrega_sincronizacao').then(
-        (response) => response,
-      )
-    },
+  } = useQuery('operation/configapp/?name="tempo_entrega_sincronizacao"', () =>
+    findConfigAppByName('tempo_entrega_sincronizacao'),
   )
 
   // GET - ConfigaApp Raio do ponto/Offline
   const { data: configPointRadius, isLoading: configPointRadiusLoading } =
     useQuery(
       'config/configapp/?name="raio_do_ponto"',
-      async () => {
-        return await findConfigAppByNameOffline('raio_do_ponto').then(
-          (response) => response,
-        )
-      },
-      {
-        enabled: configAppSuccess,
-      },
+      () => findConfigAppByNameOffline('raio_do_ponto'),
+      { enabled: configAppSuccess },
     )
 
   const [configsOfPointRadius, setConfigsOfPointRadius] = useState(15)
@@ -242,22 +217,14 @@ const PointsReference = () => {
   // GET - ConfigaApp Tempo de sincronização/Offline
   const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
     'config/configapp/?name="tempo_entrega_sincronizacao"',
-    async () => {
-      return await findConfigAppByNameOffline(
-        'tempo_entrega_sincronizacao',
-      ).then((response) => response)
-    },
-    {
-      enabled: configAppSuccess,
-    },
+    () => findConfigAppByNameOffline('tempo_entrega_sincronizacao'),
+    { enabled: configAppSuccess },
   )
 
   // GET - PointType/Online
   const { data: pointTypeData, isLoading: pointTypeDataLoading } = useQuery(
     'applications/pointtype/',
-    async () => {
-      return await findManyPointType().then((response) => response)
-    },
+    () => findManyPointType(),
   )
 
   // GET - Data da última aplicação em determinados pontos/Offline

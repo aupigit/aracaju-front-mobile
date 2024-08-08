@@ -135,34 +135,22 @@ const ApplicationAddPointReferenceModal = ({
 
   const { data: configScaleVolume } = useQuery(
     'config/configapp/?name="volume_bti"',
-    async () => {
-      return await findConfigAppByNameOffline('volume_escala').then(
-        (response) => response,
-      )
-    },
+    () => findConfigAppByNameOffline('volume_escala'),
   )
 
   const { data: configScaleVolumeOnline } = useQuery(
     'config/configapp/online/?name="volume_bti"',
-    async () => {
-      return await findConfigAppByName('volume_escala').then(
-        (response) => response,
-      )
-    },
+    () => findConfigAppByName('volume_escala'),
   )
 
   const { data: configPointType } = useQuery(
     'application/pointtype/flatdata',
-    async () => {
-      return await findPointTypeDataOffline().then((response) => response)
-    },
+    () => findPointTypeDataOffline(),
   )
 
   const { data: configPointTypeOnline } = useQuery(
     'config/configapp/online/?name="flatdata"',
-    async () => {
-      return await findPointTypeData().then((response) => response)
-    },
+    () => findPointTypeData(),
   )
 
   return (
