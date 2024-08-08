@@ -314,64 +314,50 @@ const PointsReference = () => {
     }
   }, [lastUpdatedAtSuccess, updatedAtParameter])
 
+  const incrementProgress = useCallback(() => {
+    setProgress((prevProgress) => prevProgress + 0.1)
+  }, [setProgress])
+
   const handleSyncInformation = async () => {
     setModalSync(true)
     setProgress(0)
 
-    console.log('Sincronização Iniciando')
-    Promise.all([
-      syncPoints(applicator.id, device.factory_id),
-      setProgress(0.1),
-    ]).then(() => {
-      Promise.all([
-        syncApplication(applicator.id, device.id),
-        setProgress(0.2),
-
-        syncDoAdultCollection(device.id),
-        setProgress(0.3),
-
-        syncTrails(Number(applicator.id), Number(device.id)),
-        setProgress(0.4),
+    console.log('[sync] envio iniciando')
+    try {
+      await syncPoints(applicator.id, device.factory_id)
+      setProgress(0.1)
+      await Promise.all([
+        syncApplication(applicator.id, device.id).then(incrementProgress),
+        syncDoAdultCollection(device.id).then(incrementProgress),
+        syncTrails(Number(applicator.id), Number(device.id)).then(
+          incrementProgress,
+        ),
       ])
-        .then(() => {
-          const now = new Date()
-          setLastSyncTime(now)
-          AsyncStorage.setItem('lastSyncTime', now.toISOString())
-          console.log('PULL INICIANDO')
 
-          Promise.all([fetchData(), setProgress(0.5)]).then(() => {
-            Promise.all([
-              pullPointData(pointsDataRef.current ?? []),
-              setProgress(0.6),
-              pullApplicatorData(applicatorData ?? []),
-              setProgress(0.7),
+      const now = new Date()
+      setLastSyncTime(now)
+      await AsyncStorage.setItem('lastSyncTime', now.toISOString())
 
-              pullUserData(userData ?? []),
-              setProgress(0.8),
+      console.log('[sync] fetch iniciando')
+      await Promise.all([
+        fetchData().then(incrementProgress),
+        pullPointData(pointsDataRef.current ?? []).then(incrementProgress),
+        pullApplicatorData(applicatorData ?? []).then(incrementProgress),
+        pullUserData(userData ?? []).then(incrementProgress),
+        pullConfigAppData(configAppData ?? []).then(incrementProgress),
+        pullPointTypeFlatData(pointTypeData ?? []).then(incrementProgress),
+      ])
 
-              pullConfigAppData(configAppData ?? []),
-              setProgress(0.9),
-
-              pullPointTypeFlatData(pointTypeData ?? []),
-            ])
-              .then(() => {
-                setTimeout(() => {
-                  setModalSync(false)
-                }, 3000)
-                console.log('Sincronização Completa')
-                handleApplication()
-                refetch()
-                setProgress(1)
-              })
-              .catch((error) => {
-                Alert.alert('Erro na sincronização:', error.message)
-              })
-          })
-        })
-        .catch((error) => {
-          Alert.alert('Erro na sincronização:', error.message)
-        })
-    })
+      setModalSync(false)
+      console.log('[sync] completa')
+      handleApplication()
+      await refetch()
+      setProgress(1)
+    } catch (error) {
+      setModalSync(false)
+      console.log('[sync]', error)
+      Alert.alert('Erro na sincronização:', error.message)
+    }
   }
 
   const onSubmit = handleSubmit(async (data) => {
