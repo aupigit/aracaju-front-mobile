@@ -28,40 +28,18 @@ interface ApplicationAddPointReferenceModalProps {
 }
 
 export const createPointSchema = z.object({
-  name: z.string({
-    required_error: 'Nome do ponto é obrigatório',
-  }),
-  latitude: z.number({
-    required_error: 'Latitude é obrigatória',
-  }),
-  longitude: z.number({
-    required_error: 'Longitude é obrigatória',
-  }),
-  accuracy: z.number({
-    required_error: 'Acurácia é obrigatória',
-  }),
-  altitude: z.number({
-    required_error: 'Altitude é obrigatória',
-  }),
-  volumebti: z
-    .number({
-      required_error: 'Volume é obrigatório',
-    })
-    .default(0),
+  name: z.string({ required_error: 'Nome do ponto é obrigatório' }),
+  latitude: z.number({ required_error: 'Latitude é obrigatória' }),
+  longitude: z.number({ required_error: 'Longitude é obrigatória' }),
+  accuracy: z.number({ required_error: 'Acurácia é obrigatória' }),
+  altitude: z.number({ required_error: 'Altitude é obrigatória' }),
+  volumebti: z.number({ required_error: 'Volume é obrigatório' }).default(0),
   observation: z
-    .string({
-      required_error: 'Observação é obrigatória',
-    })
+    .string({ required_error: 'Observação é obrigatória' })
     .default(''),
-  device: z.number({
-    required_error: 'Dispositivo é obrigatório',
-  }),
-  applicator: z.number({
-    required_error: 'Aplicador é obrigatório',
-  }),
-  pointtype: z.number({
-    required_error: 'Tipo de ponto é obrigatório',
-  }),
+  device: z.number({ required_error: 'Dispositivo é obrigatório' }),
+  applicator: z.number({ required_error: 'Aplicador é obrigatório' }),
+  pointtype: z.number({ required_error: 'Tipo de ponto é obrigatório' }),
 })
 
 export type CreatePointFormData = z.infer<typeof createPointSchema>
@@ -304,12 +282,12 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configScaleVolume?.data_config
-                          .split(';')
-                          .map((item) => ({
-                            label: item,
-                            value: item,
-                          }))}
+                        items={(
+                          configScaleVolume?.data_config.split(';') || []
+                        ).map((item) => ({
+                          label: item,
+                          value: item,
+                        }))}
                       />
                     ) : (
                       <RNPickerSelect
@@ -317,12 +295,12 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configScaleVolumeOnline?.data_config
-                          .split(';')
-                          .map((item) => ({
-                            label: item,
-                            value: item,
-                          }))}
+                        items={(
+                          configScaleVolumeOnline?.data_config.split(';') || []
+                        ).map((item) => ({
+                          label: item,
+                          value: item,
+                        }))}
                       />
                     )}
                   </View>
