@@ -26,7 +26,7 @@ interface UserContextData {
 const UserContext = createContext<UserContextData | undefined>(undefined)
 
 const UserProvider: React.FC<UserContextProps> = ({ children }) => {
-  const { cleatDeviceData } = useDevice()
+  const { clearDeviceData } = useDevice()
   const [user, setUser] = useState<IUser | null>(null)
   const isAuthenticated = !!user
 
@@ -62,7 +62,7 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
     AsyncStorage.removeItem('token')
     AsyncStorage.removeItem('userId')
     AsyncStorage.removeItem('applicator_id')
-    cleatDeviceData()
+    clearDeviceData()
     router.navigate('/')
   }
 

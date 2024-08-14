@@ -17,7 +17,7 @@ interface DeviceContextProps {
 interface DeviceContextData {
   device: IDevices | null
   fetchDeviceData: () => Promise<void>
-  cleatDeviceData: () => void
+  clearDeviceData: () => void
   registerDeviceData: (deviceData: IDevices | null) => void
 }
 
@@ -48,14 +48,14 @@ const DeviceProvider: React.FC<DeviceContextProps> = ({ children }) => {
     setDevice(deviceData)
   }
 
-  const cleatDeviceData = () => {
+  const clearDeviceData = () => {
     setDevice(null)
   }
 
   const value = {
     device,
     fetchDeviceData,
-    cleatDeviceData,
+    clearDeviceData,
     registerDeviceData,
   }
 
