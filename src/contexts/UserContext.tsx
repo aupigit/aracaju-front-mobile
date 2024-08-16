@@ -59,11 +59,12 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
 
   const logoutUser = () => {
     setUser(null)
-    AsyncStorage.removeItem('token')
-    AsyncStorage.removeItem('userId')
-    AsyncStorage.removeItem('applicator_id')
-    clearDeviceData()
-    router.navigate('/')
+    AsyncStorage.multiRemove(['token', 'userId', 'applicator_id']).finally(
+      () => {
+        clearDeviceData()
+        router.navigate('/')
+      },
+    )
   }
 
   return (
