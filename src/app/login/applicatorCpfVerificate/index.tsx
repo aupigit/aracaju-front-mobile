@@ -10,7 +10,7 @@ import FormControl from './FormControl'
 import { Snackbar } from 'react-native-paper'
 import { doApplicatorVerificate } from '@/services/onlineServices/applicatorVerificate'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useDevice } from '@/contexts/DeviceContext'
+import { useDevice } from '@/features/device'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 
 const applicatorVerificateSchema = z.object({
@@ -29,7 +29,7 @@ const Login = () => {
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
 
-  const { fetchDeviceData } = useDevice()
+  const { refetchDevice } = useDevice()
   const { fetchApplicatorData } = useApplicator()
 
   const {
@@ -41,10 +41,12 @@ const Login = () => {
   })
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
+
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
   const onSubmit = handleSubmit(async (data) => {
-    await fetchDeviceData()
+    // FIXME: why do we need these refetches?
+    await refetchDevice()
     await fetchApplicatorData()
     try {
       setButtonLoading(true)

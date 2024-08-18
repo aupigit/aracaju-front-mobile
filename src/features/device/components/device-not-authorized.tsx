@@ -8,41 +8,27 @@ import {
 } from 'react-native'
 import React, { useState } from 'react'
 import * as Clipboard from 'expo-clipboard'
-import { useDevice } from '@/contexts/DeviceContext'
-import { findDeviceByFactoryId } from '@/services/onlineServices/device'
-import { router } from 'expo-router'
-import { useDeviceFactoryId } from '@/hooks/use-device-factory-id'
+import { useDeviceFactoryId } from '@/features/device/hooks/use-device-factory-id'
 
-const DeviceNotAuthorized = () => {
-  const [isCopied, setIsCopied] = useState(false)
-  const [isButtonLoading, setIsButtonLoading] = useState(false)
-  const { registerDeviceData } = useDevice()
+export const DeviceNotAuthorized = ({
+  onReauthorize,
+  loading,
+}: {
+  onReauthorize: () => void
+  loading: boolean
+}) => {
   const factoryId = useDeviceFactoryId()
+  const [isCopied, setIsCopied] = useState(false)
 
   // Depois de Copiar o FactoryId, mostrar "Copiado" na tela por 10 segundos
   const copyToClipboard = async () => {
-    await Clipboard.setStringAsync(factoryId)
-    setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 5000)
-  }
-
-  // Botão para tentar buscar informações do device novamente
-  const handlePress = async () => {
     try {
-      setIsButtonLoading(true)
-
-      const deviceData = await findDeviceByFactoryId(factoryId)
-      registerDeviceData(deviceData)
-
-      if (!deviceData || deviceData.authorized === false) {
-        router.navigate('/device-not-authorized')
-      }
-
-      router.navigate('/')
+      await Clipboard.setStringAsync(factoryId)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 5000)
     } catch (error) {
-      Alert.alert('Erro ao buscar informações do device:', error.message)
-    } finally {
-      setIsButtonLoading(false)
+      setIsCopied(false)
+      Alert.alert('Erro ao copiar o código:', (error as Error).message)
     }
   }
 
@@ -70,13 +56,13 @@ const DeviceNotAuthorized = () => {
             </Pressable>
           </View>
 
-          {isButtonLoading ? (
+          {loading ? (
             <Pressable className="h-[38px] w-full items-center justify-center rounded-md bg-zinc-700 p-2 text-center">
-              <ActivityIndicator size={'small'} color={'#fff'} />
+              <ActivityIndicator size="small" color="#fff" />
             </Pressable>
           ) : (
             <Pressable
-              onPress={handlePress}
+              onPress={onReauthorize}
               className="w-full rounded-md bg-zinc-700 p-2 text-center"
             >
               <Text className="text-center text-lg font-bold text-white">
@@ -89,5 +75,3 @@ const DeviceNotAuthorized = () => {
     </ScrollView>
   )
 }
-
-export default DeviceNotAuthorized

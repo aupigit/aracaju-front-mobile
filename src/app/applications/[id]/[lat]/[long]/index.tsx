@@ -20,7 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { doApplicationOffline } from '@/services/offlineServices/application'
 import { useApplicator } from '@/contexts/ApplicatorContext'
-import { useDevice } from '@/contexts/DeviceContext'
+import { useDevice } from '@/features/device'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import { findConfigAppByName } from '@/services/onlineServices/configApp'
@@ -80,7 +80,7 @@ const Applications = () => {
           {
             title: Crypto.randomUUID(),
             uri: result.assets[0].uri,
-            base64: result.assets[0].base64,
+            base64: result.assets[0].base64!,
             size: result.assets[0].fileSize,
             type: result.assets[0].mimeType,
           },

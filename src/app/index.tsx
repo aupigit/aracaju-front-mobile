@@ -1,48 +1,19 @@
-import { View, Text, Pressable, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, Pressable, Alert } from 'react-native'
 import React from 'react'
 import { router } from 'expo-router'
 import { useUser } from '@/contexts/UserContext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { doLogin } from '@/services/onlineServices/authenticate'
-import { useDevice } from '@/contexts/DeviceContext'
+import { useDevice } from '@/features/device'
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
 import { useApplicator } from '@/contexts/ApplicatorContext'
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
-import migrations from '../../drizzle/migrations'
-
-import { useDrizzleStudio } from 'expo-drizzle-studio-plugin'
-import { db, expoDB } from '@/lib/database'
 
 const Home = () => {
-  const { success, error } = useMigrations(db, migrations)
-
-  useDrizzleStudio(expoDB)
-
   const { isAuthenticated, logoutUser, loginUser } = useUser()
-  const { device, fetchDeviceData } = useDevice()
+  const { device } = useDevice()
   const { fetchApplicatorData, logoutApplicator } = useApplicator()
 
-  if (error) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <Text>{error.message}</Text>
-      </View>
-    )
-  }
-
-  if (!success) {
-    return (
-      <ActivityIndicator
-        className="flex-1 items-center justify-center"
-        size="large"
-      />
-    )
-  }
-
-  if (!device) fetchDeviceData()
-
   const handleEnterLead = async () => {
-    await fetchDeviceData()
     await fetchApplicatorData()
 
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')
@@ -54,7 +25,6 @@ const Home = () => {
   }
 
   const handleEnterApplicator = async () => {
-    await fetchDeviceData()
     await fetchApplicatorData()
 
     const tokenServiceId = await AsyncStorage.getItem('token_service_id')

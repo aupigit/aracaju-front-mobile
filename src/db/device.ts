@@ -19,3 +19,5 @@ export const Device = sqliteTable('Device', {
 })
 
 export type SelectDevice = typeof Device.$inferSelect
+
+export type NewDevice = typeof Device.$inferInsert

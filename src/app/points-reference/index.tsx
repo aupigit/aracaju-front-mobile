@@ -47,7 +47,7 @@ import {
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
 import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
-import { useDevice } from '@/contexts/DeviceContext'
+import { useDevice } from '@/features/device'
 import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
 import { doTrailsOffline } from '@/services/offlineServices/trails'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'

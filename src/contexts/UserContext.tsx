@@ -10,7 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useQuery } from 'react-query'
 import { findUserById } from '@/services/onlineServices/user'
 import { router } from 'expo-router'
-import { useDevice } from './DeviceContext'
+import { useDevice } from '@/features/device'
+import { noop } from 'lodash'
 
 interface UserContextProps {
   children: ReactNode
@@ -26,7 +27,7 @@ interface UserContextData {
 const UserContext = createContext<UserContextData | undefined>(undefined)
 
 const UserProvider: React.FC<UserContextProps> = ({ children }) => {
-  const { clearDeviceData } = useDevice()
+  const { refetchDevice } = useDevice()
   const [user, setUser] = useState<IUser | null>(null)
   const isAuthenticated = !!user
 
@@ -50,21 +51,20 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
   )
 
   useEffect(() => {
-    setUser(userData)
+    setUser(userData || null)
   }, [userData])
 
   const loginUser = (userData?: IUser | undefined) => {
     setUser(userData || null)
   }
 
-  const logoutUser = () => {
+  const logoutUser = async () => {
     setUser(null)
-    AsyncStorage.multiRemove(['token', 'userId', 'applicator_id']).finally(
-      () => {
-        clearDeviceData()
-        router.navigate('/')
-      },
+    await AsyncStorage.multiRemove(['token', 'userId', 'applicator_id']).catch(
+      noop,
     )
+    await refetchDevice().catch(noop)
+    router.navigate('/')
   }
 
   return (

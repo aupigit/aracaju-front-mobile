@@ -4,17 +4,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { LogBox } from 'react-native'
 import { PaperProvider } from 'react-native-paper'
 import { ApplicatorProvider } from '@/contexts/ApplicatorContext'
-import { DeviceProvider } from '@/contexts/DeviceContext'
+import { DeviceProvider } from '@/features/device/context'
 import { PointsReferenceProvider } from '@/contexts/PointsReferenceContext'
 import { SQLiteProvider } from 'expo-sqlite'
 import { DATABASE_NAME } from '@/lib/database'
-// import { useDrizzleStudio } from 'expo-drizzle-studio-plugin'
+import { DatabaseProvider } from '@/features/database'
 const queryClient = new QueryClient()
 
 LogBox.ignoreLogs(['In React 18, SSRProvider is not necessary and is a noop.'])
 export function Providers({ children }: { children: React.ReactNode }) {
-  // useDrizzleStudio(expoDB)
-
   return (
     <SQLiteProvider databaseName={DATABASE_NAME}>
       <SafeAreaProvider
@@ -24,15 +22,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
         }}
       >
         <PaperProvider>
-          <QueryClientProvider client={queryClient}>
-            <DeviceProvider>
-              <UserProvider>
-                <ApplicatorProvider>
-                  <PointsReferenceProvider>{children}</PointsReferenceProvider>
-                </ApplicatorProvider>
-              </UserProvider>
-            </DeviceProvider>
-          </QueryClientProvider>
+          <DatabaseProvider>
+            <QueryClientProvider client={queryClient}>
+              <DeviceProvider>
+                <UserProvider>
+                  <ApplicatorProvider>
+                    <PointsReferenceProvider>
+                      {children}
+                    </PointsReferenceProvider>
+                  </ApplicatorProvider>
+                </UserProvider>
+              </DeviceProvider>
+            </QueryClientProvider>
+          </DatabaseProvider>
         </PaperProvider>
       </SafeAreaProvider>
     </SQLiteProvider>
