@@ -1,10 +1,10 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios'
-import { InvalidCredentialsError, UnauthorizedError } from '../errors/webapp'
-import getHeaders from './getHeaders'
+import { InvalidCredentialsError, UnauthorizedError } from '@/errors/webapp'
+import { getHeaders } from './get-headers'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export interface IHttpRequestParams {
-  extraHeaders?: any
+  extraHeaders?: Record<string, string>
   showToastOnGenericErrorOnly?: boolean
   overwriteEndpoint?: string
   enableRequestThrottle?: boolean
@@ -22,12 +22,14 @@ export interface IPostRequestParams extends IHttpRequestParams {
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
-const httpRequest = async (
+type WithToken<T> = T & { access: string }
+
+const httpRequest = async <T>(
   uri: string,
   method: HttpMethod,
   props: IPostRequestParams = {},
   isRetry = false,
-): Promise<any> => {
+): Promise<WithToken<T>> => {
   const headers = await getHeaders(props)
 
   const endpoint = `${process.env.EXPO_PUBLIC_BASE_API_URL}/${uri}`
@@ -42,36 +44,45 @@ const httpRequest = async (
   }
 
   try {
-    const response = await axios(endpoint, params)
+    const response = await axios<WithToken<T>>(endpoint, params)
+
     return response.data
   } catch (error) {
-    console.error('Axios error. Reveja conexão com a internet ', error.message)
+    console.error(
+      'Axios error. Reveja conexão com a internet ',
+      (error as Error).message,
+    )
     if (
       error instanceof AxiosError &&
       error?.response?.status &&
       [401, 403, 405].includes(error.response.status)
     ) {
       const token = await AsyncStorage.getItem('token')
+
       if (!isRetry && token && error.response.data.code === 'token_not_valid') {
         const refresh = await AsyncStorage.getItem('refresh')
         try {
           const refreshedResponse = await httpRequest(
             'token/refresh/',
             'POST',
-            {
-              body: { refresh },
-            },
+            { body: { refresh } },
             true,
           )
+
+          // FIXME: .data is already the return of `httpRequest`, does this work?
           await AsyncStorage.setItem('token', refreshedResponse.data.access)
           return await httpRequest(endpoint, method, props, true)
         } catch (refreshError) {
+          console.error('[api] got error on token refresh', refreshError)
+
           if (
             refreshError instanceof AxiosError &&
             refreshError?.response?.data?.code !== 'token_not_valid'
           ) {
-            console.error('error revalidando usuário')
-            return
+            console.error('[api] user token is not valid')
+
+            // FIXME: we should throw here
+            return undefined!
           }
         }
       } else if (
@@ -80,6 +91,7 @@ const httpRequest = async (
       ) {
         throw new InvalidCredentialsError()
       }
+
       throw new UnauthorizedError(
         'Você não tem permissão para acessar esta página',
       )
@@ -88,18 +100,18 @@ const httpRequest = async (
   }
 }
 
-export const get = (uri: string, params?: IHttpRequestParams) =>
-  httpRequest(uri, 'GET', params, false)
+export const get = <Response>(uri: string, params?: IHttpRequestParams) =>
+  httpRequest<Response>(uri, 'GET', params, false)
 
-export const post = (uri: string, params?: IPostRequestParams) => {
-  return httpRequest(uri, 'POST', params, false)
+export const post = <Response>(uri: string, params?: IPostRequestParams) => {
+  return httpRequest<Response>(uri, 'POST', params, false)
 }
 
-export const put = (uri: string, params?: IPostRequestParams) =>
-  httpRequest(uri, 'PUT', params, false)
+export const put = <Response>(uri: string, params?: IPostRequestParams) =>
+  httpRequest<Response>(uri, 'PUT', params, false)
 
-export const patch = (uri: string, params?: IPostRequestParams) =>
-  httpRequest(uri, 'PATCH', params, false)
+export const patch = <Response>(uri: string, params?: IPostRequestParams) =>
+  httpRequest<Response>(uri, 'PATCH', params, false)
 
-export const del = (uri: string, props?: IHttpRequestParams) =>
-  httpRequest(uri, 'DELETE', props, false)
+export const del = <Response>(uri: string, props?: IHttpRequestParams) =>
+  httpRequest<Response>(uri, 'DELETE', props, false)

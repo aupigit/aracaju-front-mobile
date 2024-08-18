@@ -10,17 +10,16 @@ export const doApplication = async (
     ...item,
     marker: {
       type: 'Point',
-      coordinates: JSON.parse(item.marker),
+      coordinates: JSON.parse(item.marker!),
     },
   }))
 
   try {
-    const result = await post('applications/application/push/', {
+    return await post<IApplication>('applications/application/push/', {
       body: newData,
     })
-    return result
   } catch (error) {
-    Alert.alert('Erro ao enviar dados de aplicação: ', error.message)
+    Alert.alert('Erro ao enviar dados de aplicação: ', (error as Error).message)
     throw error
   }
 }

@@ -5,23 +5,21 @@ import { Alert } from 'react-native'
 
 export const doTrails = async (
   data: Array<SelectTracking>,
-): Promise<ITrails> => {
+): Promise<ITrails | null> => {
   const newData = data.map((item) => {
-    const timestamp = item.local_timestamp
+    const timestamp = item.local_timestamp!
     const date = new Date(timestamp)
 
-    return {
-      ...item,
-      local_timestamp: date,
-    }
+    return { ...item, local_timestamp: date }
   })
+
   try {
-    const response = await post('applications/trails/push/', {
+    return await post<ITrails>('applications/trails/push/', {
       body: newData,
     })
-    return response
   } catch (error) {
-    Alert.alert('Erro ao enviar os dados de rota: ', error.message)
+    Alert.alert('Erro ao enviar os dados de rota: ', (error as Error).message)
+
     return null
   }
 }

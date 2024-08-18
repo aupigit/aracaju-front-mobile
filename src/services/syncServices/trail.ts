@@ -27,7 +27,7 @@ export const syncTrails = async (_applicatorId: number, _deviceId: number) => {
 
             const response = await doTrails(ten_firsts)
 
-            if (response && response.success) {
+            if (response?.success) {
               for (const item of ten_firsts) {
                 await db
                   .update(Tracking)
@@ -36,7 +36,9 @@ export const syncTrails = async (_applicatorId: number, _deviceId: number) => {
                   .execute()
               }
             }
-          } catch (error) {
+          } catch (err) {
+            const error = err as Error
+
             Alert.alert('Erro ao realizar o sync da rota: ', error.message)
             await db.insert(Logs).values({
               error: error.message,

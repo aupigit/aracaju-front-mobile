@@ -1,12 +1,8 @@
 import { IPointType, IPointTypeFlat } from '@/interfaces/IPoint'
 import { get } from '@/providers/api'
 
-export const findManyPointType = async (): Promise<IPointType[]> => {
-  const result = await get(`applications/pointtype/`)
-  return result as unknown as Promise<IPointType[]>
-}
+export const findManyPointType = (): Promise<IPointType[]> =>
+  get<IPointType[]>(`applications/pointtype/`)
 
-export const findPointTypeData = async (): Promise<IPointTypeFlat[]> => {
-  const result = await get(`applications/pointtype/flat`)
-  return result as unknown as Promise<IPointTypeFlat[]>
-}
+export const findPointTypeData = (): Promise<IPointTypeFlat[]> =>
+  get<IPointTypeFlat[]>(`applications/pointtype/flat`)

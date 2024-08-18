@@ -10,17 +10,19 @@ export const doAdultCollection = async (
     ...item,
     marker: {
       type: 'Point',
-      coordinates: JSON.parse(item.marker),
+      coordinates: JSON.parse(item.marker!),
     },
   }))
 
   try {
-    const result = await post('applications/adult-collection/push/', {
+    return await post<IAdultCollection>('applications/adult-collection/push/', {
       body: newData,
     })
-    return result
   } catch (error) {
-    Alert.alert('Erro ao enviar dados de Coleta adulta:', error.message)
+    Alert.alert(
+      'Erro ao enviar dados de Coleta adulta:',
+      (error as Error).message,
+    )
     throw error
   }
 }
