@@ -7,17 +7,17 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import React, { useState } from 'react'
-import * as Application from 'expo-application'
 import * as Clipboard from 'expo-clipboard'
 import { useDevice } from '@/contexts/DeviceContext'
 import { findDeviceByFactoryId } from '@/services/onlineServices/device'
 import { router } from 'expo-router'
+import { useDeviceFactoryId } from '@/hooks/use-device-factory-id'
 
 const DeviceNotAuthorized = () => {
   const [isCopied, setIsCopied] = useState(false)
   const [isButtonLoading, setIsButtonLoading] = useState(false)
   const { registerDeviceData } = useDevice()
-  const factoryId = Application.getAndroidId()
+  const factoryId = useDeviceFactoryId()
 
   // Depois de Copiar o FactoryId, mostrar "Copiado" na tela por 10 segundos
   const copyToClipboard = async () => {

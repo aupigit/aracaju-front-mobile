@@ -77,7 +77,7 @@ const AdultCollection = () => {
 
       if (!result.canceled) {
         const updatedImages = images.filter((image) => image.title !== title)
-        setImages((prevImages) => [
+        setImages(() => [
           ...updatedImages,
           {
             title: Crypto.randomUUID(),
@@ -123,13 +123,8 @@ const AdultCollection = () => {
   const longitude: string = Array.isArray(long) ? long[0] : long
 
   // GET - Pontos/Offline
-  const { data: point } = useQuery(
-    'application/pointsreference/id',
-    async () => {
-      return await findOnePointReferenceByIdOffline(Number(point_id)).then(
-        (response) => response,
-      )
-    },
+  const { data: point } = useQuery('application/pointsreference/id', () =>
+    findOnePointReferenceByIdOffline(Number(point_id)),
   )
 
   // TODO - Quando eu crio um ponto novo e realizo uma aplicação o id/pointreference vem como null/0 e por isso da erro 400
@@ -166,38 +161,30 @@ const AdultCollection = () => {
   })
 
   const { data: configWindCollection, isLoading: configWindCollectionLoading } =
-    useQuery('config/configapp/?name="coleta_vento"', async () => {
-      return await findConfigAppByNameOffline('coleta_vento').then(
-        (response) => response,
-      )
-    })
+    useQuery('config/configapp/?name="coleta_vento"', () =>
+      findConfigAppByNameOffline('coleta_vento'),
+    )
 
   const {
     data: configWindCollectionOnline,
     isLoading: configWindCollectionOnlineLoading,
-  } = useQuery('config/configapp/online/?name="coleta_vento"', async () => {
-    return await findConfigAppByName('coleta_vento').then(
-      (response) => response,
-    )
-  })
+  } = useQuery('config/configapp/online/?name="coleta_vento"', () =>
+    findConfigAppByName('coleta_vento'),
+  )
 
   const {
     data: configClimateWindCollection,
     isLoading: configClimateWindCollectionLoading,
-  } = useQuery('config/configapp/?name="coleta_clima"', async () => {
-    return await findConfigAppByNameOffline('coleta_clima').then(
-      (response) => response,
-    )
-  })
+  } = useQuery('config/configapp/?name="coleta_clima"', () =>
+    findConfigAppByNameOffline('coleta_clima'),
+  )
 
   const {
     data: configClimateWindCollectionOnline,
     isLoading: configClimateWindCollectionOnlineLoading,
-  } = useQuery('config/configapp/online/?name="coleta_clima"', async () => {
-    return await findConfigAppByName('coleta_clima').then(
-      (response) => response,
-    )
-  })
+  } = useQuery('config/configapp/online/?name="coleta_clima"', () =>
+    findConfigAppByName('coleta_clima'),
+  )
 
   if (
     configWindCollectionLoading ||

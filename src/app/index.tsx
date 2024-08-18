@@ -24,7 +24,7 @@ const Home = () => {
 
   if (error) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View className="flex-1 items-center justify-center">
         <Text>{error.message}</Text>
       </View>
     )
@@ -33,8 +33,8 @@ const Home = () => {
   if (!success) {
     return (
       <ActivityIndicator
-        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        size={'large'}
+        className="flex-1 items-center justify-center"
+        size="large"
       />
     )
   }

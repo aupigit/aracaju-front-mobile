@@ -4,7 +4,6 @@ import getConflictPoints from '@/utils/getConflictPoints'
 import calculateDistance from '@/utils/calculateDistance'
 import { IPoint } from '@/interfaces/IPoint'
 import { LocationObject } from 'expo-location'
-import { IConfigApp } from '@/interfaces/IConfigApp'
 import { router } from 'expo-router'
 import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
@@ -16,7 +15,7 @@ interface IButtonPointInformationProps {
   userLocation: number[]
 }
 
-const BtnPointInformations = ({
+const BtnPointInformation = ({
   showPointDetails,
   pointsDataOffline,
   configPointRadius,
@@ -83,4 +82,4 @@ const BtnPointInformations = ({
   )
 }
 
-export default BtnPointInformations
+export default BtnPointInformation

@@ -8,7 +8,6 @@ import {
 } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useQuery } from 'react-query'
-import NetInfo from '@react-native-community/netinfo'
 import { findUserById } from '@/services/onlineServices/user'
 import { router } from 'expo-router'
 import { useDevice } from './DeviceContext'
@@ -27,7 +26,7 @@ interface UserContextData {
 const UserContext = createContext<UserContextData | undefined>(undefined)
 
 const UserProvider: React.FC<UserContextProps> = ({ children }) => {
-  const { cleatDeviceData } = useDevice()
+  const { clearDeviceData } = useDevice()
   const [user, setUser] = useState<IUser | null>(null)
   const isAuthenticated = !!user
 
@@ -60,11 +59,12 @@ const UserProvider: React.FC<UserContextProps> = ({ children }) => {
 
   const logoutUser = () => {
     setUser(null)
-    AsyncStorage.removeItem('token')
-    AsyncStorage.removeItem('userId')
-    AsyncStorage.removeItem('applicator_id')
-    cleatDeviceData()
-    router.navigate('/')
+    AsyncStorage.multiRemove(['token', 'userId', 'applicator_id']).finally(
+      () => {
+        clearDeviceData()
+        router.navigate('/')
+      },
+    )
   }
 
   return (

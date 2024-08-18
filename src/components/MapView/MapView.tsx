@@ -1,10 +1,5 @@
 import React from 'react'
-import MapView, {
-  Circle,
-  Marker,
-  PROVIDER_GOOGLE,
-  Polyline,
-} from 'react-native-maps'
+import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { LocationObject } from 'expo-location'
 import { IPoint } from '@/interfaces/IPoint'
 import isPointInRegion from '@/utils/isPointInRegion'
@@ -34,7 +29,6 @@ const MapViewComponent = ({
   pointIsEditable,
   pointsDataOffline,
   previewCoordinate,
-  routes,
   setCoordinateModal,
   setPreviewCoordinate,
   setValue,
@@ -42,7 +36,6 @@ const MapViewComponent = ({
   latestApplicationDates,
   markerVisible,
   userLocation,
-  offlineRoutes,
 }: IMapViewProps) => {
   return (
     <>

@@ -55,7 +55,7 @@ export const adjustPointReferenceNameOffline = async (
   pk: number,
 ) => {
   try {
-    const response = await db
+    await db
       .update(PointReference)
       .set({
         name,

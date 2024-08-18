@@ -19,13 +19,15 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
+          "faceIDPermission": "Autorizar $(PRODUCT_NAME) a usar o Face ID."
         }
       ],
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+          "locationAlwaysAndWhenInUsePermission": "Autorizar $(PRODUCT_NAME) a usar sua localização.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       [
@@ -39,6 +41,7 @@
     "name": "aracaju-app",
     "slug": "aracaju-app",
     "android": {
+      "package": "com.brunowe.createaupifrontmobile",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyD4yDs6XgPHoXcNXqXnSmj_FQ3DJKcC5H0"
@@ -49,14 +52,13 @@
         "android.permission.USE_FINGERPRINT",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
-      ],
-      "package": "com.brunowe.createaupifrontmobile"
+      ]
     },
     "ios": {
+      "bundleIdentifier": "com.brunowe.createaupifrontmobile",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID."
-      },
-      "bundleIdentifier": "com.brunowe.createaupifrontmobile"
+        "NSFaceIDUsageDescription": "Autorizar $(PRODUCT_NAME) a usar o Face ID."
+      }
     },
     "extra": {
       "eas": {

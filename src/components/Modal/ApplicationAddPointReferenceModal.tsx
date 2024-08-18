@@ -6,7 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Divider, Snackbar } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -28,40 +28,18 @@ interface ApplicationAddPointReferenceModalProps {
 }
 
 export const createPointSchema = z.object({
-  name: z.string({
-    required_error: 'Nome do ponto é obrigatório',
-  }),
-  latitude: z.number({
-    required_error: 'Latitude é obrigatória',
-  }),
-  longitude: z.number({
-    required_error: 'Longitude é obrigatória',
-  }),
-  accuracy: z.number({
-    required_error: 'Acurácia é obrigatória',
-  }),
-  altitude: z.number({
-    required_error: 'Altitude é obrigatória',
-  }),
-  volumebti: z
-    .number({
-      required_error: 'Volume é obrigatório',
-    })
-    .default(0),
+  name: z.string({ required_error: 'Nome do ponto é obrigatório' }),
+  latitude: z.number({ required_error: 'Latitude é obrigatória' }),
+  longitude: z.number({ required_error: 'Longitude é obrigatória' }),
+  accuracy: z.number({ required_error: 'Acurácia é obrigatória' }),
+  altitude: z.number({ required_error: 'Altitude é obrigatória' }),
+  volumebti: z.number({ required_error: 'Volume é obrigatório' }).default(0),
   observation: z
-    .string({
-      required_error: 'Observação é obrigatória',
-    })
+    .string({ required_error: 'Observação é obrigatória' })
     .default(''),
-  device: z.number({
-    required_error: 'Dispositivo é obrigatório',
-  }),
-  applicator: z.number({
-    required_error: 'Aplicador é obrigatório',
-  }),
-  pointtype: z.number({
-    required_error: 'Tipo de ponto é obrigatório',
-  }),
+  device: z.number({ required_error: 'Dispositivo é obrigatório' }),
+  applicator: z.number({ required_error: 'Aplicador é obrigatório' }),
+  pointtype: z.number({ required_error: 'Tipo de ponto é obrigatório' }),
 })
 
 export type CreatePointFormData = z.infer<typeof createPointSchema>
@@ -89,24 +67,26 @@ const ApplicationAddPointReferenceModal = ({
     formState: { errors },
   } = useForm({})
 
-  if (applicatorId) {
-    setValue('applicator', applicatorId)
-  }
-  if (deviceId) {
-    setValue('device', deviceId)
-  }
-  if (userLocation[0]) {
-    setValue('latitude', userLocation[0])
-  }
-  if (userLocation[1]) {
-    setValue('longitude', userLocation[1])
-  }
-  if (userLocation[2]) {
-    setValue('accuracy', userLocation[2])
-  }
-  if (userLocation[3]) {
-    setValue('altitude', userLocation[3])
-  }
+  useEffect(() => {
+    if (applicatorId) {
+      setValue('applicator', applicatorId)
+    }
+    if (deviceId) {
+      setValue('device', deviceId)
+    }
+    if (userLocation[0]) {
+      setValue('latitude', userLocation[0])
+    }
+    if (userLocation[1]) {
+      setValue('longitude', userLocation[1])
+    }
+    if (userLocation[2]) {
+      setValue('accuracy', userLocation[2])
+    }
+    if (userLocation[3]) {
+      setValue('altitude', userLocation[3])
+    }
+  }, [applicatorId, deviceId, setValue, userLocation])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -135,35 +115,23 @@ const ApplicationAddPointReferenceModal = ({
 
   const { data: configScaleVolume } = useQuery(
     'config/configapp/?name="volume_bti"',
-    async () => {
-      return await findConfigAppByNameOffline('volume_escala').then(
-        (response) => response,
-      )
-    },
+    () => findConfigAppByNameOffline('volume_escala'),
   )
 
-  const {
-    data: configScaleVolumeOnline,
-    isSuccess: configScaleVolumeOnlineSuccess,
-  } = useQuery('config/configapp/online/?name="volume_bti"', async () => {
-    return await findConfigAppByName('volume_escala').then(
-      (response) => response,
-    )
-  })
+  const { data: configScaleVolumeOnline } = useQuery(
+    'config/configapp/online/?name="volume_bti"',
+    () => findConfigAppByName('volume_escala'),
+  )
 
-  const { data: configPointtype } = useQuery(
+  const { data: configPointType } = useQuery(
     'application/pointtype/flatdata',
-    async () => {
-      return await findPointTypeDataOffline().then((response) => response)
-    },
+    () => findPointTypeDataOffline(),
   )
 
-  const {
-    data: configPointtypeOnline,
-    isSuccess: configPointtypeOnlineSuccess,
-  } = useQuery('config/configapp/online/?name="flatdata"', async () => {
-    return await findPointTypeData().then((response) => response)
-  })
+  const { data: configPointTypeOnline } = useQuery(
+    'config/configapp/online/?name="flatdata"',
+    () => findPointTypeData(),
+  )
 
   return (
     <Modal
@@ -195,7 +163,7 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="name"
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, onBlur } }) => (
                 <View className="w-[100%]">
                   <Text>Nome do ponto</Text>
                   <View className="border border-zinc-700/20">
@@ -304,7 +272,7 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="volumebti"
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange } }) => (
                 <View className="mb-2 w-full">
                   <Text>Volume do BTI</Text>
                   <View className="border border-zinc-700/20">
@@ -314,12 +282,12 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configScaleVolume?.data_config
-                          .split(';')
-                          .map((item) => ({
-                            label: item,
-                            value: item,
-                          }))}
+                        items={(
+                          configScaleVolume?.data_config.split(';') || []
+                        ).map((item) => ({
+                          label: item,
+                          value: item,
+                        }))}
                       />
                     ) : (
                       <RNPickerSelect
@@ -327,12 +295,12 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configScaleVolumeOnline?.data_config
-                          .split(';')
-                          .map((item) => ({
-                            label: item,
-                            value: item,
-                          }))}
+                        items={(
+                          configScaleVolumeOnline?.data_config.split(';') || []
+                        ).map((item) => ({
+                          label: item,
+                          value: item,
+                        }))}
                       />
                     )}
                   </View>
@@ -344,17 +312,17 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="pointtype"
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange } }) => (
                 <View className="mb-2 w-full">
                   <Text>Tipo do ponto</Text>
                   <View className="border border-zinc-700/20">
-                    {configPointtype && configPointtype.length > 0 ? (
+                    {configPointType && configPointType.length > 0 ? (
                       <RNPickerSelect
                         placeholder={{ label: 'Tipo do ponto 2', value: 0 }}
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configPointtype.map((item) => ({
+                        items={configPointType.map((item) => ({
                           label: item.name,
                           value: item.id,
                         }))}
@@ -365,7 +333,7 @@ const ApplicationAddPointReferenceModal = ({
                         onValueChange={(value) => {
                           onChange(value)
                         }}
-                        items={configPointtypeOnline.map((item) => ({
+                        items={configPointTypeOnline.map((item) => ({
                           label: item.name,
                           value: item.point_code,
                         }))}
@@ -385,7 +353,7 @@ const ApplicationAddPointReferenceModal = ({
             <Controller
               control={control}
               name="observation"
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, onBlur } }) => (
                 <View className="w-[100%]">
                   <Text>Observação</Text>
                   <View className="border border-zinc-700/20">

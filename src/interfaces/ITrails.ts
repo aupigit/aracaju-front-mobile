@@ -1,5 +1,4 @@
 import { IBase } from './IBase'
-import { Marker } from './IPoint'
 
 export interface ITrails extends IBase {
   created_ondevice_at: string

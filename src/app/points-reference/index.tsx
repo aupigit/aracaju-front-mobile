@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
   ScrollView,
   Alert,
   DrawerLayoutAndroid,
-  ActivityIndicator,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
@@ -53,11 +52,11 @@ import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices
 import { doTrailsOffline } from '@/services/offlineServices/trails'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import ApplicationAddPointReferenceModal from '@/components/Modal/ApplicationAddPointReferenceModal'
-import { pullPointtypeFlatData } from '@/services/pullServices/pointtype'
-import { findManyPointtype } from '@/services/onlineServices/pointtype'
+import { pullPointTypeFlatData } from '@/services/pullServices/pointtype'
+import { findManyPointType } from '@/services/onlineServices/pointtype'
 import SyncModal from '@/components/Modal/SyncModal'
 import BtnCollect from '@/components/PointsReference/CollectButton'
-import BtnPointInformations from '@/components/PointsReference/PointInformationsButton'
+import BtnPointInformation from '@/components/PointsReference/PointInformationButton'
 import BtnApplication from '@/components/PointsReference/ApplicationButton'
 import MapViewComponent from '@/components/MapView/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
@@ -106,14 +105,18 @@ const PointsReference = () => {
 
   // Ações do Drawer
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
-  const openDrawer = () => {
+  const openDrawer = useCallback(() => {
     drawerRef.current?.openDrawer()
-  }
-  const closeDrawer = () => {
+  }, [])
+  const closeDrawer = useCallback(() => {
     drawerRef.current?.closeDrawer()
-  }
+  }, [])
 
-  if (!applicator) fetchApplicatorData()
+  useEffect(() => {
+    if (!applicator) {
+      fetchApplicatorData()
+    }
+  }, [applicator, fetchApplicatorData])
 
   // Formulário de ajuste de coordenadas
   const {
@@ -127,12 +130,15 @@ const PointsReference = () => {
   })
 
   // Localização do usuário
-  const userLocation = [
-    location?.coords.latitude,
-    location?.coords.longitude,
-    Number(location?.coords.accuracy.toString().slice(0, 2)),
-    Number(location?.coords.altitude.toString().slice(0, 2)),
-  ]
+  const userLocation = useMemo(
+    () => [
+      location?.coords.latitude,
+      location?.coords.longitude,
+      Number(location?.coords.accuracy.toString().slice(0, 2)),
+      Number(location?.coords.altitude.toString().slice(0, 2)),
+    ],
+    [location],
+  )
 
   // GET - Pontos/Offline
   const {
@@ -140,15 +146,9 @@ const PointsReference = () => {
     refetch,
     isSuccess,
   } = useQuery(
-    'application/pointsreference/is_offline',
-    async () => {
-      return await findManyPointsReferencesOffline(user?.is_staff).then(
-        (response) => response,
-      )
-    },
-    {
-      staleTime: 0,
-    },
+    ['application/pointsreference/is_offline', user?.is_staff],
+    () => findManyPointsReferencesOffline(user?.is_staff),
+    { staleTime: 0 },
   )
 
   // GET - Última updated_at de Pontos/Offline
@@ -156,30 +156,28 @@ const PointsReference = () => {
     data: lastUpdatedAtData,
     isSuccess: lastUpdatedAtSuccess,
     refetch: lastUpdatedAtRefetch,
-  } = useQuery('application/pointreference/last_updated_at', async () => {
-    return await pullPointLastUpdatedAt().then((response) => response)
-  })
+  } = useQuery('application/pointreference/last_updated_at', () =>
+    pullPointLastUpdatedAt(),
+  )
 
-  let updatedAtParameter: string | null = null
-  if (lastUpdatedAtData) {
-    const updatedAtDate = new Date(lastUpdatedAtData)
-    updatedAtParameter = formatDate(updatedAtDate)
-  }
+  const updatedAtParameter = useMemo(() => {
+    if (lastUpdatedAtData) {
+      return formatDate(new Date(lastUpdatedAtData))
+    }
+
+    return null
+  }, [lastUpdatedAtData])
 
   // GET - Applicator/Online
   const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
     'application/applicator',
-    async () => {
-      return await findApplicator().then((response) => response)
-    },
+    () => findApplicator(),
   )
 
   // GET - User/Online
   const { data: userData, isLoading: userLoading } = useQuery(
     'operation/user',
-    async () => {
-      return await findUser().then((response) => response)
-    },
+    () => findUser(),
   )
 
   // GET - ConfigaApp/Online
@@ -187,92 +185,61 @@ const PointsReference = () => {
     data: configAppData,
     isLoading: configAppLoading,
     isSuccess: configAppSuccess,
-  } = useQuery('operation/configapp', async () => {
-    return await findConfigApp().then((response) => response)
-  })
+  } = useQuery('operation/configapp', () => findConfigApp())
 
   // GET - ConfigaApp Raio do Ponto/Online
   const {
     data: configPointRadiusOnline,
     isLoading: configPointRadiusIsLoadingOnline,
-  } = useQuery('operation/configapp/?name="raio_do_ponto"', async () => {
-    return await findConfigAppByName('raio_do_ponto').then(
-      (response) => response,
-    )
-  })
+  } = useQuery('operation/configapp/?name="raio_do_ponto"', () =>
+    findConfigAppByName('raio_do_ponto'),
+  )
 
   // GET - ConfigaApp Raio do Ponto/Online
   const {
     data: configPushTimeOnline,
     isLoading: configPushTimeIsLoadingOnline,
-  } = useQuery(
-    'operation/configapp/?name="tempo_entrega_sincronizacao"',
-    async () => {
-      return await findConfigAppByName('tempo_entrega_sincronizacao').then(
-        (response) => response,
-      )
-    },
+  } = useQuery('operation/configapp/?name="tempo_entrega_sincronizacao"', () =>
+    findConfigAppByName('tempo_entrega_sincronizacao'),
   )
 
   // GET - ConfigaApp Raio do ponto/Offline
-  const {
-    data: configPointRadius,
-    isLoading: configPointRadiusLoading,
-    refetch: configPointRadiusRefetch,
-  } = useQuery(
-    'config/configapp/?name="raio_do_ponto"',
-    async () => {
-      return await findConfigAppByNameOffline('raio_do_ponto').then(
-        (response) => response,
-      )
-    },
-    {
-      enabled: configAppSuccess,
-    },
-  )
+  const { data: configPointRadius, isLoading: configPointRadiusLoading } =
+    useQuery(
+      'config/configapp/?name="raio_do_ponto"',
+      () => findConfigAppByNameOffline('raio_do_ponto'),
+      { enabled: configAppSuccess },
+    )
 
-  const [configsOfPointRadius, setConfigsOfPointRadius] = useState(15)
-  useEffect(() => {
-    if (configPointRadius && configPointRadius?.data_config) {
-      setConfigsOfPointRadius(Number(configPointRadius?.data_config))
-    } else if (
-      configPointRadiusOnline &&
-      configPointRadiusOnline?.data_config
-    ) {
-      setConfigsOfPointRadius(Number(configPointRadiusOnline?.data_config))
+  const configsOfPointRadius = useMemo(() => {
+    if (configPointRadius?.data_config) {
+      return Number(configPointRadius?.data_config)
     }
+
+    if (configPointRadiusOnline?.data_config) {
+      return Number(configPointRadiusOnline?.data_config)
+    }
+
+    return 15
   }, [configPointRadius, configPointRadiusOnline])
 
   // GET - ConfigaApp Tempo de sincronização/Offline
-  const {
-    data: configPushTime,
-    isLoading: configPushTimeLoading,
-    refetch: configPushRefetch,
-  } = useQuery(
+  const { data: configPushTime, isLoading: configPushTimeLoading } = useQuery(
     'config/configapp/?name="tempo_entrega_sincronizacao"',
-    async () => {
-      return await findConfigAppByNameOffline(
-        'tempo_entrega_sincronizacao',
-      ).then((response) => response)
-    },
-    {
-      enabled: configAppSuccess,
-    },
+    () => findConfigAppByNameOffline('tempo_entrega_sincronizacao'),
+    { enabled: configAppSuccess },
   )
 
   // GET - PointType/Online
-  const { data: pointtypeData, isLoading: pointtypeDataLoading } = useQuery(
+  const { data: pointTypeData, isLoading: pointTypeDataLoading } = useQuery(
     'applications/pointtype/',
-    async () => {
-      return await findManyPointtype().then((response) => response)
-    },
+    () => findManyPointType(),
   )
 
   // GET - Data da última aplicação em determinados pontos/Offline
   const {
     data: latestApplicationDates,
     isLoading: latestApplicationDateLoading,
-    refetch: refetchLatestApplicationDates,
   } = useQuery(
     'application/application/latest',
     async () => {
@@ -305,22 +272,16 @@ const PointsReference = () => {
     },
   )
 
-  const [syncTimeRemaining, setSyncTimeRemaining] = useState(0)
-
-  useEffect(() => {
-    if (
-      configPushTime !== undefined &&
-      configPushTime?.data_config !== undefined
-    ) {
-      setSyncTimeRemaining(Number(configPushTime?.data_config))
-    } else {
-      if (
-        configPushTimeOnline !== undefined &&
-        configPushTimeOnline?.data_config !== undefined
-      ) {
-        setSyncTimeRemaining(Number(configPushTimeOnline?.data_config))
-      }
+  const syncTimeRemaining = useMemo(() => {
+    if (configPushTime?.data_config) {
+      return Number(configPushTime?.data_config)
     }
+
+    if (configPushTimeOnline?.data_config) {
+      return Number(configPushTimeOnline?.data_config)
+    }
+
+    return 0
   }, [configPushTime, configPushTimeOnline])
 
   useEffect(() => {
@@ -353,64 +314,50 @@ const PointsReference = () => {
     }
   }, [lastUpdatedAtSuccess, updatedAtParameter])
 
-  const handleSyncInformations = async () => {
+  const incrementProgress = useCallback(() => {
+    setProgress((prevProgress) => prevProgress + 0.1)
+  }, [setProgress])
+
+  const handleSyncInformation = async () => {
     setModalSync(true)
     setProgress(0)
 
-    console.log('Sincronização Iniciando')
-    Promise.all([
-      syncPoints(applicator.id, device.factory_id),
-      setProgress(0.1),
-    ]).then(() => {
-      Promise.all([
-        syncApplication(applicator.id, device.id),
-        setProgress(0.2),
-
-        syncDoAdultCollection(device.id),
-        setProgress(0.3),
-
-        syncTrails(Number(applicator.id), Number(device.id)),
-        setProgress(0.4),
+    console.log('[sync] envio iniciando')
+    try {
+      await syncPoints(applicator.id, device.factory_id)
+      setProgress(0.1)
+      await Promise.all([
+        syncApplication(applicator.id, device.id).then(incrementProgress),
+        syncDoAdultCollection(device.id).then(incrementProgress),
+        syncTrails(Number(applicator.id), Number(device.id)).then(
+          incrementProgress,
+        ),
       ])
-        .then(() => {
-          const now = new Date()
-          setLastSyncTime(now)
-          AsyncStorage.setItem('lastSyncTime', now.toISOString())
-          console.log('PULL INICIANDO')
 
-          Promise.all([fetchData(), setProgress(0.5)]).then(() => {
-            Promise.all([
-              pullPointData(pointsDataRef.current ?? []),
-              setProgress(0.6),
-              pullApplicatorData(applicatorData ?? []),
-              setProgress(0.7),
+      const now = new Date()
+      setLastSyncTime(now)
+      await AsyncStorage.setItem('lastSyncTime', now.toISOString())
 
-              pullUserData(userData ?? []),
-              setProgress(0.8),
+      console.log('[sync] fetch iniciando')
+      await Promise.all([
+        fetchData().then(incrementProgress),
+        pullPointData(pointsDataRef.current ?? []).then(incrementProgress),
+        pullApplicatorData(applicatorData ?? []).then(incrementProgress),
+        pullUserData(userData ?? []).then(incrementProgress),
+        pullConfigAppData(configAppData ?? []).then(incrementProgress),
+        pullPointTypeFlatData(pointTypeData ?? []).then(incrementProgress),
+      ])
 
-              pullConfigAppData(configAppData ?? []),
-              setProgress(0.9),
-
-              pullPointtypeFlatData(pointtypeData ?? []),
-            ])
-              .then(() => {
-                setTimeout(() => {
-                  setModalSync(false)
-                }, 3000)
-                console.log('Sincronização Completa')
-                handleApplication()
-                refetch()
-                setProgress(1)
-              })
-              .catch((error) => {
-                Alert.alert('Erro na sincronização:', error.message)
-              })
-          })
-        })
-        .catch((error) => {
-          Alert.alert('Erro na sincronização:', error.message)
-        })
-    })
+      setModalSync(false)
+      console.log('[sync] completa')
+      handleApplication()
+      await refetch()
+      setProgress(1)
+    } catch (error) {
+      setModalSync(false)
+      console.log('[sync]', error)
+      Alert.alert('Erro na sincronização:', error.message)
+    }
   }
 
   const onSubmit = handleSubmit(async (data) => {
@@ -441,10 +388,10 @@ const PointsReference = () => {
       )
     }
 
-    const { granted: backgroundPermiissionsGranted } =
+    const { granted: backgroundPermissionsGranted } =
       await requestBackgroundPermissionsAsync()
 
-    if (!backgroundPermiissionsGranted) {
+    if (!backgroundPermissionsGranted) {
       Alert.alert(
         'Permissão de localização',
         'É necessário permitir o acesso à localização para utilizar este aplicativo.',
@@ -455,43 +402,41 @@ const PointsReference = () => {
   // Localização do usuário
   useEffect(() => {
     requestLocationPermissions()
-    const startWatching = async () => {
-      await watchPositionAsync(
-        {
-          accuracy: LocationAccuracy.Highest,
-          distanceInterval: 2,
-          timeInterval: 30000,
-        },
-        async (newLocation) => {
-          if (newLocation) {
-            setLocation(newLocation)
 
-            const existingLocations = await AsyncStorage.getItem('locations')
-            const locationsArray = existingLocations
-              ? JSON.parse(existingLocations)
-              : []
+    const watcher = watchPositionAsync(
+      {
+        accuracy: LocationAccuracy.Highest,
+        distanceInterval: 2,
+        timeInterval: 30000,
+      },
+      async (newLocation) => {
+        if (!newLocation) {
+          return
+        }
 
-            // Add new location to the array
-            locationsArray.push(newLocation)
+        const existingLocations = await AsyncStorage.getItem('locations')
+        const locationsArray = existingLocations
+          ? JSON.parse(existingLocations)
+          : []
 
-            // Save the updated array back to AsyncStorage
-            await AsyncStorage.setItem(
-              'locations',
-              JSON.stringify(locationsArray),
-            )
+        // Add new location to the array
+        locationsArray.push(newLocation)
 
-            refetch()
-            setRoutes((currentLocations) => [...currentLocations, newLocation])
-          }
-        },
-      )
+        // Save the updated array back to AsyncStorage
+        await AsyncStorage.setItem('locations', JSON.stringify(locationsArray))
+
+        refetch()
+        setLocation(newLocation)
+        setRoutes((currentLocations) => [...currentLocations, newLocation])
+      },
+    )
+
+    return () => {
+      watcher.then((watcher) => watcher.remove())
     }
-
-    startWatching()
   }, [])
 
   const [routesOffline, setRoutesOffline] = useState([])
-
   useEffect(() => {
     AsyncStorage.getItem('locations').then((value) => {
       if (value) {
@@ -526,47 +471,43 @@ const PointsReference = () => {
 
   // Ações do usuário
   useEffect(() => {
-    if (location) {
-      if (pointsDataOffline) {
-        const validPoints = []
-        for (const point of pointsDataOffline.filter((point) =>
-          isPointInRegion(point, {
-            latitude: userLocation[0],
-            longitude: userLocation[1],
-          }),
-        )) {
-          if (
-            calculateDistance(location?.coords, point) <=
-            Number(configsOfPointRadius)
-          ) {
-            validPoints.push(point)
-          }
-        }
+    if (!location || !pointsDataOffline) {
+      return
+    }
 
-        if (validPoints.length > 0) {
-          const distances = validPoints.map((point) =>
-            calculateDistance(location.coords, point),
-          )
+    const validPoints = []
+    const pointsInRegion = pointsDataOffline.filter((point) =>
+      isPointInRegion(point, {
+        latitude: userLocation[0],
+        longitude: userLocation[1],
+      }),
+    )
 
-          const closestPointIndex = distances.indexOf(Math.min(...distances))
-
-          const closestPoint = validPoints[closestPointIndex]
-
-          setShowPointDetails(true)
-          if (Number(closestPoint.pointtype) === 2) {
-            setShowCollectButton(true)
-            setShowButton(false)
-          }
-          if (Number(closestPoint.pointtype) === 1) {
-            setShowButton(true)
-            setShowCollectButton(false)
-          }
-        } else {
-          setShowButton(false)
-          setShowCollectButton(false)
-          setShowPointDetails(false)
-        }
+    for (const point of pointsInRegion) {
+      if (
+        calculateDistance(location?.coords, point) <=
+        Number(configsOfPointRadius)
+      ) {
+        validPoints.push(point)
       }
+    }
+
+    if (validPoints.length > 0) {
+      const distances = validPoints.map((point) =>
+        calculateDistance(location.coords, point),
+      )
+
+      const closestPointIndex = distances.indexOf(Math.min(...distances))
+      const closestPoint = validPoints[closestPointIndex]
+      const pointType = Number(closestPoint.pointtype)
+
+      setShowPointDetails(true)
+      setShowCollectButton(pointType === 2)
+      setShowButton(pointType === 1)
+    } else {
+      setShowButton(false)
+      setShowCollectButton(false)
+      setShowPointDetails(false)
     }
   }, [pointsDataOffline, location])
 
@@ -599,7 +540,7 @@ const PointsReference = () => {
     configAppLoading ||
     configPointRadiusLoading ||
     configPushTimeLoading ||
-    pointtypeDataLoading ||
+    pointTypeDataLoading ||
     latestApplicationDateLoading ||
     configPointRadiusIsLoadingOnline ||
     configPushTimeIsLoadingOnline ||
@@ -624,7 +565,7 @@ const PointsReference = () => {
     >
       <ScrollView style={{ paddingTop: insets.top }}>
         <ButtonActions
-          handleSyncInformations={handleSyncInformations}
+          handleSyncInformations={handleSyncInformation}
           modalAddPointReference={modalAddPointReference}
           openDrawer={openDrawer}
           setModalAddPointReference={setModalAddPointReference}
@@ -704,7 +645,7 @@ const PointsReference = () => {
             latestApplicationDates={latestApplicationDates}
           />
           {user.is_staff && (
-            <BtnPointInformations
+            <BtnPointInformation
               configPointRadius={configsOfPointRadius}
               location={location}
               pointsDataOffline={pointsDataOffline}

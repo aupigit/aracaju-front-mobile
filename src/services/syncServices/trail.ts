@@ -2,11 +2,11 @@ import { db } from '@/lib/database'
 import NetInfo from '@react-native-community/netinfo'
 import { doTrails } from '../onlineServices/trails'
 import { Tracking } from '@/db/tracking'
-import { and, asc, eq, sql } from 'drizzle-orm'
+import { asc, eq, sql } from 'drizzle-orm'
 import { Alert } from 'react-native'
 import { Logs } from '@/db/logs'
 
-export const syncTrails = async (applicatorId: number, deviceId: number) => {
+export const syncTrails = async (_applicatorId: number, _deviceId: number) => {
   const netInfo = await NetInfo.fetch()
 
   if (netInfo.isConnected && netInfo.isInternetReachable) {
