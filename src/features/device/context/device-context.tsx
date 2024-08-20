@@ -77,7 +77,7 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
       .values(deviceData)
       .onConflictDoUpdate({ target: Device.id, set: omit(deviceData, ['id']) })
       .finally(() => {
-        console.log('[device-context] device date upserted')
+        console.log('[device-context] device data upserted')
       })
   }, [db, request.data])
 
@@ -94,7 +94,7 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
     return (
       <DeviceNotAuthorized
         onReauthorize={request.refetch}
-        loading={request.isLoading}
+        loading={request.isFetching}
       />
     )
   }

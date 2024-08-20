@@ -2,7 +2,7 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
+  TouchableOpacity,
   Alert,
   ActivityIndicator,
 } from 'react-native'
@@ -46,29 +46,28 @@ export const DeviceNotAuthorized = ({
 
           <View className="flex flex-row items-center justify-between rounded-md border border-zinc-900/20 p-2">
             <Text className="select-text text-2xl font-bold">{factoryId}</Text>
-            <Pressable
+            <TouchableOpacity
               onPress={copyToClipboard}
               className="rounded-md bg-zinc-700 p-2"
             >
               <Text className="text-center font-bold text-white">
                 {isCopied ? 'Copiado' : 'Copiar'}
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
-
           {loading ? (
-            <Pressable className="h-[38px] w-full items-center justify-center rounded-md bg-zinc-700 p-2 text-center">
+            <TouchableOpacity className="h-[38px] w-full items-center justify-center rounded-md bg-zinc-700 p-2 text-center">
               <ActivityIndicator size="small" color="#fff" />
-            </Pressable>
+            </TouchableOpacity>
           ) : (
-            <Pressable
+            <TouchableOpacity
               onPress={onReauthorize}
               className="w-full rounded-md bg-zinc-700 p-2 text-center"
             >
               <Text className="text-center text-lg font-bold text-white">
                 TENTE NOVAMENTE
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           )}
         </View>
       </View>
