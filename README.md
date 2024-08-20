@@ -11,7 +11,7 @@ git checkout dev
 First, install the dependencies:
 
 ```bash
-bun install
+yarn install
 ```
 
 Then, run the following command
@@ -23,15 +23,15 @@ cp .env.example .env
 Then, run the development server:
 
 ```bash
-bun run start
+yarn start
 # or
-bunx expo start
+yarn expo start
 ```
 
 To make migrations with drizzle
 
 ```bash
-bunx drizzle-kit generate:sqlite
+yarn drizzle-kit generate
 ```
 
 #### Error with Android Path
@@ -53,6 +53,6 @@ export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 ```
-    .bash_profile is specific to bash. If you're using another shell, you will need to edit the appropriate shell-specific config file.
+`.bash_profile` is specific to bash. If you're using another shell, you will need to edit the appropriate shell-specific config file.
 
 Type `source $HOME/.bashrc` for bash or `source $HOME/.zshrc` to load the config into your current shell. Verify that ANDROID_HOME has been set by running echo $ANDROID_HOME and the appropriate directories have been added to your path by running echo $PATH.
