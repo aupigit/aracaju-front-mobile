@@ -211,9 +211,9 @@ CREATE TABLE `Applicator` (
 --> statement-breakpoint
 CREATE TABLE `Device` (
 	`id` integer PRIMARY KEY NOT NULL,
-	`factory_id` text,
-	`name` text,
-	`authorized` integer,
+	`factory_id` text NOT NULL,
+	`name` text NOT NULL,
+	`authorized` integer NOT NULL,
 	`applicator` integer,
 	`last_sync` text,
 	`color_line` text,
@@ -247,6 +247,12 @@ CREATE TABLE `Tracking` (
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE `Logs` (
+	`id` integer PRIMARY KEY NOT NULL,
+	`error` text,
+	`payload` text
+);
+--> statement-breakpoint
 CREATE UNIQUE INDEX `City_id_unique` ON `City` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `PointStatus_id_unique` ON `PointStatus` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `PointType_id_unique` ON `PointType` (`id`);--> statement-breakpoint
@@ -262,4 +268,5 @@ CREATE UNIQUE INDEX `User_id_unique` ON `User` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Applicator_id_unique` ON `Applicator` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Device_id_unique` ON `Device` (`id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `ConfigApp_id_unique` ON `ConfigApp` (`id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `Tracking_id_unique` ON `Tracking` (`id`);
+CREATE UNIQUE INDEX `Tracking_id_unique` ON `Tracking` (`id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `Logs_id_unique` ON `Logs` (`id`);

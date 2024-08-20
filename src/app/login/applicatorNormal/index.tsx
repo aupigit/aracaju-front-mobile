@@ -26,7 +26,7 @@ const authSchema = z.object({
 export type AuthFormData = z.infer<typeof authSchema>
 
 const Login = () => {
-  const { device, fetchDeviceData } = useDevice()
+  const { device, refetchDevice } = useDevice()
   const { fetchApplicatorData } = useApplicator()
   const { loginUser } = useUser()
   const [showPassword, setShowPassword] = useState(false)
@@ -46,14 +46,14 @@ const Login = () => {
   const onDismissSnackBarERROR = () => setVisibleERROR(false)
 
   const onSubmit = handleSubmit(async (data: AuthFormData) => {
-    await fetchDeviceData()
+    await refetchDevice()
     await fetchApplicatorData()
     try {
       setButtonLoading(true)
 
       const response = await doLogin(device.factory_id, data.password)
 
-      if (response && response.user) {
+      if (response?.user) {
         setVisibleOK(!visibleOK)
         AsyncStorage.setItem('token_service_id', data.password)
         setTimeout(() => {
