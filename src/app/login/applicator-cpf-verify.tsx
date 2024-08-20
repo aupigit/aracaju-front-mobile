@@ -1,30 +1,36 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, Alert, ScrollView } from 'react-native'
+import {
+  View,
+  Text,
+  Alert,
+  ScrollView,
+  TextInput,
+  Pressable,
+  ActivityIndicator,
+} from 'react-native'
 import * as LocalAuthentication from 'expo-local-authentication'
 import NetInfo from '@react-native-community/netinfo'
 import { router } from 'expo-router'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import FormControl from './FormControl'
 import { Snackbar } from 'react-native-paper'
 import { doApplicatorVerificate } from '@/services/onlineServices/applicatorVerificate'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useDevice } from '@/features/device'
 import { useApplicator } from '@/contexts/ApplicatorContext'
+import maskCPF from '@/utils/cpfMask'
 
-const applicatorVerificateSchema = z.object({
+const applicatorVerifySchema = z.object({
   cpfApplicator: z.string({
     required_error: 'CPF é obrigatório',
     invalid_type_error: 'CPF precisa ser uma string',
   }),
 })
 
-export type ApplicatorVerificateData = z.infer<
-  typeof applicatorVerificateSchema
->
+export type ApplicatorVerifyData = z.infer<typeof applicatorVerifySchema>
 
-const Login = () => {
+const ApplicatorCPFVerify = () => {
   const [buttonLoading, setButtonLoading] = useState(false)
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
@@ -36,8 +42,8 @@ const Login = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<ApplicatorVerificateData>({
-    resolver: zodResolver(applicatorVerificateSchema),
+  } = useForm<ApplicatorVerifyData>({
+    resolver: zodResolver(applicatorVerifySchema),
   })
 
   const onDismissSnackBarOK = () => setVisibleOK(false)
@@ -120,12 +126,49 @@ const Login = () => {
             oferecer
           </Text>
 
-          <FormControl
-            buttonLoading={buttonLoading}
-            control={control}
-            errors={errors}
-            onSubmit={onSubmit}
-          />
+          <View className="gap-5">
+            <Controller
+              control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <View className="relative">
+                  <TextInput
+                    onBlur={onBlur}
+                    onChangeText={(val) => {
+                      const formattedCPF = maskCPF(val)
+                      onChange(formattedCPF)
+                    }}
+                    value={value}
+                    placeholder="Adicione o seu CPF"
+                    className=" rounded-md border border-zinc-700/20 p-2 pl-4"
+                    keyboardType="numeric"
+                  />
+                  {errors && (
+                    <Text className="absolute -bottom-5 text-sm text-red-500">
+                      {errors.cpfApplicator?.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+              name="cpfApplicator"
+              rules={{ required: true }}
+              defaultValue=""
+            />
+
+            {buttonLoading ? (
+              <Pressable className="rounded-md bg-zinc-500 p-3">
+                <ActivityIndicator size="small" color="#fff" />
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={onSubmit}
+                className="rounded-md bg-zinc-500 p-3"
+              >
+                <Text className="text-md text-center font-bold text-white">
+                  ENTRAR
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
       </View>
       <Snackbar
@@ -160,4 +203,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default ApplicatorCPFVerify

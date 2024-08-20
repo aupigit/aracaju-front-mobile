@@ -20,7 +20,7 @@ const Home = () => {
     if (isAuthenticated && !tokenServiceId) {
       router.navigate('points-reference')
     } else {
-      router.navigate('login/applicatorLead')
+      router.navigate('login/applicator-lead')
     }
   }
 
@@ -31,16 +31,16 @@ const Home = () => {
     if (tokenServiceId && !isAuthenticated) {
       try {
         const response = await doLogin(device.factory_id, tokenServiceId)
-        loginUser(response.user)
+        loginUser(response!.user)
       } catch (error) {
-        Alert.alert('Erro ao realizar o login: ', error.message)
+        Alert.alert('Erro ao realizar o login: ', (error as Error).message)
       }
-      router.navigate('login/applicatorCpfVerificate')
+      router.navigate('login/applicator-cpf-verify')
     } else {
       if (isAuthenticated && tokenServiceId) {
         router.navigate('points-reference')
       } else {
-        router.navigate('login/applicatorNormal')
+        router.navigate('login/applicator-normal')
       }
     }
   }
