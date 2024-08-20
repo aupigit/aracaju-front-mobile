@@ -1,6 +1,10 @@
 import { IApplicator } from './IApplicator'
 import { IBase } from './IBase'
 
+type ISODateString = string & {
+  __compileTimeOnly: 'NOT_A_RUNTIME_VALUE'
+}
+
 export interface Marker {
   type: string
   coordinates: number[]
@@ -27,7 +31,7 @@ export interface IDevices extends IBase {
   factory_id: string
   name: string
   authorized: boolean
-  last_sync: Date
+  last_sync: ISODateString
   color_line: string
   description: string
   applicator: IApplicator
