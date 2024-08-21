@@ -16,11 +16,11 @@ import { Controller, useForm } from 'react-hook-form'
 import { useUser } from '@/contexts/UserContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { doLogin } from '@/services/onlineServices/authenticate'
-import { Snackbar } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useDevice } from '@/features/device'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import { FontAwesome } from '@expo/vector-icons'
+import { useToaster } from '@/features/toaster'
 
 const authSchema = z.object({
   password: z
@@ -34,13 +34,12 @@ const authSchema = z.object({
 export type AuthFormData = z.infer<typeof authSchema>
 
 const ApplicatorNormalLogin = () => {
+  const toaster = useToaster()
   const { device, refetchDevice } = useDevice()
   const { fetchApplicatorData } = useApplicator()
   const { loginUser } = useUser()
   const [showPassword, setShowPassword] = useState(false)
   const [buttonLoading, setButtonLoading] = useState(false)
-  const [visibleOK, setVisibleOK] = useState(false)
-  const [visibleERROR, setVisibleERROR] = useState(false)
 
   const {
     control,
@@ -49,10 +48,6 @@ const ApplicatorNormalLogin = () => {
   } = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
   })
-
-  const onDismissSnackBarOK = () => setVisibleOK(false)
-  const onDismissSnackBarERROR = () => setVisibleERROR(false)
-
   const onSubmit = handleSubmit(async (data: AuthFormData) => {
     await refetchDevice()
     await fetchApplicatorData()
@@ -62,28 +57,26 @@ const ApplicatorNormalLogin = () => {
       const response = await doLogin(device.factory_id, data.password)
 
       if (response?.user) {
-        setVisibleOK(!visibleOK)
-        AsyncStorage.setItem('token_service_id', data.password)
-        setTimeout(() => {
-          setVisibleOK(!visibleOK)
-          router.navigate('/login/applicator-cpf-verify')
-        }, 1000)
+        await AsyncStorage.setItem('token_service_id', data.password)
+
+        toaster.makeToast({
+          type: 'success',
+          message: 'Token verificado com sucesso.',
+        })
+        router.navigate('/login/applicator-cpf-verify')
 
         loginUser(response.user)
       } else {
-        setVisibleERROR(!visibleERROR)
-
-        setTimeout(() => {
-          setVisibleERROR(!visibleERROR)
-        }, 3000)
+        toaster.makeToast({
+          type: 'success',
+          message: 'Login falhou. Verifique suas credenciais',
+        })
       }
     } catch (error) {
-      setTimeout(() => setButtonLoading(false), 3000)
-      setVisibleERROR(!visibleERROR)
-
-      setTimeout(() => {
-        setVisibleERROR(!visibleERROR)
-      }, 3000)
+      toaster.makeToast({
+        type: 'success',
+        message: 'Login falhou. Verifique suas credenciais',
+      })
     } finally {
       setButtonLoading(false)
     }
@@ -178,36 +171,6 @@ const ApplicatorNormalLogin = () => {
           </View>
         </View>
       </View>
-      <Snackbar
-        visible={visibleOK}
-        onDismiss={onDismissSnackBarOK}
-        action={{
-          textColor: '#00ff00',
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-zinc-700">
-          Líder de equipe logado com sucesso.
-        </Text>
-      </Snackbar>
-      <Snackbar
-        visible={visibleERROR}
-        onDismiss={onDismissSnackBarERROR}
-        action={{
-          textColor: '#ff0000',
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-zinc-700">
-          Login falhou. Verifique suas credenciais
-        </Text>
-      </Snackbar>
     </ScrollView>
   )
 }

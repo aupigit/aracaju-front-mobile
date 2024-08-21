@@ -14,12 +14,11 @@ import { router } from 'expo-router'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Snackbar } from 'react-native-paper'
 import { doApplicatorVerificate } from '@/services/onlineServices/applicatorVerificate'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useDevice } from '@/features/device'
 import { useApplicator } from '@/contexts/ApplicatorContext'
 import maskCPF from '@/utils/cpfMask'
+import { useToaster } from '@/features/toaster'
 
 const applicatorVerifySchema = z.object({
   cpfApplicator: z.string({
@@ -31,9 +30,8 @@ const applicatorVerifySchema = z.object({
 export type ApplicatorVerifyData = z.infer<typeof applicatorVerifySchema>
 
 const ApplicatorCPFVerify = () => {
+  const toaster = useToaster()
   const [buttonLoading, setButtonLoading] = useState(false)
-  const [visibleOK, setVisibleOK] = useState(false)
-  const [visibleERROR, setVisibleERROR] = useState(false)
 
   const { refetchDevice } = useDevice()
   const { fetchApplicatorData } = useApplicator()
@@ -46,10 +44,6 @@ const ApplicatorCPFVerify = () => {
     resolver: zodResolver(applicatorVerifySchema),
   })
 
-  const onDismissSnackBarOK = () => setVisibleOK(false)
-
-  const onDismissSnackBarERROR = () => setVisibleERROR(false)
-
   const onSubmit = handleSubmit(async (data) => {
     // FIXME: why do we need these refetches?
     await refetchDevice()
@@ -59,27 +53,23 @@ const ApplicatorCPFVerify = () => {
 
       const response = await doApplicatorVerificate(data.cpfApplicator)
 
-      if (response && !response?.is_leader) {
-        setVisibleOK(!visibleOK)
-        AsyncStorage.setItem('first_time_on_application', '1')
-        setTimeout(() => {
-          setVisibleOK(!visibleOK)
-          router.navigate('/points-reference')
-        }, 1000)
+      if (!response?.is_leader) {
+        toaster.makeToast({
+          type: 'success',
+          message: 'Aplicador logado com sucesso.',
+        })
+        router.navigate('/points-reference')
       } else {
-        setVisibleERROR(!visibleERROR)
-
-        setTimeout(() => {
-          setVisibleERROR(!visibleERROR)
-        }, 3000)
+        toaster.makeToast({
+          type: 'error',
+          message: 'Login falhou. Verifique suas credenciais',
+        })
       }
     } catch (error) {
-      setTimeout(() => setButtonLoading(false), 3000)
-      setVisibleERROR(!visibleERROR)
-
-      setTimeout(() => {
-        setVisibleERROR(!visibleERROR)
-      }, 3000)
+      toaster.makeToast({
+        type: 'error',
+        message: 'Login falhou. Verifique suas credenciais',
+      })
     } finally {
       setButtonLoading(false)
     }
@@ -171,34 +161,6 @@ const ApplicatorCPFVerify = () => {
           </View>
         </View>
       </View>
-      <Snackbar
-        visible={visibleOK}
-        onDismiss={onDismissSnackBarOK}
-        action={{
-          textColor: '#00ff00',
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-zinc-700">Aplicador logado com sucesso.</Text>
-      </Snackbar>
-      <Snackbar
-        visible={visibleERROR}
-        onDismiss={onDismissSnackBarERROR}
-        action={{
-          textColor: '#ff0000',
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-zinc-700">
-          Login falhou. Verifique suas credenciais
-        </Text>
-      </Snackbar>
     </ScrollView>
   )
 }
