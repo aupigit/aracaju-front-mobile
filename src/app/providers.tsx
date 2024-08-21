@@ -10,6 +10,7 @@ import { ApplicatorProvider } from '@/contexts/ApplicatorContext'
 import { DeviceProvider } from '@/features/device/context'
 import { PointsReferenceProvider } from '@/contexts/PointsReferenceContext'
 import { DatabaseProvider } from '@/features/database'
+import { ToasterProvider } from '@/features/toaster'
 
 const queryClient = new QueryClient()
 
@@ -19,17 +20,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <PaperProvider>
-        <DatabaseProvider>
-          <QueryClientProvider client={queryClient}>
-            <DeviceProvider>
-              <UserProvider>
-                <ApplicatorProvider>
-                  <PointsReferenceProvider>{children}</PointsReferenceProvider>
-                </ApplicatorProvider>
-              </UserProvider>
-            </DeviceProvider>
-          </QueryClientProvider>
-        </DatabaseProvider>
+        <ToasterProvider>
+          <DatabaseProvider>
+            <QueryClientProvider client={queryClient}>
+              <DeviceProvider>
+                <UserProvider>
+                  <ApplicatorProvider>
+                    <PointsReferenceProvider>
+                      {children}
+                    </PointsReferenceProvider>
+                  </ApplicatorProvider>
+                </UserProvider>
+              </DeviceProvider>
+            </QueryClientProvider>
+          </DatabaseProvider>
+        </ToasterProvider>
       </PaperProvider>
     </SafeAreaProvider>
   )
