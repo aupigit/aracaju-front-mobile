@@ -188,9 +188,9 @@ CREATE TABLE `User` (
 	`first_name` text,
 	`last_name` text,
 	`password` text,
-	`is_active` integer,
-	`is_staff` integer,
-	`is_superuser` integer,
+	`is_active` integer NOT NULL,
+	`is_staff` integer NOT NULL,
+	`is_superuser` integer NOT NULL,
 	`last_login` text,
 	`date_joined` text
 );
@@ -200,10 +200,10 @@ CREATE TABLE `Applicator` (
 	`contract` integer,
 	`name` text,
 	`cpf` text,
-	`status` integer,
-	`new_marker` integer,
-	`edit_marker` integer,
-	`is_leader` integer,
+	`status` integer NOT NULL,
+	`new_marker` integer NOT NULL,
+	`edit_marker` integer NOT NULL,
+	`is_leader` integer NOT NULL,
 	`description` text,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL

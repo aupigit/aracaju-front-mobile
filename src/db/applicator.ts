@@ -6,10 +6,10 @@ export const Applicator = sqliteTable('Applicator', {
   contract: integer('contract'),
   name: text('name'),
   cpf: text('cpf'),
-  status: integer('status'),
-  new_marker: integer('new_marker'),
-  edit_marker: integer('edit_marker'),
-  is_leader: integer('is_leader'),
+  status: integer('status', { mode: 'boolean' }).notNull(),
+  new_marker: integer('new_marker', { mode: 'boolean' }).notNull(),
+  edit_marker: integer('edit_marker', { mode: 'boolean' }).notNull(),
+  is_leader: integer('is_leader', { mode: 'boolean' }).notNull(),
   description: text('description'),
   created_at: text('created_at')
     .default(sql`CURRENT_TIMESTAMP`)
@@ -20,3 +20,5 @@ export const Applicator = sqliteTable('Applicator', {
 })
 
 export type SelectApplicator = typeof Applicator.$inferSelect
+
+export type NewApplicator = typeof Applicator.$inferInsert
