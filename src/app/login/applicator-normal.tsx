@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import {
   View,
   Text,
@@ -13,59 +13,53 @@ import NetInfo from '@react-native-community/netinfo'
 import { router } from 'expo-router'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
-import { useUser } from '@/contexts/UserContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { doLogin } from '@/services/onlineServices/authenticate'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useDevice } from '@/features/device'
-import { useApplicator } from '@/contexts/ApplicatorContext'
 import { FontAwesome } from '@expo/vector-icons'
 import { useToaster } from '@/features/toaster'
+import { useChangeAsyncStore } from '@/hooks'
+import { useUpsertUser } from '@/features/session/hooks/use-upsert-user'
 
 const authSchema = z.object({
-  password: z
+  deviceToken: z
     .string({
-      required_error: 'Senha é obrigatório',
-      invalid_type_error: 'Senha precisa ser uma string',
+      required_error: 'Token é obrigatório',
+      invalid_type_error: 'Token precisa ser uma string',
     })
-    .min(8, 'Senha precisa ter pelo menos 8 caracteres'),
+    .min(8, 'Token precisa ter pelo menos 8 caracteres'),
 })
 
 export type AuthFormData = z.infer<typeof authSchema>
 
 const ApplicatorNormalLogin = () => {
+  const upsertUser = useUpsertUser()
+  const asyncStore = useChangeAsyncStore()
   const toaster = useToaster()
-  const { device, refetchDevice } = useDevice()
-  const { fetchApplicatorData } = useApplicator()
-  const { loginUser } = useUser()
-  const [showPassword, setShowPassword] = useState(false)
-  const [buttonLoading, setButtonLoading] = useState(false)
-
+  const device = useDevice()
+  const [showToken, toggleShowToken] = useReducer((state) => !state, false)
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
   })
-  const onSubmit = handleSubmit(async (data: AuthFormData) => {
-    await refetchDevice()
-    await fetchApplicatorData()
-    try {
-      setButtonLoading(true)
 
-      const response = await doLogin(device.factory_id, data.password)
+  const onSubmit = handleSubmit(async (data: AuthFormData) => {
+    try {
+      const response = await doLogin(device.factory_id, data.deviceToken)
 
       if (response?.user) {
-        await AsyncStorage.setItem('token_service_id', data.password)
+        await asyncStore.multiSet([['token', response.token]])
+        await upsertUser(response.user)
 
         toaster.makeToast({
           type: 'success',
           message: 'Token verificado com sucesso.',
         })
-        router.navigate('/login/applicator-cpf-verify')
 
-        loginUser(response.user)
+        router.navigate('/login/applicator-cpf-verify')
       } else {
         toaster.makeToast({
           type: 'success',
@@ -73,12 +67,11 @@ const ApplicatorNormalLogin = () => {
         })
       }
     } catch (error) {
+      console.error(error)
       toaster.makeToast({
         type: 'success',
         message: 'Login falhou. Verifique suas credenciais',
       })
-    } finally {
-      setButtonLoading(false)
     }
   })
 
@@ -131,30 +124,30 @@ const ApplicatorNormalLogin = () => {
                     onChangeText={(value) => onChange(value)}
                     value={value}
                     placeholder="Token"
-                    secureTextEntry={!showPassword}
+                    secureTextEntry={!showToken}
                     className=" rounded-md border border-zinc-700/20 p-2 pl-4"
                   />
                   <Pressable className=" absolute right-5 top-3">
                     <FontAwesome
-                      name={showPassword ? 'eye-slash' : 'eye'}
+                      name={showToken ? 'eye-slash' : 'eye'}
                       size={24}
                       color="black"
-                      onPress={() => setShowPassword(!showPassword)}
+                      onPress={toggleShowToken}
                     />
                   </Pressable>
                   {errors && (
                     <Text className="absolute -bottom-5 text-sm text-red-500">
-                      {errors.password?.message}
+                      {errors.deviceToken?.message}
                     </Text>
                   )}
                 </View>
               )}
-              name="password"
+              name="deviceToken"
               rules={{ required: true }}
               defaultValue=""
             />
 
-            {buttonLoading ? (
+            {isSubmitting ? (
               <Pressable className="rounded-md bg-zinc-500 p-3">
                 <ActivityIndicator size="small" color="#fff" />
               </Pressable>

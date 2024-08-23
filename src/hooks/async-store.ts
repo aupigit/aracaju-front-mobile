@@ -3,7 +3,7 @@ import { useQuery } from 'react-query'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { intersection } from 'lodash'
 
-export type AvailableKey = 'user_id' | 'token'
+export type AvailableKey = 'token'
 
 // react query doesn't support individual keys, so we'll have to hack
 // around for it

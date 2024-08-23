@@ -1,4 +1,3 @@
-import { UserProvider } from '@/contexts/UserContext'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import {
   initialWindowMetrics,
@@ -6,7 +5,8 @@ import {
 } from 'react-native-safe-area-context'
 import { LogBox } from 'react-native'
 import { PaperProvider } from 'react-native-paper'
-import { ApplicatorProvider } from '@/contexts/ApplicatorContext'
+
+import { UserProvider, ApplicatorProvider } from '@/features/session'
 import { DeviceProvider } from '@/features/device/context'
 import { PointsReferenceProvider } from '@/contexts/PointsReferenceContext'
 import { DatabaseProvider } from '@/features/database'

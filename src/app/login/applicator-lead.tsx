@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import {
   View,
   Text,
@@ -13,14 +13,13 @@ import NetInfo from '@react-native-community/netinfo'
 import { router } from 'expo-router'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
-import { useUser } from '@/contexts/UserContext'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { doLogin } from '@/services/onlineServices/authenticate'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useDevice } from '@/features/device'
-import { useApplicator } from '@/contexts/ApplicatorContext'
 import { FontAwesome } from '@expo/vector-icons'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+import { doLogin } from '@/services/onlineServices/authenticate'
 import { useToaster } from '@/features/toaster'
+import { useUpsertUser } from '@/features/session/hooks/use-upsert-user'
+import { useChangeAsyncStore } from '@/hooks'
 
 const authSchema = z.object({
   email: z
@@ -30,7 +29,6 @@ const authSchema = z.object({
     })
     .min(2, 'Email precisa ter pelo menos 2 caracteres')
     .email('Email precisa ser um email válido'),
-
   password: z
     .string({
       required_error: 'Senha é obrigatório',
@@ -42,42 +40,35 @@ const authSchema = z.object({
 export type AuthFormData = z.infer<typeof authSchema>
 
 const ApplicatorLeadLogin = () => {
+  const upsertUser = useUpsertUser()
+  const asyncStore = useChangeAsyncStore()
   const toaster = useToaster()
-  const [showPassword, setShowPassword] = useState(false)
-  const [buttonLoading, setButtonLoading] = useState(false)
-
-  const { refetchDevice } = useDevice()
-  const { fetchApplicatorData } = useApplicator()
-
+  const [showPassword, toggleShowPassword] = useReducer(
+    (state) => !state,
+    false,
+  )
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
   })
 
-  const { loginUser } = useUser()
-
   const onSubmit = handleSubmit(async (data) => {
-    // FIXME: why do we need these refetches?
-    await refetchDevice()
-    await fetchApplicatorData()
     try {
-      setButtonLoading(true)
-
       const response = await doLogin(data.email, data.password)
 
       if (response?.user.is_staff) {
-        await AsyncStorage.removeItem('token_service_id')
+        await asyncStore.multiSet([['token', response.token]])
+        await upsertUser(response.user)
 
         toaster.makeToast({
           type: 'success',
           message: 'Login verificado com sucesso.',
         })
-        router.navigate('/login/applicator-cpf-verify')
 
-        loginUser(response.user)
+        router.navigate('/login/applicator-cpf-verify')
       } else {
         toaster.makeToast({
           type: 'success',
@@ -89,8 +80,6 @@ const ApplicatorLeadLogin = () => {
         type: 'success',
         message: 'Login falhou. Verifique suas credenciais',
       })
-    } finally {
-      setButtonLoading(false)
     }
   })
 
@@ -173,7 +162,7 @@ const ApplicatorLeadLogin = () => {
                       name={showPassword ? 'eye-slash' : 'eye'}
                       size={24}
                       color="black"
-                      onPress={() => setShowPassword(!showPassword)}
+                      onPress={toggleShowPassword}
                     />
                   </Pressable>
                   {errors && (
@@ -188,7 +177,7 @@ const ApplicatorLeadLogin = () => {
               defaultValue=""
             />
 
-            {buttonLoading ? (
+            {isSubmitting ? (
               <Pressable className="rounded-md bg-zinc-500 p-3">
                 <ActivityIndicator size="small" color="#fff" />
               </Pressable>

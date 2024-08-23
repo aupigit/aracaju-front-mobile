@@ -3,13 +3,13 @@ import { IBase } from './IBase'
 export interface IUser extends IBase {
   password: string
   last_login: any
-  is_superuser: boolean
+  is_superuser?: boolean
   email: string
   name?: string
   last_name?: string
   first_name?: string
   is_staff?: boolean
-  is_active: boolean
+  is_active?: boolean
   date_joined: string
   // groups: any[]
   // user_permissions: any[]

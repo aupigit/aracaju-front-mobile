@@ -19,7 +19,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { doApplicationOffline } from '@/services/offlineServices/application'
-import { useApplicator } from '@/contexts/ApplicatorContext'
+import { useApplicator } from '@/features/session'
 import { useDevice } from '@/features/device'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
@@ -45,8 +45,8 @@ export type ApplicationFormData = z.infer<typeof applicationSchema>
 const Applications = () => {
   const insets = useSafeAreaInsets()
 
-  const { applicator } = useApplicator()
-  const { device } = useDevice()
+  const applicator = useApplicator()
+  const device = useDevice()
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)

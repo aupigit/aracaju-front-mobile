@@ -20,3 +20,14 @@ export const findApplicatorById = (
 export const findApplicator = (): Promise<IApplicator[]> => {
   return get<IApplicator[]>(`applications/applicator/`)
 }
+
+export const findApplicatorByCPF = async (
+  cpf: string,
+): Promise<IApplicator | undefined> => {
+  const cleanedCpf = cpf.replace(/\D/g, '')
+  const [applicator] = await get<IApplicator[]>(
+    `operation/applicators/?cpf=${cleanedCpf}`,
+  )
+
+  return applicator
+}

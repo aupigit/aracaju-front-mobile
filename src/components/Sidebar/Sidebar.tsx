@@ -1,8 +1,9 @@
-import { View, Text, Pressable } from 'react-native'
+import { View, Text, Pressable, Alert } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
-import { useUser } from '@/contexts/UserContext'
-import { useApplicator } from '@/contexts/ApplicatorContext'
+import { router } from 'expo-router'
+
+import { useLogout } from '@/features/session'
 
 interface ISidebarProps {
   insets: { top: number; bottom: number }
@@ -10,12 +11,18 @@ interface ISidebarProps {
 }
 
 const Sidebar = ({ insets, closeDrawer }: ISidebarProps) => {
-  const { logoutUser } = useUser()
-  const { logoutApplicator } = useApplicator()
+  const logout = useLogout()
 
-  const handleLogout = () => {
-    logoutUser()
-    logoutApplicator()
+  const handleLogout = async () => {
+    const success = await logout()
+
+    if (success) {
+      router.replace('/')
+    } else {
+      // This basically means that the DB failed and we're
+      //  in an unknown state, should we ask the user to cleanup the app?
+      Alert.alert('Erro ao realizar logout')
+    }
   }
 
   return (

@@ -11,10 +11,8 @@ export const doLogin = async (
   email: string,
   password: string,
 ): Promise<IAuthenticatedUser | undefined> => {
-  const body = {
-    email,
-    password,
-  }
+  const body = { email, password }
+
   try {
     const { user, access, refresh } = await post<{
       user: IUser
@@ -28,8 +26,7 @@ export const doLogin = async (
       is_staff: !!user.is_staff,
     }
 
-    await AsyncStorage.setItem('userId', user.id!.toString())
-    await AsyncStorage.setItem('token', access)
+    // FIXME: what is refresh? whats the meaning?
     await AsyncStorage.setItem('refresh', refresh)
 
     return authenticatedUser

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
   View,
   Text,
@@ -14,11 +14,10 @@ import { router } from 'expo-router'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { doApplicatorVerificate } from '@/services/onlineServices/applicatorVerificate'
-import { useDevice } from '@/features/device'
-import { useApplicator } from '@/contexts/ApplicatorContext'
+import { findApplicatorByCPF } from '@/services/onlineServices/applicator'
 import maskCPF from '@/utils/cpfMask'
 import { useToaster } from '@/features/toaster'
+import { useUpsertApplicator } from '@/features/session'
 
 const applicatorVerifySchema = z.object({
   cpfApplicator: z.string({
@@ -30,30 +29,24 @@ const applicatorVerifySchema = z.object({
 export type ApplicatorVerifyData = z.infer<typeof applicatorVerifySchema>
 
 const ApplicatorCPFVerify = () => {
+  const upsertApplicator = useUpsertApplicator()
   const toaster = useToaster()
-  const [buttonLoading, setButtonLoading] = useState(false)
-
-  const { refetchDevice } = useDevice()
-  const { fetchApplicatorData } = useApplicator()
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { isSubmitting, errors },
   } = useForm<ApplicatorVerifyData>({
     resolver: zodResolver(applicatorVerifySchema),
   })
 
   const onSubmit = handleSubmit(async (data) => {
-    // FIXME: why do we need these refetches?
-    await refetchDevice()
-    await fetchApplicatorData()
     try {
-      setButtonLoading(true)
+      const applicator = await findApplicatorByCPF(data.cpfApplicator)
 
-      const response = await doApplicatorVerificate(data.cpfApplicator)
+      if (applicator) {
+        await upsertApplicator(applicator)
 
-      if (!response?.is_leader) {
         toaster.makeToast({
           type: 'success',
           message: 'Aplicador logado com sucesso.',
@@ -70,8 +63,6 @@ const ApplicatorCPFVerify = () => {
         type: 'error',
         message: 'Login falhou. Verifique suas credenciais',
       })
-    } finally {
-      setButtonLoading(false)
     }
   })
 
@@ -144,14 +135,14 @@ const ApplicatorCPFVerify = () => {
               defaultValue=""
             />
 
-            {buttonLoading ? (
+            {isSubmitting ? (
               <Pressable className="rounded-md bg-zinc-500 p-3">
                 <ActivityIndicator size="small" color="#fff" />
               </Pressable>
             ) : (
               <Pressable
-                onPress={onSubmit}
                 className="rounded-md bg-zinc-500 p-3"
+                onPress={onSubmit}
               >
                 <Text className="text-md text-center font-bold text-white">
                   ENTRAR

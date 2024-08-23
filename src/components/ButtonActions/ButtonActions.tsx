@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from 'react-native'
 import React from 'react'
 import Feather from '@expo/vector-icons/Feather'
-import { useUser } from '@/contexts/UserContext'
+import { useUser } from '@/features/session'
 
 interface IButtonsActionsProps {
   openDrawer: () => void
@@ -17,7 +17,7 @@ const ButtonActions = ({
   openDrawer,
   setModalAddPointReference,
 }: IButtonsActionsProps) => {
-  const { user } = useUser()
+  const user = useUser()!
 
   return (
     <>
