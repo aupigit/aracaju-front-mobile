@@ -1,87 +1,48 @@
 import { eq } from 'drizzle-orm'
-import { omit } from 'lodash'
-import { useQuery } from 'react-query'
 import { Text } from 'react-native'
-import React, {
-  ContextType,
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-} from 'react'
+import React, { ReactNode, createContext, useContext, useEffect } from 'react'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 
 import { useDB } from '@/features/database'
-import { Device, NewDevice, SelectDevice } from '@/db/device'
-import { useDeviceFactoryId } from '@/features/device/hooks'
+import { Device, SelectDevice } from '@/db/device'
+import {
+  useDeviceFactoryId,
+  useFetchDeviceByFactoryId,
+} from '@/features/device/hooks'
 import {
   LoadingDevice,
   DeviceNotAuthorized,
 } from '@/features/device/components'
-import { findDeviceByFactoryId } from '@/services/onlineServices/device'
+import { useUpsertDevice } from '@/features/device/hooks/use-upsert-device'
 
-const Context = createContext<{
-  device: SelectDevice | null
-  refetchDevice: () => Promise<unknown>
-}>({
-  device: null,
-  refetchDevice: () => Promise.reject(new Error('Not implemented')),
-})
+const Context = createContext<SelectDevice | null>(null)
 
 export const DeviceProvider = ({ children }: { children: ReactNode }) => {
   const db = useDB()
+  const upsertDevice = useUpsertDevice()
   const factoryId = useDeviceFactoryId()
+  const deviceRequest = useFetchDeviceByFactoryId(factoryId)
   const deviceQuery = useLiveQuery(
     db.select().from(Device).where(eq(Device.factory_id, factoryId)),
   )
   const [device] = deviceQuery.data || []
 
-  const request = useQuery(['USE_DEVICE_DATA', factoryId], () => {
-    console.log('[device-context] fetching device data')
-    return findDeviceByFactoryId(factoryId).catch((error) => {
-      console.log('[device-context] error', error)
-
-      return null
-    })
-  })
-
-  const value: ContextType<typeof Context> = useMemo(
-    () => ({
-      device,
-      refetchDevice: request.refetch,
-    }),
-    [device, request.refetch],
-  )
-
   useEffect(() => {
-    const networkDevice = request.data
+    const networkDevice = deviceRequest.data
     if (!networkDevice) {
       return
     }
 
-    const deviceData: NewDevice = {
-      id: Number(networkDevice.id),
-      factory_id: networkDevice.factory_id,
-      name: networkDevice.name,
-      authorized: networkDevice.authorized,
-      applicator: networkDevice.applicator.id
-        ? Number(networkDevice.applicator.id)
-        : null,
-      last_sync: networkDevice.last_sync,
-      color_line: networkDevice.color_line,
-      description: networkDevice.description,
-    }
-
-    db.insert(Device)
-      .values(deviceData)
-      .onConflictDoUpdate({ target: Device.id, set: omit(deviceData, ['id']) })
-      .finally(() => {
+    upsertDevice(networkDevice)
+      .then(() => {
         console.log('[device-context] device data upserted')
       })
-  }, [db, request.data])
+      .catch((error) => {
+        console.error('[device-context] error upserting device data', error)
+      })
+  }, [db, deviceRequest.data, upsertDevice])
 
-  if (request.isLoading && !device) {
+  if (deviceRequest.isLoading && !device) {
     return <LoadingDevice />
   }
 
@@ -93,20 +54,20 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
   if (!device?.authorized) {
     return (
       <DeviceNotAuthorized
-        onReauthorize={request.refetch}
-        loading={request.isFetching}
+        onReauthorize={deviceRequest.refetch}
+        loading={deviceRequest.isFetching}
       />
     )
   }
 
-  return <Context.Provider value={value}>{children}</Context.Provider>
+  return <Context.Provider value={device}>{children}</Context.Provider>
 }
 
 export const useDevice = () => {
-  const data = useContext(Context)
-  if (!data.device) {
+  const device = useContext(Context)
+  if (!device) {
     throw new Error('useDevice must be used inside a DeviceProvider')
   }
 
-  return { device: data.device!, refetchDevice: data.refetchDevice }
+  return device
 }
