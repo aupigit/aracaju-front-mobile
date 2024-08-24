@@ -292,7 +292,7 @@ const PointsReference = () => {
   }, [lastUpdatedAtSuccess, updatedAtParameter])
 
   const incrementProgress = useCallback(() => {
-    setProgress((prevProgress) => prevProgress + 0.1)
+    setProgress((prevProgress) => prevProgress + 1.4)
   }, [setProgress])
 
   const handleSyncInformation = async () => {
