@@ -48,10 +48,16 @@ const ApplicatorNormalLogin = () => {
 
   const onSubmit = handleSubmit(async (data: AuthFormData) => {
     try {
-      const response = await doLogin(device.factory_id, data.deviceToken)
+      const response = await doLogin({
+        email: device.factory_id,
+        password: data.deviceToken,
+      })
 
       if (response?.user) {
-        await asyncStore.multiSet([['token', response.token]])
+        await asyncStore.multiSet([
+          ['token', response.access],
+          ['refresh_token', response.refresh],
+        ])
         await upsertUser(response.user)
 
         toaster.makeToast({
@@ -67,7 +73,8 @@ const ApplicatorNormalLogin = () => {
         })
       }
     } catch (error) {
-      console.error(error)
+      console.error('[applicator-login]', error)
+
       toaster.makeToast({
         type: 'success',
         message: 'Login falhou. Verifique suas credenciais',

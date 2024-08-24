@@ -57,10 +57,16 @@ const ApplicatorLeadLogin = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await doLogin(data.email, data.password)
+      const response = await doLogin({
+        email: data.email,
+        password: data.password,
+      })
 
       if (response?.user.is_staff) {
-        await asyncStore.multiSet([['token', response.token]])
+        await asyncStore.multiSet([
+          ['token', response.access],
+          ['refresh_token', response.refresh],
+        ])
         await upsertUser(response.user)
 
         toaster.makeToast({
@@ -76,6 +82,8 @@ const ApplicatorLeadLogin = () => {
         })
       }
     } catch (error) {
+      console.error('[lead-login]', error)
+
       toaster.makeToast({
         type: 'success',
         message: 'Login falhou. Verifique suas credenciais',

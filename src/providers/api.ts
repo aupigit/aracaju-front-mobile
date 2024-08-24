@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 import { InvalidCredentialsError, UnauthorizedError } from '@/errors/webapp'
 import { getHeaders } from './get-headers'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { asyncStoreGetItem, asyncStoreSetItem } from '@/hooks'
 
 export interface IHttpRequestParams {
   extraHeaders?: Record<string, string>
@@ -22,14 +22,12 @@ export interface IPostRequestParams extends IHttpRequestParams {
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
-type WithToken<T> = T & { access: string }
-
 const httpRequest = async <T>(
   uri: string,
   method: HttpMethod,
   props: IPostRequestParams = {},
   isRetry = false,
-): Promise<WithToken<T>> => {
+): Promise<T> => {
   const headers = await getHeaders(props)
 
   const endpoint = `${process.env.EXPO_PUBLIC_BASE_API_URL}/${uri}`
@@ -44,33 +42,28 @@ const httpRequest = async <T>(
   }
 
   try {
-    const response = await axios<WithToken<T>>(endpoint, params)
+    const response = await axios<T>(endpoint, params)
 
     return response.data
   } catch (error) {
-    console.error(
-      'Axios error. Reveja conexão com a internet ',
-      (error as Error).message,
-    )
+    console.error('[api], error at', endpoint, (error as Error).message)
+
     if (
       error instanceof AxiosError &&
       error?.response?.status &&
       [401, 403, 405].includes(error.response.status)
     ) {
-      const token = await AsyncStorage.getItem('token')
+      const token = await asyncStoreGetItem('token')
 
       if (!isRetry && token && error.response.data.code === 'token_not_valid') {
-        const refresh = await AsyncStorage.getItem('refresh')
+        const refresh = await asyncStoreGetItem('refresh_token')
         try {
-          const refreshedResponse = await httpRequest(
-            'token/refresh/',
-            'POST',
-            { body: { refresh } },
-            true,
-          )
+          const refreshedResponse = await httpRequest<{
+            access: string
+          }>('token/refresh/', 'POST', { body: { refresh } }, true)
 
-          // FIXME: .data is already the return of `httpRequest`, does this work?
-          await AsyncStorage.setItem('token', refreshedResponse.data.access)
+          await asyncStoreSetItem('token', refreshedResponse.access)
+
           return await httpRequest(endpoint, method, props, true)
         } catch (refreshError) {
           console.error('[api] got error on token refresh', refreshError)

@@ -5,6 +5,7 @@ import {
 } from 'react-native-safe-area-context'
 import { LogBox } from 'react-native'
 import { PaperProvider } from 'react-native-paper'
+import { ReactNode } from 'react'
 
 import { UserProvider, ApplicatorProvider } from '@/features/session'
 import { DeviceProvider } from '@/features/device/context'
@@ -16,7 +17,7 @@ const queryClient = new QueryClient()
 
 LogBox.ignoreLogs(['In React 18, SSRProvider is not necessary and is a noop.'])
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: ReactNode }) {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <PaperProvider>

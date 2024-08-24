@@ -28,8 +28,6 @@ import {
   pullPointData,
   pullPointLastUpdatedAt,
 } from '@/services/pullServices/pointReference'
-import { findUser } from '@/services/onlineServices/user'
-import { pullUserData } from '@/services/pullServices/user'
 import {
   findConfigApp,
   findConfigAppByName,
@@ -52,7 +50,7 @@ import ApplicationAddPointReferenceModal from '@/components/Modal/ApplicationAdd
 import { pullPointTypeFlatData } from '@/services/pullServices/pointtype'
 import { findManyPointType } from '@/services/onlineServices/pointtype'
 import SyncModal from '@/components/Modal/SyncModal'
-import BtnCollect from '@/components/PointsReference/CollectButton'
+import { CollectButton } from '@/components/PointsReference/CollectButton'
 import BtnPointInformation from '@/components/PointsReference/PointInformationButton'
 import BtnApplication from '@/components/PointsReference/ApplicationButton'
 import { MapView } from '@/components/MapView'
@@ -158,12 +156,6 @@ const PointsReference = () => {
 
     return null
   }, [lastUpdatedAtData])
-
-  // GET - User/Online
-  const { data: userData, isLoading: userLoading } = useQuery(
-    'operation/user',
-    () => findUser(),
-  )
 
   // GET - ConfigaApp/Online
   const {
@@ -327,7 +319,6 @@ const PointsReference = () => {
       await Promise.all([
         fetchData().then(incrementProgress),
         pullPointData(pointsDataRef.current ?? []).then(incrementProgress),
-        pullUserData(userData ?? []).then(incrementProgress),
         pullConfigAppData(configAppData ?? []).then(incrementProgress),
         pullPointTypeFlatData(pointTypeData ?? []).then(incrementProgress),
       ])
@@ -522,7 +513,6 @@ const PointsReference = () => {
 
   // Loading de informações
   if (
-    userLoading ||
     configAppLoading ||
     configPointRadiusLoading ||
     configPushTimeLoading ||
@@ -609,10 +599,9 @@ const PointsReference = () => {
             setSelectedPoint={setSelectedPoint}
           />
         </View>
-
         <View className="absolute bottom-0 left-0 items-center justify-center">
-          {user.is_staff && (
-            <BtnCollect
+          {showCollectButton && user.is_staff && (
+            <CollectButton
               configPointRadius={configsOfPointRadius}
               location={location}
               pointsDataOffline={pointsDataOffline}
@@ -640,7 +629,6 @@ const PointsReference = () => {
               userLocation={userLocation}
             />
           )}
-
           {lastSyncTime && (
             <View className="w-screen items-center justify-center bg-white">
               <Text>

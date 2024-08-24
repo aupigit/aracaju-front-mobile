@@ -3,7 +3,7 @@ import { useQuery } from 'react-query'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { intersection } from 'lodash'
 
-export type AvailableKey = 'token'
+export type AvailableKey = 'token' | 'refresh_token'
 
 // react query doesn't support individual keys, so we'll have to hack
 // around for it
@@ -48,4 +48,12 @@ export const useChangeAsyncStore = () => {
       listeners.forEach((listener) => listener(removedKeys))
     }, []),
   }
+}
+
+export const asyncStoreSetItem = (key: AvailableKey, value: string) => {
+  return AsyncStorage.setItem(key, value)
+}
+
+export const asyncStoreGetItem = (key: AvailableKey) => {
+  return AsyncStorage.getItem(key)
 }

@@ -21,7 +21,7 @@ export const LogoutPage = () => {
     } catch (error) {
       console.error('[logout] request failed, ignoring', error)
     } finally {
-      asyncStorage.multiRemove(['token']).catch(noop)
+      asyncStorage.multiRemove(['token', 'refresh_token']).catch(noop)
     }
 
     try {
