@@ -3,26 +3,14 @@ import React from 'react'
 import { Divider } from 'react-native-paper'
 import { router } from 'expo-router'
 
-import { useLogout } from '@/features/session'
-
 type SidebarProps = {
   insets: { top: number; bottom: number }
   closeDrawer: () => void
 }
 
 export const Sidebar = ({ insets, closeDrawer }: SidebarProps) => {
-  const logout = useLogout()
-
   const handleLogout = async () => {
-    const success = await logout()
-
-    if (success) {
-      router.replace('/')
-    } else {
-      // This basically means that the DB failed and we're
-      //  in an unknown state, should we ask the user to cleanup the app?
-      Alert.alert('Erro ao realizar logout')
-    }
+    router.replace('/logout')
   }
 
   return (

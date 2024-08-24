@@ -36,18 +36,7 @@ export const doLogin = async (
   }
 }
 
-export const doLogout = async () => {
-  try {
-    await post('operation/logout/')
-  } catch (error) {
-    Alert.alert('Erro ao realizar logout: ', (error as Error).message)
-    throw error
-  } finally {
-    await AsyncStorage.removeItem('userId')
-    await AsyncStorage.removeItem('token')
-    await AsyncStorage.removeItem('refresh')
-  }
-}
+export const doLogout = () => post('operation/logout/')
 
 export const doRecoveryPasswordEmail = (
   email: string,
