@@ -55,7 +55,7 @@ import SyncModal from '@/components/Modal/SyncModal'
 import BtnCollect from '@/components/PointsReference/CollectButton'
 import BtnPointInformation from '@/components/PointsReference/PointInformationButton'
 import BtnApplication from '@/components/PointsReference/ApplicationButton'
-import MapViewComponent from '@/components/MapView/MapView'
+import { MapView } from '@/components/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
 import ButtonActions from '@/components/ButtonActions/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
@@ -560,7 +560,7 @@ const PointsReference = () => {
         />
 
         <View className="h-screen flex-1 items-center justify-center">
-          <MapViewComponent
+          <MapView
             latestApplicationDates={latestApplicationDates}
             location={location}
             mapRef={mapRef}
