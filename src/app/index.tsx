@@ -3,12 +3,13 @@ import React, { useEffect } from 'react'
 import { router } from 'expo-router'
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
 
-import { useApplicator } from '@/features/session'
+import { useApplicator, useUser } from '@/features/session'
 import { useAsyncStoreValues } from '@/hooks'
 
 const Home = () => {
   const sessionData = useAsyncStoreValues(['token'])
   const applicator = useApplicator()
+  const user = useUser()
 
   const handleEnterLead = async () => {
     router.navigate('login/applicator-lead')
@@ -24,7 +25,8 @@ const Home = () => {
     }
 
     const [token] = sessionData.data || []
-    if (applicator && token) {
+    console.log('[app]', !!applicator, !!user, token)
+    if (applicator && user && token) {
       router.navigate('points-reference')
     }
   }, [applicator, sessionData.data, sessionData.isLoading])

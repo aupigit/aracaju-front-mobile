@@ -2,18 +2,22 @@ import { View, Text } from 'react-native'
 import { noop } from 'lodash'
 import { useQuery } from 'react-query'
 import { ActivityIndicator, Button } from 'react-native-paper'
+import { useEffect } from 'react'
+import { router } from 'expo-router'
+import { eq } from 'drizzle-orm'
 
 import { useDB } from '@/features/database'
 import { useChangeAsyncStore } from '@/hooks'
 import { doLogout } from '@/services/onlineServices/authenticate'
 import { User } from '@/db/user'
 import { Applicator } from '@/db/applicator'
-import { useEffect } from 'react'
-import { router } from 'expo-router'
+import { useApplicator, useUser } from '@/features/session'
 
 export const LogoutPage = () => {
   const db = useDB()
   const asyncStorage = useChangeAsyncStore()
+  const user = useUser()
+  const applicator = useApplicator()
 
   const removalRequest = useQuery(['LOGOUT'], async () => {
     try {
@@ -28,10 +32,19 @@ export const LogoutPage = () => {
     }
 
     try {
-      // We should have just a single user in the DB
-      await db.delete(User).execute()
-      // We should have just a single applicator in the DB
-      await db.delete(Applicator).execute()
+      // FIXME: drizzle has a bug where live queries don't get notified
+      //  of deletes without wheres, we need to report this and wait for a fix.
+      //  in the meantime we'll delete with ids
+      if (user) {
+        await db.delete(User).where(eq(User.id, user.id)).execute()
+      }
+
+      if (applicator) {
+        await db
+          .delete(Applicator)
+          .where(eq(Applicator.id, applicator.id))
+          .execute()
+      }
 
       console.info('[logout] all data removed')
     } catch (error) {
