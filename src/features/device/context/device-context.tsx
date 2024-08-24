@@ -38,7 +38,7 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
         console.log('[device-context] device data upserted')
       })
       .catch((error) => {
-        console.error('[device-context] error upserting device data', error)
+        console.info('[device-context] error upserting device data', error)
       })
   }, [db, deviceRequest.data, upsertDevice])
 

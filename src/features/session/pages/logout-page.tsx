@@ -19,7 +19,10 @@ export const LogoutPage = () => {
     try {
       await doLogout()
     } catch (error) {
-      console.error('[logout] request failed, ignoring', error)
+      console.info(
+        '[logout] request failed, ignoring',
+        (error as Error).message,
+      )
     } finally {
       asyncStorage.multiRemove(['token', 'refresh_token']).catch(noop)
     }
@@ -32,7 +35,7 @@ export const LogoutPage = () => {
 
       console.info('[logout] all data removed')
     } catch (error) {
-      console.error('[logout] error deleting data', error)
+      console.info('[logout] error deleting data', error)
       throw error
     }
   })

@@ -82,7 +82,7 @@ const ApplicatorLeadLogin = () => {
         })
       }
     } catch (error) {
-      console.error('[lead-login]', error)
+      console.info('[applicator-login]', (error as Error).message)
 
       toaster.makeToast({
         type: 'success',

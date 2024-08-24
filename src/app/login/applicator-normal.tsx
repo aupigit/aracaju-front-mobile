@@ -73,7 +73,7 @@ const ApplicatorNormalLogin = () => {
         })
       }
     } catch (error) {
-      console.error('[applicator-login]', error)
+      console.info('[applicator-login]', (error as Error).message)
 
       toaster.makeToast({
         type: 'success',

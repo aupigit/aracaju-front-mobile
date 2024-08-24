@@ -46,7 +46,7 @@ const httpRequest = async <T>(
 
     return response.data
   } catch (error) {
-    console.error('[api], error at', endpoint, (error as Error).message)
+    console.info('[api], error at', endpoint, (error as Error).message)
 
     if (
       error instanceof AxiosError &&
@@ -66,13 +66,13 @@ const httpRequest = async <T>(
 
           return await httpRequest(endpoint, method, props, true)
         } catch (refreshError) {
-          console.error('[api] got error on token refresh', refreshError)
+          console.info('[api] got error on token refresh', refreshError)
 
           if (
             refreshError instanceof AxiosError &&
             refreshError?.response?.data?.code !== 'token_not_valid'
           ) {
-            console.error('[api] user token is not valid')
+            console.info('[api] user token is not valid')
 
             // FIXME: we should throw here
             return undefined!
