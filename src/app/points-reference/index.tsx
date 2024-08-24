@@ -57,7 +57,7 @@ import BtnPointInformation from '@/components/PointsReference/PointInformationBu
 import BtnApplication from '@/components/PointsReference/ApplicationButton'
 import { MapView } from '@/components/MapView'
 import Sidebar from '@/components/Sidebar/Sidebar'
-import ButtonActions from '@/components/ButtonActions/ButtonActions'
+import { ButtonActions } from '@/components/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
 import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
