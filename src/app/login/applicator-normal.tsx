@@ -37,7 +37,7 @@ const ApplicatorNormalLogin = () => {
   const asyncStore = useChangeAsyncStore()
   const toaster = useToaster()
   const device = useDevice()
-  const [showToken, toggleShowToken] = useReducer((state) => !state, false)
+  const [showToken, toggleShowToken] = useReducer((state) => !state, __DEV__)
   const {
     control,
     handleSubmit,

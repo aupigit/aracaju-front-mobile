@@ -45,7 +45,7 @@ const ApplicatorLeadLogin = () => {
   const toaster = useToaster()
   const [showPassword, toggleShowPassword] = useReducer(
     (state) => !state,
-    false,
+    __DEV__,
   )
   const {
     control,
