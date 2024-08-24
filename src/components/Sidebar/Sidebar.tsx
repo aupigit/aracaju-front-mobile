@@ -5,12 +5,12 @@ import { router } from 'expo-router'
 
 import { useLogout } from '@/features/session'
 
-interface ISidebarProps {
+type SidebarProps = {
   insets: { top: number; bottom: number }
   closeDrawer: () => void
 }
 
-const Sidebar = ({ insets, closeDrawer }: ISidebarProps) => {
+export const Sidebar = ({ insets, closeDrawer }: SidebarProps) => {
   const logout = useLogout()
 
   const handleLogout = async () => {
@@ -53,5 +53,3 @@ const Sidebar = ({ insets, closeDrawer }: ISidebarProps) => {
     </View>
   )
 }
-
-export default Sidebar
