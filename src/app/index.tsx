@@ -25,7 +25,6 @@ const Home = () => {
     }
 
     const [token] = sessionData.data || []
-    console.log('[app]', !!applicator, !!user, token)
     if (applicator && user && token) {
       router.navigate('points-reference')
     }

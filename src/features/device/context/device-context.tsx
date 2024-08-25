@@ -1,5 +1,4 @@
 import { eq } from 'drizzle-orm'
-import { Text } from 'react-native'
 import React, { ReactNode, createContext, useContext, useEffect } from 'react'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 
@@ -12,6 +11,7 @@ import {
 import {
   LoadingDevice,
   DeviceNotAuthorized,
+  ErrorLoadingDevice,
 } from '@/features/device/components'
 import { useUpsertDevice } from '@/features/device/hooks/use-upsert-device'
 
@@ -47,8 +47,7 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
   }
 
   if (deviceQuery.error) {
-    // FIXME: make a proper error screen
-    return <Text>{deviceQuery.error.message}</Text>
+    return <ErrorLoadingDevice message={deviceQuery.error?.message} />
   }
 
   if (!device?.authorized) {
