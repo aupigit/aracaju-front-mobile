@@ -29,7 +29,7 @@ const Home = () => {
     if (applicator && user && token) {
       router.navigate('points-reference')
     }
-  }, [applicator, sessionData.data, sessionData.isLoading])
+  }, [applicator, sessionData.data, sessionData.isLoading, user])
 
   const renderLoading = () => (
     <View className=" flex-1 flex-col items-center justify-center gap-3">
