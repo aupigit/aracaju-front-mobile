@@ -37,7 +37,7 @@ const authSchema = z.object({
     .min(8, 'Senha precisa ter pelo menos 8 caracteres'),
 })
 
-export type AuthFormData = z.infer<typeof authSchema>
+type AuthFormData = z.infer<typeof authSchema>
 
 const ApplicatorLeadLogin = () => {
   const upsertUser = useUpsertUser()

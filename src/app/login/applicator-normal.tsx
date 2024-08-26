@@ -30,7 +30,7 @@ const authSchema = z.object({
     .min(8, 'Token precisa ter pelo menos 8 caracteres'),
 })
 
-export type AuthFormData = z.infer<typeof authSchema>
+type AuthFormData = z.infer<typeof authSchema>
 
 const ApplicatorNormalLogin = () => {
   const upsertUser = useUpsertUser()
@@ -46,7 +46,7 @@ const ApplicatorNormalLogin = () => {
     resolver: zodResolver(authSchema),
   })
 
-  const onSubmit = handleSubmit(async (data: AuthFormData) => {
+  const onSubmit = handleSubmit(async (data) => {
     try {
       const response = await doLogin({
         email: device.factory_id,

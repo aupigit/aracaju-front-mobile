@@ -27,7 +27,7 @@ import { findConfigAppByName } from '@/services/onlineServices/configApp'
 import { IImagesProps } from '@/components/PhonePhotos'
 import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
 
-export const applicationSchema = z.object({
+const applicationSchema = z.object({
   volumebti: z.number({
     required_error: 'Volume BTI é obrigatório',
   }),
@@ -40,7 +40,7 @@ export const applicationSchema = z.object({
   }),
 })
 
-export type ApplicationFormData = z.infer<typeof applicationSchema>
+type ApplicationFormData = z.infer<typeof applicationSchema>
 
 const Applications = () => {
   const insets = useSafeAreaInsets()

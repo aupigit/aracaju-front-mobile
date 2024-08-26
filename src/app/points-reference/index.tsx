@@ -67,9 +67,7 @@ const editPointCoordinateSchema = z.object({
   }),
 })
 
-export type EditPointCoordinateFormData = z.infer<
-  typeof editPointCoordinateSchema
->
+type EditPointCoordinateFormData = z.infer<typeof editPointCoordinateSchema>
 
 const PointsReference = () => {
   const [location, setLocation] = useState<LocationObject | null>(null)

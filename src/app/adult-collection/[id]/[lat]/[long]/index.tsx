@@ -29,7 +29,7 @@ import { findConfigAppByName } from '@/services/onlineServices/configApp'
 import { IImagesProps } from '@/components/PhonePhotos'
 import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
 
-export const adultCollectionSchema = z.object({
+const adultCollectionSchema = z.object({
   wind: z.string(),
   climate: z.string(),
   temperature: z.string(),
@@ -41,7 +41,7 @@ export const adultCollectionSchema = z.object({
   }),
 })
 
-export type AdultCollectionFormData = z.infer<typeof adultCollectionSchema>
+type AdultCollectionFormData = z.infer<typeof adultCollectionSchema>
 
 const AdultCollection = () => {
   const insets = useSafeAreaInsets()

@@ -26,7 +26,7 @@ const applicatorVerifySchema = z.object({
   }),
 })
 
-export type ApplicatorVerifyData = z.infer<typeof applicatorVerifySchema>
+type ApplicatorVerifyData = z.infer<typeof applicatorVerifySchema>
 
 const ApplicatorCPFVerify = () => {
   const upsertApplicator = useUpsertApplicator()

@@ -27,7 +27,7 @@ interface ApplicationAddPointReferenceModalProps {
   deviceId: number
 }
 
-export const createPointSchema = z.object({
+const createPointSchema = z.object({
   name: z.string({ required_error: 'Nome do ponto é obrigatório' }),
   latitude: z.number({ required_error: 'Latitude é obrigatória' }),
   longitude: z.number({ required_error: 'Longitude é obrigatória' }),
@@ -42,7 +42,7 @@ export const createPointSchema = z.object({
   pointtype: z.number({ required_error: 'Tipo de ponto é obrigatório' }),
 })
 
-export type CreatePointFormData = z.infer<typeof createPointSchema>
+type CreatePointFormData = z.infer<typeof createPointSchema>
 
 const ApplicationAddPointReferenceModal = ({
   modalVisible,
