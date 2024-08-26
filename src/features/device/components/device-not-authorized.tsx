@@ -20,7 +20,6 @@ export const DeviceNotAuthorized = ({
   const factoryId = useDeviceFactoryId()
   const [isCopied, setIsCopied] = useState(false)
 
-  // Depois de Copiar o FactoryId, mostrar "Copiado" na tela por 10 segundos
   const copyToClipboard = async () => {
     try {
       await Clipboard.setStringAsync(factoryId)

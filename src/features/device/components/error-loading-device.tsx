@@ -12,7 +12,7 @@ export const ErrorLoadingDevice = ({
     </Text>
     {!!message && (
       <Text className="text-center text-lg font-bold">
-        {message || 'Erro ao carregar o dispositivo'}
+        {message || 'Não foi possível carregar as informações do dispositivo'}
       </Text>
     )}
   </View>
