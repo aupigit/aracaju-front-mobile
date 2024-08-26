@@ -3,7 +3,7 @@ import { openDatabaseSync } from 'expo-sqlite/next'
 
 const DATABASE_NAME = 'aracaju-sqlite-drizzle-v1.db'
 
-const LOG_DB = true
+const LOG_DB = false
 
 export const expoDB = openDatabaseSync(DATABASE_NAME, {
   enableChangeListener: true,
