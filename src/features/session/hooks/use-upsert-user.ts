@@ -11,7 +11,7 @@ export const useUpsertUser = () => {
   return useCallback(
     (user: LoginResponseUser) => {
       const newUser: NewUser = {
-        id: Number(user.id),
+        id: user.id,
         name: user.name,
         email: user.email,
         is_staff: user.is_staff,
