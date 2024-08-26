@@ -1,9 +1,6 @@
 import { IApplicator } from './IApplicator'
 import { IBase } from './IBase'
-
-type ISODateString = string & {
-  __compileTimeOnly: 'NOT_A_RUNTIME_VALUE'
-}
+import { ISODateString } from '@/interfaces/iso-date-string'
 
 export interface Marker {
   type: string
