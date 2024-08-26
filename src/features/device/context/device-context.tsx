@@ -9,11 +9,11 @@ import {
   useFetchDeviceByFactoryId,
 } from '@/features/device/hooks'
 import {
-  LoadingDevice,
   DeviceNotAuthorized,
   ErrorLoadingDevice,
 } from '@/features/device/components'
 import { useUpsertDevice } from '@/features/device/hooks/use-upsert-device'
+import { SimpleLoadingScreen } from '@/components/simple-loading-screen'
 
 const Context = createContext<SelectDevice | null>(null)
 
@@ -43,7 +43,9 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
   }, [db, deviceRequest.data, upsertDevice])
 
   if (deviceRequest.isLoading && !device) {
-    return <LoadingDevice />
+    return (
+      <SimpleLoadingScreen message="Verificando se o dispositivo está autorizado. Aguarde um momento" />
+    )
   }
 
   if (deviceQuery.error) {

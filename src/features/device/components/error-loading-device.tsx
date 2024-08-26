@@ -8,7 +8,7 @@ export const ErrorLoadingDevice = ({
 }) => (
   <View className="container h-screen flex-1 justify-center gap-3">
     <Text className="text-center text-2xl font-bold">
-      {'Erro ao carregar o dispositivo'}
+      Erro ao carregar o dispositivo
     </Text>
     {!!message && (
       <Text className="text-center text-lg font-bold">

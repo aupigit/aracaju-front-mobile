@@ -5,6 +5,7 @@ import { Ionicons, FontAwesome5 } from '@expo/vector-icons'
 
 import { useApplicator, useUser } from '@/features/session'
 import { useAsyncStoreValues } from '@/hooks'
+import { SimpleLoadingScreen } from '@/components/simple-loading-screen'
 
 const Home = () => {
   const sessionData = useAsyncStoreValues(['token'])
@@ -31,11 +32,7 @@ const Home = () => {
   }, [applicator, sessionData.data, sessionData.isLoading, user])
 
   const renderLoading = () => (
-    <View className=" flex-1 flex-col items-center justify-center gap-3">
-      <Text className="w-[60%] text-center text-lg font-bold">
-        Verificando se o dispositivo está autorizado. Aguarde um momento
-      </Text>
-    </View>
+    <SimpleLoadingScreen message="Verificando se o dispositivo está autorizado. Aguarde um momento" />
   )
 
   const renderLoginChoices = () => (
