@@ -1,14 +1,15 @@
-import { db } from '@/lib/database'
 import NetInfo from '@react-native-community/netinfo'
+import { asc, eq, inArray } from 'drizzle-orm'
+import { Alert } from 'react-native'
+
+import { db } from '@/lib/database'
 import {
   adjustPointReferenceCoordinates,
   adjustPointReferenceName,
   adjustPointStatus,
   doPointsReference,
 } from '../onlineServices/points'
-import { PointReference } from '@/db/pointreference'
-import { asc, eq, sql } from 'drizzle-orm'
-import { Alert } from 'react-native'
+import { PointReference } from '@/db/point-reference'
 import { pullPointData } from '../pullServices/pointReference'
 import { Logs } from '@/db/logs'
 
@@ -24,46 +25,48 @@ export const syncPointsReferenceName = async (
       data = await db
         .select()
         .from(PointReference)
-        .where(sql`${PointReference.edit_name} = 1`)
+        .where(eq(PointReference.edit_name, true))
         .orderBy(asc(PointReference.created_at))
         .limit(10)
         .execute()
 
-      if (data.length > 0) {
-        if (netInfo.isConnected && netInfo.isInternetReachable) {
-          try {
-            for (const item of data) {
-              const response = await adjustPointReferenceName(
-                item.name!,
-                'item.description',
-                Number(item.id),
-                applicatorId,
-                deviceId,
-              )
-              if (response && response.success) {
-                await db
-                  .update(PointReference)
-                  .set({ edit_name: 0 })
-                  .where(sql`${PointReference.pk} = ${item.pk}`)
-                  .execute()
-              }
-            }
-          } catch (err) {
-            const error = err as Error
-
-            Alert.alert(
-              'Erro ao realizar o sync do nome do ponto:',
-              error.message,
+      if (
+        data.length > 0 &&
+        netInfo.isConnected &&
+        netInfo.isInternetReachable
+      ) {
+        try {
+          for (const item of data) {
+            const response = await adjustPointReferenceName(
+              item.name!,
+              'item.description',
+              Number(item.id),
+              applicatorId,
+              deviceId,
             )
-            await db.insert(Logs).values({
-              error: error.message,
-              payload: JSON.stringify(data),
-            })
-            break
+            if (response?.success) {
+              await db
+                .update(PointReference)
+                .set({ edit_name: false })
+                .where(eq(PointReference.pk, item.pk))
+                .execute()
+            }
           }
+        } catch (err) {
+          const error = err as Error
+
+          Alert.alert(
+            'Erro ao realizar o sync do nome do ponto:',
+            error.message,
+          )
+          await db.insert(Logs).values({
+            error: error.message,
+            payload: JSON.stringify(data),
+          })
+          break
         }
       }
-    } while (data.length > 0 && data.length !== 0)
+    } while (data.length)
   }
 }
 
@@ -79,47 +82,49 @@ export const syncPointsReferenceLocation = async (
       data = await db
         .select()
         .from(PointReference)
-        .where(sql`${PointReference.edit_location} = 1`)
+        .where(eq(PointReference.edit_location, true))
         .orderBy(asc(PointReference.created_at))
         .limit(10)
         .execute()
 
-      if (data.length > 0) {
-        if (netInfo.isConnected && netInfo.isInternetReachable) {
-          try {
-            for (const item of data) {
-              const response = await adjustPointReferenceCoordinates(
-                item.longitude!,
-                item.latitude!,
-                'item.description',
-                Number(item.id),
-                applicatorId,
-                deviceId,
-              )
-              if (response && response.success) {
-                await db
-                  .update(PointReference)
-                  .set({ edit_location: 0 })
-                  .where(sql`${PointReference.pk} = ${item.pk}`)
-                  .execute()
-              }
-            }
-          } catch (err) {
-            const error = err as Error
-
-            Alert.alert(
-              'Erro ao realizar o sync da coordenada do ponto:',
-              error.message,
+      if (
+        data.length > 0 &&
+        netInfo.isConnected &&
+        netInfo.isInternetReachable
+      ) {
+        try {
+          for (const item of data) {
+            const response = await adjustPointReferenceCoordinates(
+              item.longitude!,
+              item.latitude!,
+              'item.description',
+              Number(item.id),
+              applicatorId,
+              deviceId,
             )
-            await db.insert(Logs).values({
-              error: error.message,
-              payload: JSON.stringify(data),
-            })
-            break
+            if (response && response.success) {
+              await db
+                .update(PointReference)
+                .set({ edit_location: false })
+                .where(eq(PointReference.pk, item.pk))
+                .execute()
+            }
           }
+        } catch (err) {
+          const error = err as Error
+
+          Alert.alert(
+            'Erro ao realizar o sync da coordenada do ponto:',
+            error.message,
+          )
+          await db.insert(Logs).values({
+            error: error.message,
+            payload: JSON.stringify(data),
+          })
+          break
         }
       }
-    } while (data.length > 0 && data.length !== 0)
+    } while (data.length)
   }
 }
 
@@ -135,43 +140,45 @@ export const syncPointsReferenceStatus = async (
       data = await db
         .select()
         .from(PointReference)
-        .where(sql`${PointReference.edit_status} = 1`)
+        .where(eq(PointReference.edit_status, true))
         .execute()
 
-      if (data.length > 0) {
-        if (netInfo.isConnected && netInfo.isInternetReachable) {
-          try {
-            for (const item of data) {
-              const response = await adjustPointStatus(
-                Number(item.id),
-                'item.description',
-                applicatorId,
-                deviceId,
-              )
-              if (response && response.success) {
-                await db
-                  .update(PointReference)
-                  .set({ edit_status: 0 })
-                  .where(sql`${PointReference.pk} = ${item.pk}`)
-                  .execute()
-              }
-            }
-          } catch (err) {
-            const error = err as Error
-
-            Alert.alert(
-              'Erro ao realizar o sync do status do ponto:',
-              error.message,
+      if (
+        data.length > 0 &&
+        netInfo.isConnected &&
+        netInfo.isInternetReachable
+      ) {
+        try {
+          for (const item of data) {
+            const response = await adjustPointStatus(
+              Number(item.id),
+              'item.description',
+              applicatorId,
+              deviceId,
             )
-            await db.insert(Logs).values({
-              error: error.message,
-              payload: JSON.stringify(data),
-            })
-            break
+            if (response?.success) {
+              await db
+                .update(PointReference)
+                .set({ edit_status: false })
+                .where(eq(PointReference.pk, item.pk))
+                .execute()
+            }
           }
+        } catch (err) {
+          const error = err as Error
+
+          Alert.alert(
+            'Erro ao realizar o sync do status do ponto:',
+            error.message,
+          )
+          await db.insert(Logs).values({
+            error: error.message,
+            payload: JSON.stringify(data),
+          })
+          break
         }
       }
-    } while (data.length > 0 && data.length !== 0)
+    } while (data.length)
   }
 }
 
@@ -185,43 +192,41 @@ export const syncPointsReferenceCreatedOffline = async () => {
       data = await db
         .select()
         .from(PointReference)
-        .where(sql`${PointReference.transmition} = 'offline'`)
+        .where(eq(PointReference.transmission, 'offline'))
         .orderBy(asc(PointReference.created_at))
+        .limit(10)
         .execute()
 
-      if (data.length > 0) {
-        if (netInfo.isConnected && netInfo.isInternetReachable) {
-          try {
-            const ten_firsts = data.slice(0, 10)
-            const response = await doPointsReference(ten_firsts)
+      if (
+        data.length > 0 &&
+        netInfo.isConnected &&
+        netInfo.isInternetReachable
+      ) {
+        try {
+          const response = await doPointsReference(data)
 
-            if (response?.success) {
-              for (const item of ten_firsts) {
-                await db
-                  .update(PointReference)
-                  .set({ transmition: 'online' })
-                  .where(sql`${PointReference.pk} = ${item.pk}`)
-                  .execute()
-
-                await db
-                  .delete(PointReference)
-                  .where(eq(PointReference.pk, item.pk))
-              }
-              pullPointData(ten_firsts)
-            }
-          } catch (err) {
-            const error = err as Error
-
-            Alert.alert('Erro ao criar um ponto: ', error.message)
-            await db.insert(Logs).values({
-              error: error.message,
-              payload: JSON.stringify(data),
-            })
-            break
+          // FIXME: we'll be removing from DB, we need to actually
+          //  just update them. (need to check the backend response)
+          if (response?.success) {
+            await db.delete(PointReference).where(
+              inArray(
+                PointReference.pk,
+                data.map((item) => item.pk),
+              ),
+            )
           }
+        } catch (err) {
+          const error = err as Error
+
+          Alert.alert('Erro ao criar um ponto: ', error.message)
+          await db.insert(Logs).values({
+            error: error.message,
+            payload: JSON.stringify(data),
+          })
+          break
         }
       }
-    } while (data.length > 0 && data.length !== 0)
+    } while (data.length)
   }
 }
 

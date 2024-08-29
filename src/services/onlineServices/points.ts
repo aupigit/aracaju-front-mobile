@@ -1,12 +1,49 @@
-import { SelectPointReference } from '@/db/pointreference'
+import { SelectPointReference } from '@/db/point-reference'
 import { IPoint } from '@/interfaces/IPoint'
 import { get, patch, post } from '@/providers/api'
 import { Alert } from 'react-native'
+import { ISODateString } from '@/interfaces/iso-date-string'
+
+export type FindPointReferencePointReference = {
+  id: number
+  created_at: ISODateString
+  updated_at: ISODateString
+  city: number
+  subregions: number
+  client: number
+  contract: number
+  longitude: number
+  latitude: number
+  image: string
+  applications: []
+  days_since_last_application: null
+  pointtype: number
+  pointtype_detail: string
+  name: string
+  marker: {
+    type: 'Point'
+    coordinates: [number, number]
+  }
+  from_txt: string
+  altitude: number
+  accuracy: number
+  volumebti: number
+  observation: string
+  distance: number
+  created_ondevice_at: ISODateString | null
+  transmition: string | null
+  kml_file: null
+  situation: string
+  is_active: boolean
+  is_new: boolean
+  device: number
+  applicator: number
+}
 
 export const findManyPointsReferences = (
-  updated_at: string | null,
-): Promise<IPoint[]> => {
-  return get<IPoint[]>(`applications/pointreference/?updated_at=${updated_at}`)
+  updatedAt: string | null,
+): Promise<FindPointReferencePointReference[]> => {
+  return get(`applications/pointreference/?updated_at=${updatedAt}`)
 }
 
 export const adjustPointReferenceName = (
@@ -65,7 +102,7 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
     longitude: item.longitude,
     altitude: item.altitude,
     accuracy: item.accuracy,
-    volumebti: item.volumebti,
+    volumebti: item.volume_bti,
     observation: item.observation,
     created_ondevice_at: new Date(item.created_ondevice_at!),
     situation: 'Em dia',
@@ -73,7 +110,7 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
     is_new: item.is_new,
     device: item.device,
     applicator: item.applicator,
-    pointtype: item.pointtype,
+    pointtype: item.point_type,
   }))
 
   try {

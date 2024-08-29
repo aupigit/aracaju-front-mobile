@@ -1,85 +1,69 @@
 import { Text, Pressable } from 'react-native'
 import React from 'react'
-import getConflictPoints from '@/utils/getConflictPoints'
-import calculateDistance from '@/utils/calculateDistance'
-import { IPoint } from '@/interfaces/IPoint'
-import { LocationObject } from 'expo-location'
 import { router } from 'expo-router'
-import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
-interface IButtonPointInformationProps {
-  showPointDetails?: boolean
-  pointsDataOffline: IPoint[]
+import { getConflictPoints } from '@/utils/getConflictPoints'
+import { calculateDistance } from '@/utils/calculateDistance'
+import {
+  useUserCurrentLocation,
+  useUserSelectedPoint,
+} from '@/features/data-collection/context'
+import { SelectPointReference } from '@/db/point-reference'
+
+type PointInformationButtonProps = {
+  pointsDataOffline: SelectPointReference[]
   configPointRadius: number
-  location: LocationObject | null
-  userLocation: number[]
 }
 
-const BtnPointInformation = ({
-  showPointDetails,
+export const PointInformationButton = ({
   pointsDataOffline,
   configPointRadius,
-  location,
-  userLocation,
-}: IButtonPointInformationProps) => {
-  const { setSelectedPoint } = usePointsReference()
+}: PointInformationButtonProps) => {
+  const userLocation = useUserCurrentLocation()
+  const { setSelectedPoint } = useUserSelectedPoint()
 
   const handlePressPointDetails = () => {
     // Verifique se há conflito (usuário dentro do raio de dois pontos)
-    const conflictPoints = getConflictPoints(location, pointsDataOffline)
+    const conflictPoints = getConflictPoints(userLocation, pointsDataOffline)
     if (conflictPoints.length >= 2) {
-      if (location) {
-        // Calcule a distância entre a localização atual e cada ponto de conflito
-        const distances = conflictPoints.map((point) =>
-          calculateDistance(location.coords, point),
-        )
+      // Calcule a distância entre a localização atual e cada ponto de conflito
+      const distances = conflictPoints.map((point) =>
+        calculateDistance(userLocation, point),
+      )
 
-        // Encontre o índice do ponto com a menor distância
-        const closestPointIndex = distances.indexOf(Math.min(...distances))
+      // Encontre o índice do ponto com a menor distância
+      const closestPointIndex = distances.indexOf(Math.min(...distances))
 
-        // Use o índice para encontrar o ponto mais próximo
-        const closestPoint = conflictPoints[closestPointIndex]
-        setSelectedPoint(closestPoint)
+      // Use o índice para encontrar o ponto mais próximo
+      const closestPoint = conflictPoints[closestPointIndex]
+      setSelectedPoint(closestPoint)
 
-        // Abra o modal com o ponto mais próximo
-        router.navigate(
-          `/edit-point/${closestPoint.id}/${userLocation[0]}/${userLocation[1]}`,
-        )
-      }
+      // Abra o modal com o ponto mais próximo
+      router.navigate(
+        `/edit-point/${closestPoint.id}/${userLocation.latitude}/${userLocation.longitude}`,
+      )
     } else {
-      if (location) {
-        if (pointsDataOffline) {
-          for (const point of pointsDataOffline) {
-            if (
-              calculateDistance(location.coords, point) <=
-              Number(configPointRadius ?? 15)
-            ) {
-              setSelectedPoint(point)
-              router.navigate(
-                `/edit-point/${point.id}/${userLocation[0]}/${userLocation[1]}`,
-              )
-              return
-            }
-          }
+      for (const point of pointsDataOffline) {
+        if (calculateDistance(userLocation, point) <= configPointRadius) {
+          setSelectedPoint(point)
+          router.navigate(
+            `/edit-point/${point.id}/${userLocation.latitude}/${userLocation.longitude}`,
+          )
+
+          return
         }
       }
     }
   }
 
   return (
-    <>
-      {showPointDetails && (
-        <Pressable
-          className="w-screen bg-[#7c58d6] p-5"
-          onPress={handlePressPointDetails}
-        >
-          <Text className="text-center text-lg font-bold text-white">
-            VER DETALHES DO PONTO
-          </Text>
-        </Pressable>
-      )}
-    </>
+    <Pressable
+      className="w-screen bg-[#7c58d6] p-5"
+      onPress={handlePressPointDetails}
+    >
+      <Text className="text-center text-lg font-bold text-white">
+        VER DETALHES DO PONTO
+      </Text>
+    </Pressable>
   )
 }
-
-export default BtnPointInformation

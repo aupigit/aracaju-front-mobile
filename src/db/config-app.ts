@@ -3,9 +3,9 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const ConfigApp = sqliteTable('ConfigApp', {
   id: integer('id').primaryKey().unique(),
-  name: text('name'),
-  data_type: text('data_type'),
-  data_config: text('data_config'),
+  name: text('name').notNull(),
+  data_type: text('data_type').notNull(),
+  data_config: text('data_config').notNull(),
   description: text('description'),
   created_at: text('created_at')
     .default(sql`CURRENT_TIMESTAMP`)
@@ -16,3 +16,5 @@ export const ConfigApp = sqliteTable('ConfigApp', {
 })
 
 export type SelectConfigApp = typeof ConfigApp.$inferSelect
+
+export type NewConfigApp = typeof ConfigApp.$inferInsert

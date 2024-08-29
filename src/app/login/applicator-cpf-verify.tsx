@@ -15,7 +15,7 @@ import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { findApplicatorByCPF } from '@/services/onlineServices/applicator'
-import maskCPF from '@/utils/cpfMask'
+import { maskCPF } from '@/utils/cpfMask'
 import { useToaster } from '@/features/toaster'
 import { useUpsertApplicator } from '@/features/session'
 

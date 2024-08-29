@@ -1,59 +1,84 @@
-import { View, Text, Modal, Pressable, TextInput } from 'react-native'
+import { View, Text, Modal, Pressable, TextInput, Alert } from 'react-native'
 import React from 'react'
-import { Controller } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { Divider } from 'react-native-paper'
-import { usePointsReference } from '@/contexts/PointsReferenceContext'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { eq } from 'drizzle-orm'
 
-interface ApplicationAdjustPointCoordinatesModalProps {
-  modalVisible: boolean
-  setModalVisible: (modalVisible: boolean) => void
-  onSubmit: () => void
-  control: any
-  setPreviewCoordinate: (coordinate: number[] | null) => void
-  errors: any
-  setPointIsEditable: (isEditable: boolean) => void
-}
+import {
+  useUserSelectedCoordinates,
+  useUserSelectedPoint,
+} from '@/features/data-collection/context'
+import { db } from '@/lib/database'
+import { PointReference } from '@/db/point-reference'
 
-const ApplicationAdjustPointCoordinatesModal = ({
-  modalVisible,
-  setModalVisible,
-  onSubmit,
-  control,
-  setPreviewCoordinate,
-  errors,
-  setPointIsEditable,
-}: ApplicationAdjustPointCoordinatesModalProps) => {
-  const { setSelectedPoint } = usePointsReference()
+const editPointCoordinateSchema = z.object({
+  // FIXME: we're not using this field.
+  description: z.string({
+    required_error: 'Justificativa é obrigatória',
+  }),
+})
+
+type EditPointCoordinateFormData = z.infer<typeof editPointCoordinateSchema>
+
+export const ApplicationAdjustPointCoordinatesModal = () => {
+  const { selectedPoint, setSelectedPoint } = useUserSelectedPoint()
+  const { selectedCoordinates, setSelectedCoordinates } =
+    useUserSelectedCoordinates()
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<EditPointCoordinateFormData>({
+    resolver: zodResolver(editPointCoordinateSchema),
+  })
+
+  const onSubmit = handleSubmit(async () => {
+    try {
+      await db
+        .update(PointReference)
+        .set({
+          longitude: selectedCoordinates!.longitude,
+          latitude: selectedCoordinates!.latitude,
+          edit_location: true,
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(PointReference.pk, selectedPoint!.pk!))
+        .execute()
+      setSelectedCoordinates(null)
+      setSelectedPoint(null)
+    } catch (error) {
+      Alert.alert(
+        'Erro ao alterar a localização do ponto: ',
+        (error as Error).message,
+      )
+      throw error
+    }
+  })
+
+  const onCancel = () => {
+    setSelectedCoordinates(null)
+    setSelectedPoint(null)
+  }
+
+  const onClose = () => {
+    setSelectedCoordinates(null)
+  }
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => {
-        setModalVisible(!modalVisible)
-      }}
-    >
+    <Modal transparent visible animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-end bg-black/20 p-5">
         <View className="w-full bg-white p-5">
           <View className="w-full flex-row items-center justify-between">
             <Text className="text-2xl font-bold">Mudança de coordenada</Text>
-
-            <Pressable
-              onPress={() => {
-                setModalVisible(!modalVisible)
-                setSelectedPoint(null)
-                setPreviewCoordinate(null)
-                setPointIsEditable(false)
-              }}
-            >
+            <Pressable onPress={onClose}>
               <Text className="text-xl">Fechar</Text>
             </Pressable>
           </View>
-
-          <Divider className="mb-5 mt-2" />
-
-          <View className=" w-full flex-col items-center gap-2">
+          <Divider className="my-5" />
+          <View className="w-full flex-col items-center gap-3">
             <Controller
               control={control}
               name="description"
@@ -69,18 +94,25 @@ const ApplicationAdjustPointCoordinatesModal = ({
                 </View>
               )}
             />
-            {errors && (
-              <Text className="mb-2 text-xl text-red-500">
-                {errors.description?.message}
+            {errors.description?.message && (
+              <Text className="text-xl text-red-500">
+                {errors.description.message}
               </Text>
             )}
-
             <Pressable
-              className="w-full rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
+              className="w-full rounded-sm border border-zinc-700/20 bg-[#7c58d6] p-4"
               onPress={onSubmit}
             >
               <Text className="w-auto text-center text-lg font-bold text-white">
                 CONFIRMAR
+              </Text>
+            </Pressable>
+            <Pressable
+              className="w-full rounded-sm bg-red-500 p-4"
+              onPress={onCancel}
+            >
+              <Text className="w-auto text-center text-lg font-bold text-white">
+                CANCELAR
               </Text>
             </Pressable>
           </View>
@@ -89,5 +121,3 @@ const ApplicationAdjustPointCoordinatesModal = ({
     </Modal>
   )
 }
-
-export default ApplicationAdjustPointCoordinatesModal

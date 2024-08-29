@@ -2,7 +2,7 @@ import { IBase } from './IBase'
 
 export interface ITrails extends IBase {
   created_ondevice_at: string
-  transmition: string
+  transmission: string
   latitude: number
   longitude: number
   altitude: number

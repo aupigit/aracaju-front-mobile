@@ -23,7 +23,7 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
   const factoryId = useDeviceFactoryId()
   const deviceRequest = useFetchDeviceByFactoryId(factoryId)
   const deviceQuery = useLiveQuery(
-    db.select().from(Device).where(eq(Device.factory_id, factoryId)),
+    db.select().from(Device).limit(1).where(eq(Device.factory_id, factoryId)),
   )
   const [device] = deviceQuery.data || []
 

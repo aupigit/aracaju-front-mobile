@@ -1,131 +1,133 @@
 import { View, Text, Pressable, ScrollView } from 'react-native'
 import React, { useState } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
-import { Divider } from 'react-native-paper'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
-import ApplicationConfirmInactivePointModal from '@/components/Modal/ApplicationConfirmInactivePointModal'
-import ApplicationChangeNamePointModal from '@/components/Modal/ApplicationChangeNamePointModal'
-import ApplicationChangePointCoordinatesToUserLocation from '@/components/Modal/ApplicationChangePointCoordinatesToUserLocation'
-import { useQuery } from 'react-query'
-import { usePointsReference } from '@/contexts/PointsReferenceContext'
+import { eq } from 'drizzle-orm'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+
+import { ApplicationConfirmInactivePointModal } from '@/components/Modal/ApplicationConfirmInactivePointModal'
+import { ApplicationChangeNamePointModal } from '@/components/Modal/ApplicationChangeNamePointModal'
+import { ApplicationChangePointCoordinatesToUserLocation } from '@/components/Modal/ApplicationChangePointCoordinatesToUserLocation'
+import { useUserSelectedPoint } from '@/features/data-collection/context'
+import { useDB } from '@/features/database'
+import { PointReference, SelectPointReference } from '@/db/point-reference'
+import { SimpleErrorScreen } from '@/components/simple-error-screen'
 
 const EditPoint = () => {
-  const insets = useSafeAreaInsets()
+  const db = useDB()
+  const { id, lat, long } = useLocalSearchParams()
+  const pointId = Number(Array.isArray(id) ? id[0] : id)
+  const latitude = Number(Array.isArray(lat) ? lat[0] : lat)
+  const longitude = Number(Array.isArray(long) ? long[0] : long)
 
-  const { setPointIsEditable, setSelectedPoint } = usePointsReference()
+  const query = useLiveQuery(
+    db
+      .select()
+      .from(PointReference)
+      .limit(1)
+      .where(eq(PointReference.id, pointId)),
+  )
 
-  const [isEditable, setIsEditable] = useState(false)
+  if (isNaN(pointId) || isNaN(latitude) || isNaN(longitude) || query.error) {
+    return <SimpleErrorScreen message="Dados inválidos" />
+  }
+
+  const [point] = query.data
+  if (!point) {
+    return <SimpleErrorScreen message="Não foi possivel encontrar o ponto" />
+  }
+
+  return (
+    <AfterLoadData point={point} latitude={latitude} longitude={longitude} />
+  )
+}
+
+const AfterLoadData = ({
+  point,
+  latitude,
+  longitude,
+}: {
+  point: SelectPointReference
+  latitude: number
+  longitude: number
+}) => {
+  const { setSelectedPoint } = useUserSelectedPoint()
   const [confirmInactivePointModal, setConfirmInactivePointModal] =
     useState(false)
-  const [changeNameModal, setChangeNameModal] = useState(false)
+  const [showChangeName, setShowChangeName] = useState(false)
   const [
     changePointCoordinatesToUserLocation,
     setChangePointCoordinatesToUserLocation,
   ] = useState(false)
 
-  // Buscar o ponto pelo ID do parametro
-  const { id, lat, long } = useLocalSearchParams()
-  const point_id: string = Array.isArray(id) ? id[0] : id
-  const latitude: string = Array.isArray(lat) ? lat[0] : lat
-  const longitude: string = Array.isArray(long) ? long[0] : long
-
-  // GET - Pontos/Offline
-  const { data: point } = useQuery('application/pointsreference/id', () =>
-    findOnePointReferenceByIdOffline(Number(point_id)),
-  )
-
   return (
-    <ScrollView style={{ paddingTop: insets.top }} className="flex-1">
-      <View className="container flex-1 items-center justify-center bg-white">
-        <View className="flex-col justify-between gap-2">
-          <View className="w-full flex-row items-center justify-between">
-            <Text className="text-2xl font-bold">Executar Aplicação</Text>
-            <Pressable
-              onPress={() => {
-                router.navigate('/points-reference')
-              }}
-            >
-              <Text className="text-xl">Voltar</Text>
-            </Pressable>
-          </View>
-          <Divider className="mb-5 mt-2" />
-          <View>
-            <View className=" w-full flex-col items-center gap-2">
-              <View className="w-full flex-row gap-2 border border-zinc-900/20 p-4">
-                <Text className="font-bold">Nome do ponto:</Text>
-                <Text>{point?.name}</Text>
-              </View>
-              <View className="w-full flex-row gap-2 border border-zinc-900/20 p-4">
-                <Text className="font-bold">Situação do ponto:</Text>
-                <Text>
-                  {point?.is_active ? ' Ponto Ativo' : ' Ponto Inativo'}
-                </Text>
-              </View>
+    <ScrollView className="flex-1 bg-white p-5">
+      <View className="flex-1 items-center justify-center bg-white">
+        <View className="w-full flex-col justify-between gap-2">
+          <View className="w-full flex-col items-center gap-2 pb-3">
+            <View className="w-full flex-row gap-2 border border-zinc-900/20 p-4">
+              <Text className="font-bold">Nome do ponto:</Text>
+              <Text>{point.name}</Text>
             </View>
-
-            <Pressable
-              className="mt-2 h-auto w-auto rounded-sm bg-zinc-700 p-4"
-              onPress={() => {
-                setIsEditable(true)
-                setChangeNameModal(true)
-              }}
-            >
-              <Text className="w-auto text-center text-xl font-bold text-white">
-                MUDAR NOME DO PONTO
-              </Text>
-            </Pressable>
-
-            <Pressable
-              className="mt-2 h-auto w-auto rounded-sm bg-[#7c58d6] p-4"
-              onPress={() => {
-                router.navigate('/points-reference')
-                setPointIsEditable(true)
-                setSelectedPoint(point)
-              }}
-            >
-              <Text className="w-auto text-center text-xl font-bold text-white">
-                MOVER PONTO PELO MAPA
-              </Text>
-            </Pressable>
-
-            <Pressable
-              className="mt-2 h-auto w-auto rounded-sm bg-[#7c58d6] p-4"
-              onPress={() => setChangePointCoordinatesToUserLocation(true)}
-            >
-              <Text className="w-auto text-center text-xl font-bold text-white">
-                MOVER PONTO PARA MINHA LOCALIZAÇÃO
-              </Text>
-            </Pressable>
-
-            <Pressable
-              className="mt-2 h-auto w-auto rounded-sm bg-red-500 p-4"
-              onPress={() => setConfirmInactivePointModal(true)}
-            >
-              <Text className="w-auto text-center text-xl font-bold text-white">
-                DESATIVAR PONTO
-              </Text>
-            </Pressable>
+            <View className="w-full flex-row gap-2 border border-zinc-900/20 p-4">
+              <Text className="font-bold">Situação do ponto:</Text>
+              <Text>Ponto {point.is_active ? 'Ativo' : 'Inativo'}</Text>
+            </View>
           </View>
+          <Pressable
+            className="rounded-sm bg-zinc-700 p-4"
+            onPress={() => setShowChangeName(true)}
+          >
+            <Text className="w-auto text-center text-xl font-bold text-white">
+              MUDAR NOME DO PONTO
+            </Text>
+          </Pressable>
+          <Pressable
+            className="rounded-sm bg-[#7c58d6] p-4"
+            onPress={() => {
+              setSelectedPoint(point)
+              router.navigate('/points-reference')
+            }}
+          >
+            <Text className="text-center text-xl font-bold text-white">
+              MOVER PONTO PELO MAPA
+            </Text>
+          </Pressable>
+          <Pressable
+            className="rounded-sm bg-[#7c58d6] p-4"
+            onPress={() => setChangePointCoordinatesToUserLocation(true)}
+          >
+            <Text className="text-center text-xl font-bold text-white">
+              MOVER PONTO PARA MINHA LOCALIZAÇÃO
+            </Text>
+          </Pressable>
+          <Pressable
+            className="rounded-sm bg-red-500 p-4"
+            onPress={() => setConfirmInactivePointModal(true)}
+          >
+            <Text className="text-center text-xl font-bold text-white">
+              DESATIVAR PONTO
+            </Text>
+          </Pressable>
         </View>
-        <ApplicationConfirmInactivePointModal
-          modalVisible={confirmInactivePointModal}
-          setModalVisible={setConfirmInactivePointModal}
-          selectedPoint={point}
-        />
-        <ApplicationChangeNamePointModal
-          isEditable={isEditable}
-          modalVisible={changeNameModal}
-          selectedPoint={point}
-          setModalVisible={setChangeNameModal}
-          setIsEditable={setIsEditable}
-        />
-        <ApplicationChangePointCoordinatesToUserLocation
-          modalVisible={changePointCoordinatesToUserLocation}
-          setModalVisible={setChangePointCoordinatesToUserLocation}
-          userLocation={[Number(latitude), Number(longitude)]}
-          selectedPoint={point}
-        />
+        {confirmInactivePointModal && (
+          <ApplicationConfirmInactivePointModal
+            selectedPoint={point}
+            onClose={() => setConfirmInactivePointModal(false)}
+          />
+        )}
+        {showChangeName && (
+          <ApplicationChangeNamePointModal
+            selectedPoint={point}
+            onClose={() => setShowChangeName(false)}
+          />
+        )}
+        {changePointCoordinatesToUserLocation && (
+          <ApplicationChangePointCoordinatesToUserLocation
+            selectedPoint={point}
+            userLocation={[latitude, longitude]}
+            onClose={() => setChangePointCoordinatesToUserLocation(false)}
+          />
+        )}
       </View>
     </ScrollView>
   )

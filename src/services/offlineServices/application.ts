@@ -1,7 +1,6 @@
-import { Application } from '@/db/application'
-import { IApplication } from '@/interfaces/IPoint'
+import { Application, NewApplication } from '@/db/application'
 import { db } from '@/lib/database'
-import { desc, eq } from 'drizzle-orm'
+import { desc, inArray } from 'drizzle-orm'
 import { Alert } from 'react-native'
 
 export const doApplicationOffline = async (
@@ -9,81 +8,56 @@ export const doApplicationOffline = async (
   latitude: number,
   longitude: number,
   altitude: number,
-  acuracia: number,
-  volumebti: number,
+  accuracy: number,
+  volume_bti: number,
   container: boolean,
   card: boolean,
   plate: boolean,
   observation: string,
   image: string,
   contract: number,
-  pointreference: number,
+  point_reference: number,
   applicator: number,
   device: number,
 ) => {
-  const body = {
+  const body: NewApplication = {
     marker: JSON.stringify(coordinates), // Convert array to string
     from_txt: 'string',
     latitude,
     longitude,
     altitude,
-    acuracia,
-    volumebti,
-    container: container ? 1 : 0, // Convert boolean to number
-    card: card ? 1 : 0, // Convert boolean to number
-    plate: plate ? 1 : 0, // Convert boolean to number
+    accuracy,
+    volume_bti,
+    container,
+    card,
+    plate,
     observation,
     status: 'Em dia',
     image,
-    pointreference,
+    point_reference,
     device,
     applicator,
     contract,
-    created_ondevice_at: new Date().toISOString(), // created_ondevice_at
-    transmition: 'offline', // transmition
+    created_ondevice_at: new Date().toISOString(),
+    transmission: 'offline',
   }
 
   try {
-    const data = await db.insert(Application).values(body)
-    return data
+    return await db.insert(Application).values(body)
   } catch (error) {
-    Alert.alert('Error inserting data: ', error.message)
+    Alert.alert('Error inserting data: ', (error as Error).message)
     throw error
   }
 }
 
-export const findManyApplicationsOffline = async (): Promise<
-  IApplication[]
-> => {
-  try {
-    const result = await db.select().from(Application)
-    return result as unknown as Promise<IApplication[]>
-  } catch (error) {
-    Alert.alert('Error retrieving data: ', error.message)
-    throw error
-  }
-}
-
-export const findLatestApplicationDatesByPointIds = async (
-  pointsId: string[],
-) => {
-  const latestDates = []
-
-  for (const points of pointsId) {
-    const data = await db
-      .select()
-      .from(Application)
-      .where(eq(Application.pointreference, Number(points)))
-      .orderBy(desc(Application.created_at))
-      .execute()
-
-    if (data && data.length > 0) {
-      latestDates.push({
-        id: Number(points),
-        date: data[0].created_at,
-      })
-    }
-  }
-
-  return latestDates
+export const findLatestApplicationDatesByPointIds = (pointIds: number[]) => {
+  return db
+    .select({
+      id: Application.id,
+      createdAt: Application.created_at,
+    })
+    .from(Application)
+    .where(inArray(Application.point_reference, pointIds))
+    .orderBy(desc(Application.created_at))
+    .execute()
 }

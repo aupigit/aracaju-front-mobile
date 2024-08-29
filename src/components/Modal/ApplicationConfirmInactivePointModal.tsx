@@ -3,18 +3,20 @@ import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Divider } from 'react-native-paper'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { IPoint } from '@/interfaces/IPoint'
 import { z } from 'zod'
-import { adjustPointReferenceStatusOffline } from '@/services/offlineServices/points'
 import { router } from 'expo-router'
+import { eq } from 'drizzle-orm'
 
-interface ApplicationConfirmInactivePointModalProps {
-  modalVisible: boolean
-  setModalVisible: (modalVisible: boolean) => void
-  selectedPoint: IPoint
+import { db } from '@/lib/database'
+import { PointReference, SelectPointReference } from '@/db/point-reference'
+
+type Props = {
+  onClose: () => void
+  selectedPoint: SelectPointReference
 }
 
 const editPointActiveSchema = z.object({
+  // FIXME: we're not using this field.
   description: z.string({
     required_error: 'Justificativa é obrigatória',
   }),
@@ -22,11 +24,10 @@ const editPointActiveSchema = z.object({
 
 type EditPointActiveFormData = z.infer<typeof editPointActiveSchema>
 
-const ApplicationConfirmInactivePointModal = ({
-  modalVisible,
-  setModalVisible,
+export const ApplicationConfirmInactivePointModal = ({
+  onClose,
   selectedPoint,
-}: ApplicationConfirmInactivePointModalProps) => {
+}: Props) => {
   const {
     control,
     handleSubmit,
@@ -38,9 +39,18 @@ const ApplicationConfirmInactivePointModal = ({
 
   const onSubmit = handleSubmit(async () => {
     try {
-      await adjustPointReferenceStatusOffline(Number(selectedPoint.pk))
-      setModalVisible(!modalVisible)
-      router.navigate('/points-reference')
+      await db
+        .update(PointReference)
+        .set({
+          is_active: false,
+          edit_status: true,
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(PointReference.pk, selectedPoint.pk!))
+        .execute()
+
+      onClose()
+      router.back()
       reset()
     } catch (error) {
       Alert.alert(
@@ -52,39 +62,24 @@ const ApplicationConfirmInactivePointModal = ({
   })
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => {
-        setModalVisible(!modalVisible)
-      }}
-    >
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-black/20 p-5">
         <View className="w-full bg-white p-5">
           <View className="w-full flex-row items-center justify-between">
             <Text className="text-2xl font-bold">Inativação do ponto</Text>
-
-            <Pressable
-              onPress={() => {
-                setModalVisible(!modalVisible)
-                router.navigate('/points-reference')
-              }}
-            >
+            <Pressable onPress={onClose}>
               <Text className="text-xl">Fechar</Text>
             </Pressable>
           </View>
-
-          <Divider className="mb-5 mt-2" />
-
-          <View className=" w-full flex-col items-center gap-2">
+          <Divider className="my-5" />
+          <View className="w-full flex-col items-center gap-3">
             <Controller
               control={control}
               name="description"
               render={({ field: { onChange, onBlur } }) => (
                 <View className="w-full border border-zinc-700/20">
                   <TextInput
-                    className="w-full p-4 text-lg placeholder:text-gray-300"
+                    className="p-4 text-lg placeholder:text-zinc-700/30"
                     placeholder="Justificativa da inativação do ponto"
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -92,18 +87,16 @@ const ApplicationConfirmInactivePointModal = ({
                 </View>
               )}
             />
-
-            {errors && (
-              <Text className="mb-2 text-xl text-red-500">
-                {errors.description?.message}
+            {errors.description?.message && (
+              <Text className="text-xl text-red-500">
+                {errors.description.message}
               </Text>
             )}
-
             <Pressable
               className="w-full rounded-md border border-zinc-700/20 bg-[#7c58d6] p-5"
               onPress={onSubmit}
             >
-              <Text className="w-auto text-center text-xl font-bold text-white">
+              <Text className="text-center text-xl font-bold text-white">
                 CONFIRMAR
               </Text>
             </Pressable>
@@ -113,5 +106,3 @@ const ApplicationConfirmInactivePointModal = ({
     </Modal>
   )
 }
-
-export default ApplicationConfirmInactivePointModal

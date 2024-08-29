@@ -2,18 +2,18 @@ import { View, Text, Pressable, Modal, TextInput, Alert } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
 import { Controller, useForm } from 'react-hook-form'
-import { IPoint } from '@/interfaces/IPoint'
 import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { adjustPointReferenceLocationOffline } from '@/services/offlineServices/points'
 import { router } from 'expo-router'
-import { usePointsReference } from '@/contexts/PointsReferenceContext'
+import { eq } from 'drizzle-orm'
+import { zodResolver } from '@hookform/resolvers/zod'
 
-interface ApplicationChangePointCoordinatesToUserLocationProps {
-  modalVisible: boolean
-  setModalVisible: (modalVisible: boolean) => void
+import { PointReference, SelectPointReference } from '@/db/point-reference'
+import { db } from '@/lib/database'
+
+type Props = {
+  onClose: () => void
   userLocation: number[]
-  selectedPoint: IPoint
+  selectedPoint: SelectPointReference
 }
 
 const editPointCoordinatesSchema = z.object({
@@ -24,14 +24,11 @@ const editPointCoordinatesSchema = z.object({
 
 type EditPointCoordinatesFormData = z.infer<typeof editPointCoordinatesSchema>
 
-const ApplicationChangePointCoordinatesToUserLocation = ({
-  modalVisible,
-  setModalVisible,
+export const ApplicationChangePointCoordinatesToUserLocation = ({
+  onClose,
   userLocation,
   selectedPoint,
-}: ApplicationChangePointCoordinatesToUserLocationProps) => {
-  const { setSelectedPoint } = usePointsReference()
-
+}: Props) => {
   const {
     control,
     handleSubmit,
@@ -42,56 +39,47 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
 
   const onSubmit = handleSubmit(async () => {
     try {
-      await adjustPointReferenceLocationOffline(
-        userLocation[1],
-        userLocation[0],
-        // data.description,
-        Number(selectedPoint.pk),
-      )
-      setModalVisible(false)
-      router.navigate('/points-reference')
+      await db
+        .update(PointReference)
+        .set({
+          latitude: userLocation[0],
+          longitude: userLocation[0],
+          edit_location: true,
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(PointReference.pk, selectedPoint.pk!))
+        .execute()
+
+      onClose()
+      router.back()
     } catch (error) {
-      Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
+      Alert.alert(
+        'Erro ao alterar a localização do ponto: ',
+        (error as Error).message,
+      )
       throw error
     }
   })
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => {
-        setModalVisible(!modalVisible)
-      }}
-    >
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-black/20 p-5">
         <View className="w-full bg-white p-5">
           <View className="w-full flex-row items-center justify-between">
             <Text className="w-auto text-2xl font-bold">
               Mudar coordenadas do ponto
             </Text>
-
-            <Pressable
-              onPress={() => {
-                setModalVisible(!modalVisible)
-                router.navigate('/points-reference')
-                setSelectedPoint(null)
-              }}
-            >
+            <Pressable onPress={onClose}>
               <Text className="text-xl">Fechar</Text>
             </Pressable>
           </View>
-          <Divider className="mb-5 mt-2" />
-
-          <View className="my-2">
-            <Text className="text-2xl font-bold">Coordenadas atuais</Text>
-            <Text className="text-xl">
-              Latitude: {userLocation[0]} | Longitude: {userLocation[1]}
-            </Text>
+          <Divider className="my-5" />
+          <View className="mb-5">
+            <Text className="pb-2 text-2xl font-bold">Coordenadas atuais</Text>
+            <Text className="text-xl">Latitude: {userLocation[0]}</Text>
+            <Text className="text-xl">Longitude: {userLocation[1]}</Text>
           </View>
-
-          <View className=" w-full flex-col items-center gap-2">
+          <View className="w-full flex-col items-center gap-3">
             <Controller
               control={control}
               name="description"
@@ -106,10 +94,9 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
                 </View>
               )}
             />
-
-            {errors && (
-              <Text className="mb-2 text-xl text-red-500">
-                {errors.description?.message}
+            {errors.description?.message && (
+              <Text className="text-xl text-red-500">
+                {errors.description.message}
               </Text>
             )}
             <Pressable
@@ -126,5 +113,3 @@ const ApplicationChangePointCoordinatesToUserLocation = ({
     </Modal>
   )
 }
-
-export default ApplicationChangePointCoordinatesToUserLocation

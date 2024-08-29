@@ -18,12 +18,6 @@ export interface IPointTypeFlat extends IBase {
   point_code: string
 }
 
-export interface IPointStatus extends IBase {
-  name: string
-  description: string
-  image: URL | string
-}
-
 export interface IDevices extends IBase {
   factory_id: string
   name: string
@@ -69,10 +63,6 @@ export interface IRegion extends IBase {
   client: ICustomer
 }
 
-export interface IPointFlat extends IBase {
-  name: string
-  marker: Marker
-}
 export interface ISubRegion extends IBase {
   name: string
   regions: IRegion
@@ -98,8 +88,8 @@ export interface IApplication extends IBase {
   latitude: number
   longitude: number
   altitude: number
-  acuracia: number
-  volumebti: number
+  accuracy: number
+  volume_bti: number
   container: boolean
   card: boolean
   plate: boolean
@@ -107,30 +97,19 @@ export interface IApplication extends IBase {
   status: string
   image: string
   created_ondevice_at: Date | string
-  transmition: Date | string
-  pointreference: number
+  transmission: Date | string
+  point_reference: number
   device: IDevices
   applicator: IApplicator
   success: boolean
 }
 
-export interface IContract extends IBase {
-  name: string
-  periodicity: string
-  start_date: string
-  end_date: string
-  point_limit: number
-  point_overload: number
-  volume_bti: string
-  volume_bti_overload: string
-  on_time_start: number
-  on_time_end: number
-  observation: string
-  customer: number
-  contract_status: number
-}
-
-export interface IPoint extends IBase {
+export interface IPoint {
+  // FIXME: we need to be more explicit about server ID vs client ID
+  pk?: number
+  id?: number
+  created_at?: Date
+  updated_at?: Date
   applications: string[]
   days_since_last_application: string | null
   name: string
@@ -140,11 +119,11 @@ export interface IPoint extends IBase {
   longitude: number
   altitude: number
   accuracy: number
-  volumebti: number
+  volume_bti: number
   observation: string
   distance: number
   created_ondevice_at?: string
-  transmition?: string
+  transmission?: string
   image: URL | string
   kml_file?: string
   situation: string
@@ -153,11 +132,10 @@ export interface IPoint extends IBase {
   contract: number
   device: IDevices
   applicator: IApplicator
-  pointtype: string
   client: ICustomer
   city: ICity
   subregions: ISubRegion
   success: boolean
-  pk?: number
-  pointtype_detail: string
+  point_type: string
+  point_type_detail: string
 }

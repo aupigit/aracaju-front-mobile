@@ -15,3 +15,5 @@ export const PointType = sqliteTable('PointType', {
 })
 
 export type SelectPointType = typeof PointType.$inferSelect
+
+export type NewPointType = typeof PointType.$inferInsert

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "3c9916b7-866d-4e05-97f1-b67d21f71cae",
+  "id": "930ed10e-dac6-4d5b-af1d-204349a6aa23",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "City": {
@@ -222,7 +222,7 @@
           "name": "contract",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "name": {
@@ -236,18 +236,18 @@
           "name": "device",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "applicator": {
           "name": "applicator",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "pointtype": {
-          "name": "pointtype",
+        "point_type": {
+          "name": "point_type",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -292,32 +292,32 @@
           "name": "latitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "longitude": {
           "name": "longitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "altitude": {
           "name": "altitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "accuracy": {
           "name": "accuracy",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "volumebti": {
-          "name": "volumebti",
+        "volume_bti": {
+          "name": "volume_bti",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -344,8 +344,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "transmition": {
-          "name": "transmition",
+        "transmission": {
+          "name": "transmission",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -376,36 +376,39 @@
           "name": "is_active",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "is_new": {
           "name": "is_new",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "edit_location": {
           "name": "edit_location",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "edit_name": {
           "name": "edit_name",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "edit_status": {
           "name": "edit_status",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -447,8 +450,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "pointreference": {
-          "name": "pointreference",
+        "point_reference": {
+          "name": "point_reference",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -458,14 +461,14 @@
           "name": "device",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "applicator": {
           "name": "applicator",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "marker": {
@@ -486,56 +489,56 @@
           "name": "latitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "longitude": {
           "name": "longitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "altitude": {
           "name": "altitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "acuracia": {
-          "name": "acuracia",
+        "accuracy": {
+          "name": "accuracy",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "volumebti": {
-          "name": "volumebti",
+        "volume_bti": {
+          "name": "volume_bti",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "container": {
           "name": "container",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "card": {
           "name": "card",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "plate": {
           "name": "plate",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "observation": {
@@ -549,14 +552,14 @@
           "name": "status",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "image": {
           "name": "image",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "created_ondevice_at": {
@@ -566,8 +569,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "transmition": {
-          "name": "transmition",
+        "transmission": {
+          "name": "transmission",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -620,8 +623,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "pointreference": {
-          "name": "pointreference",
+        "point_reference": {
+          "name": "point_reference",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -631,21 +634,21 @@
           "name": "device",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "applicator": {
           "name": "applicator",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "marker": {
           "name": "marker",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "from_txt": {
@@ -659,63 +662,63 @@
           "name": "latitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "longitude": {
           "name": "longitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "altitude": {
           "name": "altitude",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "accuracy": {
           "name": "accuracy",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "wind": {
           "name": "wind",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "climate": {
           "name": "climate",
-          "type": "real",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "temperature": {
           "name": "temperature",
-          "type": "real",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "humidity": {
           "name": "humidity",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "insects_number": {
           "name": "insects_number",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "observation": {
@@ -729,18 +732,18 @@
           "name": "image",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "contract": {
           "name": "contract",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "transmition": {
-          "name": "transmition",
+        "transmission": {
+          "name": "transmission",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1439,21 +1442,21 @@
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "data_type": {
           "name": "data_type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "data_config": {
           "name": "data_config",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "description": {
@@ -1524,8 +1527,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "transmition": {
-          "name": "transmition",
+        "transmission": {
+          "name": "transmission",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

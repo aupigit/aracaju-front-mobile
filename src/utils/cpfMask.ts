@@ -1,13 +1,11 @@
-function maskCPF(cpf: string) {
-  const numerosCPF = cpf.replace(/\D/g, '')
+export function maskCPF(cpf: string) {
+  const cpfNumbers = cpf.replace(/\D/g, '')
 
-  const numerosLimitados = numerosCPF.slice(0, 11)
+  const limitedNumbers = cpfNumbers.slice(0, 11)
 
-  let cpfFormatado = numerosLimitados.replace(/(\d{3})(\d)/, '$1.$2')
-  cpfFormatado = cpfFormatado.replace(/(\d{3})(\d)/, '$1.$2')
-  cpfFormatado = cpfFormatado.replace(/(\d{3})(\d)/, '$1-$2')
+  let formattedCpf = limitedNumbers.replace(/(\d{3})(\d)/, '$1.$2')
+  formattedCpf = formattedCpf.replace(/(\d{3})(\d)/, '$1.$2')
+  formattedCpf = formattedCpf.replace(/(\d{3})(\d)/, '$1-$2')
 
-  return cpfFormatado
+  return formattedCpf
 }
-
-export default maskCPF

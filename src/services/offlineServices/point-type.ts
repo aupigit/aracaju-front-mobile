@@ -1,4 +1,4 @@
-import { PointType } from '@/db/pointtype'
+import { PointType } from '@/db/point-type'
 import { IPointType } from '@/interfaces/IPoint'
 import { db } from '@/lib/database'
 import { Alert } from 'react-native'
@@ -8,7 +8,7 @@ export const findPointTypeDataOffline = async (): Promise<IPointType[]> => {
     const result = await db.select().from(PointType).execute()
     return result as unknown as Promise<IPointType[]>
   } catch (error) {
-    Alert.alert('Error retrieving data: ', error.message)
+    Alert.alert('Error retrieving data: ', (error as Error).message)
     throw error
   }
 }

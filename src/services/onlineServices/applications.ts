@@ -1,25 +1,49 @@
 import { SelectApplication } from '@/db/application'
-import { IApplication } from '@/interfaces/IPoint'
+import { IApplication, Marker } from '@/interfaces/IPoint'
 import { post } from '@/providers/api'
-import { Alert } from 'react-native'
+
+type ApplicationPayload = {
+  marker: Marker
+  from_txt: string | null
+  latitude: number
+  longitude: number
+  altitude: number
+  container: boolean
+  card: boolean
+  plate: boolean
+  observation: string | null
+  status: string
+  image: string
+  created_ondevice_at: string | null
+  device: number
+  applicator: number
+
+  // typo fields
+  transmition: string | null
+  pointreference: number | null
+  acuracia: number
+  volumebti: number
+}
 
 export const doApplication = async (
   data: Array<SelectApplication>,
 ): Promise<IApplication> => {
-  const newData = data.map((item) => ({
-    ...item,
-    marker: {
-      type: 'Point',
-      coordinates: JSON.parse(item.marker!),
-    },
-  }))
+  // FIXME: fix backend typos & casing in backend
+  const newData = data.map<ApplicationPayload>(
+    ({ volume_bti, point_reference, accuracy, transmission, ...item }) => ({
+      ...item,
+      pointreference: point_reference,
+      acuracia: accuracy,
+      volumebti: volume_bti,
+      transmition: transmission,
+      marker: {
+        type: 'Point',
+        coordinates: JSON.parse(item.marker!),
+      },
+    }),
+  )
 
-  try {
-    return await post<IApplication>('applications/application/push/', {
-      body: newData,
-    })
-  } catch (error) {
-    Alert.alert('Erro ao enviar dados de aplicação: ', (error as Error).message)
-    throw error
-  }
+  return post<IApplication>('applications/application/push/', {
+    body: newData,
+  })
 }

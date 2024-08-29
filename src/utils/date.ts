@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { formatInTimeZone } from 'date-fns-tz'
+export { isSameDay, isToday } from 'date-fns'
 
 export function formatDate(date) {
   date = new Date(date.getTime())
@@ -15,21 +15,6 @@ export function formatDate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}.${String(date.getMilliseconds())}${sign}${hoursOffset}:${minutesOffset}`
 }
 
-export function formatDateToDDMMYYYY(date: Date) {
+export function formatDateToDDMMYYYY(date: Date | string) {
   return format(date, 'dd/MM/yyyy HH:mm:ss')
-}
-
-export function formatDateToTimezone(date: Date) {
-  const formattedDate = formatInTimeZone(
-    date,
-    'Etc/GMT',
-    'yyyy-MM-dd HH:mm:ss.SSSXXX',
-  )
-
-  return formattedDate
-}
-
-export function convertIsoDateToSeconds(isoDate) {
-  const date = new Date(isoDate)
-  return Math.floor(date.getTime() / 1000)
 }
