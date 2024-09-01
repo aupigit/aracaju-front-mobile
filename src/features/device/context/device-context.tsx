@@ -1,9 +1,8 @@
-import { eq } from 'drizzle-orm'
 import React, { ReactNode, createContext, useContext, useEffect } from 'react'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 
 import { useDB } from '@/features/database'
-import { Device, SelectDevice } from '@/db/device'
+import { SelectDevice } from '@/db/device'
 import {
   useDeviceFactoryId,
   useFetchDeviceByFactoryId,
@@ -14,6 +13,7 @@ import {
 } from '@/features/device/components'
 import { useUpsertDevice } from '@/features/device/hooks/use-upsert-device'
 import { SimpleLoadingScreen } from '@/components/simple-loading-screen'
+import { findDeviceByFactoryIdQuery } from '@/features/database/queries'
 
 const Context = createContext<SelectDevice | null>(null)
 
@@ -22,9 +22,7 @@ export const DeviceProvider = ({ children }: { children: ReactNode }) => {
   const upsertDevice = useUpsertDevice()
   const factoryId = useDeviceFactoryId()
   const deviceRequest = useFetchDeviceByFactoryId(factoryId)
-  const deviceQuery = useLiveQuery(
-    db.select().from(Device).where(eq(Device.factory_id, factoryId)),
-  )
+  const deviceQuery = useLiveQuery(findDeviceByFactoryIdQuery(factoryId))
   const [device] = deviceQuery.data || []
 
   useEffect(() => {

@@ -3,7 +3,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "strict": true,
+    "strictNullChecks": true,
   },
   "extends": "expo/tsconfig.base",
   "include": ["global.d.ts", "**/*.ts", "**/*.tsx"]

@@ -1,4 +1,6 @@
-function calculateDistance(point1, point2) {
+import { LatLng } from 'react-native-maps'
+
+export function calculateDistance(point1: LatLng, point2: LatLng) {
   const lat1 = point1.latitude
   const lon1 = point1.longitude
   const lat2 = point2.latitude
@@ -15,8 +17,5 @@ function calculateDistance(point1, point2) {
     Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
-  const d = R * c // em metros
-  return d
+  return R * c // em metros
 }
-
-export default calculateDistance

@@ -5,5 +5,3 @@ export const Logs = sqliteTable('Logs', {
   error: text('error'),
   payload: text('payload'),
 })
-
-export type SelectLogs = typeof Logs.$inferSelect

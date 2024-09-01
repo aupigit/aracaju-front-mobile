@@ -7,34 +7,50 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native'
 import React, { useState } from 'react'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Divider, Snackbar } from 'react-native-paper'
 import RNPickerSelect from 'react-native-picker-select'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { AntDesign, Feather } from '@expo/vector-icons'
+import { AntDesign } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as Crypto from 'expo-crypto'
-import { useQuery } from 'react-query'
 import { router, useLocalSearchParams } from 'expo-router'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import { eq } from 'drizzle-orm'
 
-import { doAdultCollectionOffline } from '@/services/offlineServices/doAdultCollection'
-import { useApplicator } from '@/features/session'
-import { useDevice } from '@/features/device'
-import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
-import { findConfigAppByName } from '@/services/onlineServices/configApp'
-import { IImagesProps } from '@/components/PhonePhotos'
-import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
+import { PhonePhoto } from '@/types/phone-photo'
+import { useDB } from '@/features/database'
+import { PointReference, SelectPointReference } from '@/db/point-reference'
+import { SimpleErrorScreen } from '@/components/simple-error-screen'
+import { useConfigApp } from '@/hooks/use-config-app'
+import { useToaster } from '@/features/toaster'
+import { AdultCollection, NewAdultCollection } from '@/db/adult-collection'
+import { useSyncOperations } from '@/features/data-collection/context'
+import {
+  findDeviceByFactoryIdQuery,
+  findOneApplicatorQuery,
+} from '@/features/database/queries'
+import { useDeviceFactoryId } from '@/features/device'
 
 const adultCollectionSchema = z.object({
-  wind: z.string(),
-  climate: z.string(),
-  temperature: z.string(),
-  humidity: z.string(),
-  insects_number: z.string(),
+  wind: z.string({
+    required_error: 'Vento é obrigatório',
+  }),
+  climate: z.string({
+    required_error: 'Clima é obrigatório',
+  }),
+  temperature: z.string({
+    required_error: 'Temperatura é obrigatória',
+  }),
+  humidity: z.number({
+    required_error: 'Umidade é obrigatória',
+  }),
+  insects_number: z.number({
+    required_error: 'Número de insetos é obrigatório',
+  }),
   observation: z.string().optional(),
   image: z.string({
     required_error: 'Imagem é obrigatória',
@@ -43,31 +59,83 @@ const adultCollectionSchema = z.object({
 
 type AdultCollectionFormData = z.infer<typeof adultCollectionSchema>
 
-const AdultCollection = () => {
-  const insets = useSafeAreaInsets()
+const AdultCollectionPage = () => {
+  const db = useDB()
+  const { id, lat, long } = useLocalSearchParams()
+  const pointId = Number(Array.isArray(id) ? id[0] : id)
+  const latitude = Number(Array.isArray(lat) ? lat[0] : lat)
+  const longitude = Number(Array.isArray(long) ? long[0] : long)
 
-  const applicator = useApplicator()!
-  const device = useDevice()
-  const [visibleOK, setVisibleOK] = useState(false)
-  const [visibleERROR, setVisibleERROR] = useState(false)
-  const [isButtonLoading, setIsButtonLoading] = useState(false)
-  const [images, setImages] = useState<IImagesProps[]>([])
+  const query = useLiveQuery(
+    db
+      .select()
+      .from(PointReference)
+      .limit(1)
+      .where(eq(PointReference.id, pointId)),
+  )
 
-  const onDismissSnackBarOK = () => setVisibleOK(false)
-  const onDismissSnackBarERROR = () => setVisibleERROR(false)
+  if (isNaN(pointId) || isNaN(latitude) || isNaN(longitude) || query.error) {
+    return <SimpleErrorScreen message="Dados inválidos" />
+  }
+
+  const [point] = query.data
+  if (!point) {
+    return <SimpleErrorScreen message="Não foi possivel encontrar o ponto" />
+  }
+
+  return (
+    <AfterLoadData point={point} latitude={latitude} longitude={longitude} />
+  )
+}
+
+const AfterLoadData = ({
+  point,
+  latitude,
+  longitude,
+}: {
+  point: SelectPointReference
+  latitude: number
+  longitude: number
+}) => {
+  const db = useDB()
+  const toaster = useToaster()
+  const factoryId = useDeviceFactoryId()
+  const { startPushData } = useSyncOperations()
+  const [image, setImage] = useState<PhonePhoto | null>(null)
+  const {
+    coletaVento: configWindCollection,
+    coletaClima: configClimateWindCollection,
+  } = useConfigApp(['coleta_vento', 'coleta_clima'])
 
   const {
     control,
     handleSubmit,
-    reset,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<AdultCollectionFormData>({
     resolver: zodResolver(adultCollectionSchema),
   })
 
-  const handleImagePick = async (title) => {
+  const handleImagePick = async () => {
     try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync()
+
+      if (!permission.granted) {
+        Alert.alert(
+          'Permissão de câmera',
+          'É necessário permitir o acesso à câmera para utilizar este aplicativo.',
+          permission.canAskAgain
+            ? undefined
+            : [
+                {
+                  onPress: () => Linking.openSettings(),
+                  text: 'Abrir Configurações',
+                },
+              ],
+        )
+        return
+      }
+
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -77,260 +145,139 @@ const AdultCollection = () => {
       })
 
       if (!result.canceled) {
-        const updatedImages = images.filter((image) => image.title !== title)
-        setImages(() => [
-          ...updatedImages,
-          {
-            title: Crypto.randomUUID(),
-            uri: result.assets[0].uri,
-            base64: result.assets[0].base64!,
-            size: result.assets[0].fileSize,
-            type: result.assets[0].mimeType,
-          },
-        ])
+        setImage({
+          title: Crypto.randomUUID(),
+          uri: result.assets[0].uri,
+          base64: result.assets[0].base64!,
+          size: result.assets[0].fileSize,
+          type: result.assets[0].mimeType,
+        })
 
-        setValue('image', result.assets[0].base64!)
+        setValue('image', result.assets[0].base64!, {
+          shouldValidate: true,
+        })
       }
     } catch (error) {
-      Alert.alert('Error picking image:', (error as Error).message)
+      Alert.alert('Erro:', (error as Error).message)
     }
   }
-
   const handleClearImageToSend = () => {
-    setImages([])
+    setValue('image', undefined!, { shouldValidate: true })
+    setImage(null)
   }
-
-  const showSnackbar = (type: 'success' | 'error') => {
-    if (type === 'success') {
-      setVisibleOK(true)
-      setTimeout(() => {
-        setVisibleOK(false)
-        reset()
-        router.navigate('/points-reference')
-        handleClearImageToSend()
-      }, 4000)
-    } else if (type === 'error') {
-      setVisibleERROR(true)
-      setTimeout(() => {
-        setVisibleERROR(false)
-      }, 4000)
-    }
-  }
-
-  // Buscar o ponto pelo ID do parametro
-  const { id, lat, long } = useLocalSearchParams()
-  const point_id: string = Array.isArray(id) ? id[0] : id
-  const latitude: string = Array.isArray(lat) ? lat[0] : lat
-  const longitude: string = Array.isArray(long) ? long[0] : long
-
-  // GET - Pontos/Offline
-  const { data: point } = useQuery('application/pointsreference/id', () =>
-    findOnePointReferenceByIdOffline(Number(point_id)),
-  )
 
   // TODO - Quando eu crio um ponto novo e realizo uma aplicação o id/pointreference vem como null/0 e por isso da erro 400
-
   const onSubmit = handleSubmit(async (data) => {
+    const [applicator] = await findOneApplicatorQuery().execute()
+    const [device] = await findDeviceByFactoryIdQuery(factoryId).execute()
+
     try {
-      setIsButtonLoading(true)
-      await doAdultCollectionOffline(
-        [Number(latitude), Number(longitude)],
-        point.latitude,
-        point.longitude,
-        point.altitude,
-        point.accuracy,
-        data.wind,
-        data.climate,
-        data.temperature,
-        data.humidity,
-        Number(data.insects_number),
-        data.observation,
-        point.contract,
-        data.image,
-        Number(applicator.id),
-        Number(point.id),
-        Number(device.id),
-      )
-      showSnackbar('success')
+      const newAdultCollection: NewAdultCollection = {
+        marker: JSON.stringify([latitude, longitude]),
+        from_txt: 'string',
+        latitude: point.latitude,
+        longitude: point.longitude,
+        altitude: point.altitude,
+        accuracy: point.accuracy,
+        wind: data.wind,
+        climate: data.climate,
+        temperature: data.temperature,
+        observation: data.observation,
+        insects_number: data.insects_number,
+        point_reference: point.id,
+        device: device.id,
+        applicator: applicator.id,
+        image: data.image,
+        // offline points will not have a contract
+        contract: point.contract!,
+        transmission: 'offline',
+        humidity: data.humidity,
+        created_ondevice_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+
+      await db.insert(AdultCollection).values(newAdultCollection)
+
+      startPushData()
+      toaster.makeToast({
+        type: 'success',
+        message: 'Coleta realizada com sucesso.',
+      })
+      router.back()
     } catch (error) {
       Alert.alert('Erro ao realizar coleta adulto: ', (error as Error).message)
-      showSnackbar('error')
       throw error
-    } finally {
-      setIsButtonLoading(false)
     }
   })
 
-  const { data: configWindCollection, isLoading: configWindCollectionLoading } =
-    useQuery('config/configapp/?name="coleta_vento"', () =>
-      findConfigAppByNameOffline('coleta_vento'),
-    )
+  const numOrKeep = (value: string) => {
+    return isNaN(Number(value)) || value === '' ? value : Number(value)
+  }
 
-  const {
-    data: configWindCollectionOnline,
-    isLoading: configWindCollectionOnlineLoading,
-  } = useQuery('config/configapp/online/?name="coleta_vento"', () =>
-    findConfigAppByName('coleta_vento'),
-  )
-
-  const {
-    data: configClimateWindCollection,
-    isLoading: configClimateWindCollectionLoading,
-  } = useQuery('config/configapp/?name="coleta_clima"', () =>
-    findConfigAppByNameOffline('coleta_clima'),
-  )
-
-  const {
-    data: configClimateWindCollectionOnline,
-    isLoading: configClimateWindCollectionOnlineLoading,
-  } = useQuery('config/configapp/online/?name="coleta_clima"', () =>
-    findConfigAppByName('coleta_clima'),
-  )
-
-  if (
-    configWindCollectionLoading ||
-    configWindCollectionOnlineLoading ||
-    configClimateWindCollectionLoading ||
-    configClimateWindCollectionOnlineLoading
-  ) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Carregando...</Text>
-      </View>
-    )
+  const renderError = (msg: string | undefined) => {
+    return !!msg && <Text className="text-red-500">{msg}</Text>
   }
 
   return (
-    <ScrollView style={{ paddingTop: insets.top }} className="flex-1">
-      <View className="container flex-1 items-center justify-center bg-white">
-        <View className="flex-col justify-between gap-2">
-          <View className="w-full flex-row items-center justify-between">
-            <Text className="text-2xl font-bold">Coleta inseto adulto</Text>
-            <Pressable
-              onPress={() => {
-                router.navigate('/points-reference')
-              }}
-            >
-              <Text className="text-xl">Voltar</Text>
-            </Pressable>
-          </View>
-          <Divider className="mb-5 mt-2" />
-          <View>
-            <Text className="mb-2 text-xl font-bold ">Vento:</Text>
+    <ScrollView className="flex-1 bg-white p-5">
+      <View className="flex-1 items-center justify-center bg-white">
+        <View className="w-full flex-col gap-3">
+          <View className="gap-2">
+            <Text className="text-xl font-bold">Vento:</Text>
             <Controller
               control={control}
               name="wind"
               render={({ field: { onChange, value } }) => (
                 <View className=" border border-zinc-700/20 ">
-                  {configWindCollection &&
-                  configWindCollection.id !== undefined ? (
-                    <RNPickerSelect
-                      placeholder={{
-                        label: 'Selecione um valor',
-                        value: 0,
-                      }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      value={value}
-                      items={(
-                        configWindCollection?.data_config.split(';') || []
-                      ).map((wind) => ({
-                        label: wind,
-                        value: wind,
-                      }))}
-                    />
-                  ) : (
-                    <RNPickerSelect
-                      placeholder={{
-                        label: 'Selecione um valor',
-                        value: 0,
-                      }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      value={value}
-                      items={(
-                        configWindCollectionOnline?.data_config.split(';') || []
-                      ).map((wind) => ({
-                        label: wind,
-                        value: wind,
-                      }))}
-                    />
-                  )}
+                  <RNPickerSelect
+                    placeholder={{ label: 'Selecione um valor' }}
+                    onValueChange={(value) => onChange(value)}
+                    value={value}
+                    items={(
+                      configWindCollection?.data_config.split(';') || []
+                    ).map((wind) => ({
+                      label: wind,
+                      value: wind,
+                    }))}
+                  />
                 </View>
               )}
             />
-
-            {errors.wind && (
-              <Text className="mb-2 text-red-500">
-                Por favor, selecione uma opção.
-              </Text>
-            )}
+            {renderError(errors.wind?.message)}
           </View>
-          <View>
-            <Text className="mb-2 text-xl font-bold ">Clima:</Text>
+          <View className="gap-2">
+            <Text className="text-xl font-bold">Clima:</Text>
             <Controller
               control={control}
               name="climate"
               render={({ field: { onChange, value } }) => (
                 <View className="border border-zinc-700/20 ">
-                  {configClimateWindCollection &&
-                  configClimateWindCollection.id !== undefined ? (
-                    <RNPickerSelect
-                      placeholder={{
-                        label: 'Selecione um valor',
-                        value: 0,
-                      }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      value={value}
-                      items={configClimateWindCollection?.data_config
-                        .split(';')
-                        .map((climate) => ({
-                          label: climate,
-                          value: climate,
-                        }))}
-                    />
-                  ) : (
-                    <RNPickerSelect
-                      placeholder={{
-                        label: 'Selecione um valor',
-                        value: 0,
-                      }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      value={value}
-                      items={configClimateWindCollectionOnline?.data_config
-                        .split(';')
-                        .map((climate) => ({
-                          label: climate,
-                          value: climate,
-                        }))}
-                    />
-                  )}
+                  <RNPickerSelect
+                    placeholder={{ label: 'Selecione um valor' }}
+                    onValueChange={(value) => onChange(value)}
+                    value={value}
+                    items={(
+                      configClimateWindCollection?.data_config.split(';') || []
+                    ).map((climate) => ({
+                      label: climate,
+                      value: climate,
+                    }))}
+                  />
                 </View>
               )}
             />
-
-            {errors.climate && (
-              <Text className="mb-2 text-red-500">
-                Por favor, selecione uma opção.
-              </Text>
-            )}
+            {renderError(errors.climate?.message)}
           </View>
-
-          <View>
-            <Text className="mb-2 text-xl font-bold ">Temp. (°C):</Text>
+          <View className="gap-2">
+            <Text className="text-xl font-bold">Temp. (°C):</Text>
             <Controller
               control={control}
               name="temperature"
               render={({ field: { onChange, value } }) => (
-                <View className=" border border-zinc-700/20   ">
+                <View className=" border border-zinc-700/20">
                   <TextInput
-                    className="p-4 text-lg  placeholder:text-gray-300  "
+                    className="p-4 text-lg placeholder:text-gray-300"
                     placeholder="Temp. (°C)"
                     onChangeText={onChange}
                     value={value}
@@ -339,71 +286,55 @@ const AdultCollection = () => {
                 </View>
               )}
             />
-
-            {errors.temperature && (
-              <Text className="mb-2 text-red-500">
-                Temperatura é obrigatório.
-              </Text>
-            )}
+            {renderError(errors.temperature?.message)}
           </View>
-
-          <View>
-            <Text className="mb-2 text-xl font-bold ">Umidade:</Text>
+          <View className="gap-2">
+            <Text className="text-xl font-bold ">Umidade:</Text>
             <Controller
               control={control}
               name="humidity"
               render={({ field: { onChange, value } }) => (
-                <View className=" border border-zinc-700/20   ">
+                <View className="border border-zinc-700/20">
                   <TextInput
-                    className="p-4 text-lg  placeholder:text-gray-300  "
+                    className="p-4 text-lg placeholder:text-gray-300"
                     placeholder="Umidade"
-                    onChangeText={onChange}
-                    value={value}
+                    onChangeText={(value) => onChange(numOrKeep(value))}
+                    value={value?.toString()}
                     keyboardType="numeric"
                   />
                 </View>
               )}
             />
-
-            {errors.humidity && (
-              <Text className="mb-2 text-red-500">Umidade é obrigatório.</Text>
-            )}
+            {renderError(errors.humidity?.message)}
           </View>
-
-          <View>
-            <Text className="mb-2 text-xl font-bold ">Num. Insetos:</Text>
+          <View className="gap-2">
+            <Text className="text-xl font-bold">Num. Insetos:</Text>
             <Controller
               control={control}
               name="insects_number"
               render={({ field: { onChange, value } }) => (
-                <View className="border border-zinc-700/20   ">
+                <View className="border border-zinc-700/20">
                   <TextInput
-                    className="p-4 text-lg  placeholder:text-gray-300  "
+                    className="p-4 text-lg placeholder:text-gray-300"
                     placeholder="Num. Insetos"
-                    onChangeText={onChange}
-                    value={value}
+                    onChangeText={(value) => onChange(numOrKeep(value))}
+                    value={value?.toString()}
                     keyboardType="numeric"
                   />
                 </View>
               )}
             />
-
-            {errors.insects_number && (
-              <Text className="mb-2 text-red-500">
-                Número de insetos é obrigatório.
-              </Text>
-            )}
+            {renderError(errors.insects_number?.message)}
           </View>
-
-          <View>
-            <Text className="mb-2 text-xl font-bold ">Observação:</Text>
+          <View className="gap-2">
+            <Text className="text-xl font-bold">Observação:</Text>
             <Controller
               control={control}
               name="observation"
               render={({ field: { onChange, value } }) => (
-                <View className=" border border-zinc-700/20   ">
+                <View className="border border-zinc-700/20">
                   <TextInput
-                    className="p-4 text-lg  placeholder:text-gray-300  "
+                    className="p-4 text-lg placeholder:text-gray-300"
                     placeholder="Observações"
                     onChangeText={onChange}
                     value={value}
@@ -411,110 +342,63 @@ const AdultCollection = () => {
                 </View>
               )}
             />
-            {errors.observation && (
-              <Text className="mb-2 text-red-500">Umidade é obrigatório.</Text>
-            )}
+            {renderError(errors.observation?.message)}
           </View>
           <Pressable
             className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-4"
             onPress={handleImagePick}
-            disabled={images.length !== 0}
+            disabled={!!image}
           >
             <View className="flex-row items-center justify-center gap-2">
-              <Text className="text-2xl font-bold text-white">
+              <Text className="text-xl font-bold text-white">
                 Adicionar foto
               </Text>
               <AntDesign name="camerao" size={24} color="white" />
             </View>
           </Pressable>
-          {errors.image && (
-            <Text className=" p-2 text-red-500">
-              {errors.image ? errors.image.message : null}
-            </Text>
-          )}
-
-          {images && images.length > 0 && (
+          {renderError(errors.image?.message)}
+          {!!image && (
             <View className="items-start justify-between rounded-md border border-zinc-700/20 p-3">
               <Image
-                source={{ uri: images[0].uri }}
                 className="h-[150px] w-full"
+                source={{ uri: image.uri }}
                 alt=""
-              ></Image>
-              <View className="w-full flex-row items-center justify-between bg-zinc-700 p-3">
-                <View>
-                  <Feather name="image" size={30} color="rgb(242 90 56)" />
-                </View>
-                <View>
-                  <Text className="text-zinc-200/50">
-                    {`${images[0].title.slice(0, images[0].title.length / 3)}...${images[0].type}`}
-                  </Text>
-                </View>
+              />
+              <View className="flex-row items-center gap-2 bg-zinc-700 p-3">
+                <AntDesign name="picture" size={24} color="rgb(242 90 56)" />
+                <Text
+                  className="flex-1 text-zinc-200/50"
+                  numberOfLines={1}
+                  ellipsizeMode="middle"
+                >
+                  {image.title}.{image.type}
+                </Text>
                 <Pressable
                   className="bg-transparent"
                   onPress={handleClearImageToSend}
                 >
-                  <Feather name="x-circle" size={24} color="white" />
+                  <AntDesign name="closecircleo" size={20} color="white" />
                 </Pressable>
               </View>
             </View>
           )}
-
-          {isButtonLoading ? (
-            <Pressable
-              className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
-              onPress={onSubmit}
-            >
-              <ActivityIndicator size={'large'} color={'#fff'} />
-            </Pressable>
-          ) : (
-            <Pressable
-              className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
-              onPress={onSubmit}
-            >
-              <Text className="text-2xl font-bold text-white">
+          <Pressable
+            className="items-center justify-center rounded-md bg-blue-500 p-4 "
+            onPress={onSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              <Text className="text-xl font-bold text-white">
                 Salvar coleta
               </Text>
-            </Pressable>
-          )}
+            )}
+          </Pressable>
         </View>
       </View>
-
-      <Snackbar
-        style={{
-          zIndex: 1000,
-        }}
-        visible={visibleOK}
-        onDismiss={onDismissSnackBarOK}
-        duration={Snackbar.DURATION_SHORT}
-        action={{
-          textColor: '#00ff00',
-          label: 'Fechar',
-          onPress: onDismissSnackBarOK,
-        }}
-      >
-        <Text className="text-3xl text-zinc-700">
-          Coleta de adulto realizada com sucesso.
-        </Text>
-      </Snackbar>
-      <Snackbar
-        style={{
-          zIndex: 1000,
-        }}
-        visible={visibleERROR}
-        onDismiss={onDismissSnackBarERROR}
-        duration={Snackbar.DURATION_SHORT}
-        action={{
-          textColor: '#ff0000',
-          label: 'Fechar',
-          onPress: onDismissSnackBarERROR,
-        }}
-      >
-        <Text className="text-3xl text-zinc-700">
-          Ocorreu algum erro. Tente novamente.
-        </Text>
-      </Snackbar>
     </ScrollView>
   )
 }
 
-export default AdultCollection
+export default AdultCollectionPage

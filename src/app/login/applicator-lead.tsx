@@ -16,7 +16,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { FontAwesome } from '@expo/vector-icons'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { doLogin } from '@/services/onlineServices/authenticate'
+import { doLogin } from '@/services/online-services/authenticate'
 import { useToaster } from '@/features/toaster'
 import { useUpsertUser } from '@/features/session/hooks/use-upsert-user'
 import { useChangeAsyncStore } from '@/hooks'

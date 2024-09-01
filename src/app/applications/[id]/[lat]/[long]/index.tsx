@@ -6,34 +6,43 @@ import {
   TextInput,
   Image,
   Alert,
+  Linking,
+  TouchableOpacity,
 } from 'react-native'
 import React, { useState } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
-import { Divider, RadioButton, Snackbar } from 'react-native-paper'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AntDesign, Feather } from '@expo/vector-icons'
+import { RadioButton } from 'react-native-paper'
+import { AntDesign } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as Crypto from 'expo-crypto'
 import RNPickerSelect from 'react-native-picker-select'
 import { Controller, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { doApplicationOffline } from '@/services/offlineServices/application'
-import { useApplicator } from '@/features/session'
-import { useDevice } from '@/features/device'
-import { useQuery } from 'react-query'
-import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
-import { findConfigAppByName } from '@/services/onlineServices/configApp'
-import { IImagesProps } from '@/components/PhonePhotos'
-import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+import { useDeviceFactoryId } from '@/features/device'
+import { PhonePhoto } from '@/types/phone-photo'
+import { useToaster } from '@/features/toaster'
+import { SelectPointReference } from '@/db/point-reference'
+import { useDB } from '@/features/database'
+import { SimpleErrorScreen } from '@/components/simple-error-screen'
+import { Application } from '@/db/application'
+import { useConfigApp } from '@/hooks/use-config-app'
+import { useSyncOperations } from '@/features/data-collection/context'
+import {
+  findDeviceByFactoryIdQuery,
+  findOneApplicatorQuery,
+  findPointReferenceByIdQuery,
+} from '@/features/database/queries'
 
 const applicationSchema = z.object({
-  volumebti: z.number({
+  volume_bti: z.number({
     required_error: 'Volume BTI é obrigatório',
   }),
-  container: z.boolean().optional(),
-  card: z.boolean().optional(),
-  plate: z.boolean().optional(),
+  container: z.boolean().default(false),
+  card: z.boolean().default(false),
+  plate: z.boolean().default(false),
   observation: z.string().optional(),
   image: z.string({
     required_error: 'Imagem é obrigatória',
@@ -43,28 +52,75 @@ const applicationSchema = z.object({
 type ApplicationFormData = z.infer<typeof applicationSchema>
 
 const Applications = () => {
-  const insets = useSafeAreaInsets()
+  const { id, lat, long } = useLocalSearchParams()
+  const pointId = Number(Array.isArray(id) ? id[0] : id)
+  const latitude = Number(Array.isArray(lat) ? lat[0] : lat)
+  const longitude = Number(Array.isArray(long) ? long[0] : long)
+  const query = useLiveQuery(findPointReferenceByIdQuery(pointId))
 
-  const applicator = useApplicator()
-  const device = useDevice()
-  const [recipienteChecked, setRecipienteChecked] = useState(false)
-  const [fichaChecked, setFichaChecked] = useState(false)
-  const [placaChecked, setPlacaChecked] = useState(false)
-  const [images, setImages] = useState<IImagesProps[]>([])
-  const [visibleOK, setVisibleOK] = useState(false)
-  const [visibleERROR, setVisibleERROR] = useState(false)
+  if (isNaN(pointId) || isNaN(latitude) || isNaN(longitude) || query.error) {
+    return <SimpleErrorScreen message="Dados inválidos" />
+  }
+
+  const [point] = query.data
+  if (!point) {
+    return <SimpleErrorScreen message="Não foi possivel encontrar o ponto" />
+  }
+
+  return (
+    <AfterLoadData point={point} latitude={latitude} longitude={longitude} />
+  )
+}
+
+const AfterLoadData = ({
+  point,
+  latitude,
+  longitude,
+}: {
+  point: SelectPointReference
+  latitude: number
+  longitude: number
+}) => {
+  const db = useDB()
+  const toaster = useToaster()
+  const factoryId = useDeviceFactoryId()
+  const { startPushData } = useSyncOperations()
+  const { volumeEscala: configScaleVolume } = useConfigApp(['volume_escala'])
+  const [image, setImage] = useState<PhonePhoto | null>(null)
   const {
     control,
     handleSubmit,
     setValue,
-    reset,
     formState: { errors },
   } = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
+    defaultValues: {
+      container: false,
+      card: false,
+      plate: false,
+    },
   })
 
-  const handleImagePick = async (title) => {
+  const handleImagePick = async () => {
     try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync()
+
+      if (!permission.granted) {
+        Alert.alert(
+          'Permissão de câmera',
+          'É necessário permitir o acesso à câmera para utilizar este aplicativo.',
+          permission.canAskAgain
+            ? undefined
+            : [
+                {
+                  onPress: () => Linking.openSettings(),
+                  text: 'Abrir Configurações',
+                },
+              ],
+        )
+        return
+      }
+
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -74,356 +130,216 @@ const Applications = () => {
       })
 
       if (!result.canceled) {
-        const updatedImages = images.filter((image) => image.title !== title)
-        setImages(() => [
-          ...updatedImages,
-          {
-            title: Crypto.randomUUID(),
-            uri: result.assets[0].uri,
-            base64: result.assets[0].base64!,
-            size: result.assets[0].fileSize,
-            type: result.assets[0].mimeType,
-          },
-        ])
+        setImage({
+          title: Crypto.randomUUID(),
+          uri: result.assets[0].uri,
+          base64: result.assets[0].base64!,
+          size: result.assets[0].fileSize,
+          type: result.assets[0].mimeType,
+        })
 
-        setValue('image', result.assets[0].base64)
+        setValue('image', result.assets[0].base64!, {
+          shouldValidate: true,
+        })
       }
     } catch (error) {
-      Alert.alert('Error picking image:', error.message)
+      Alert.alert('Erro:', (error as Error).message)
     }
   }
   const handleClearImageToSend = () => {
-    setImages([])
+    setValue('image', undefined!, { shouldValidate: true })
+    setImage(null)
   }
-
-  const onDismissSnackBarOK = () => setVisibleOK(false)
-  const onDismissSnackBarERROR = () => setVisibleERROR(false)
-  const showSnackbar = (type: 'success' | 'error') => {
-    if (type === 'success') {
-      setVisibleOK(true)
-      setTimeout(() => {
-        setVisibleOK(false)
-        reset()
-        handleClearImageToSend()
-        router.navigate('/points-reference')
-      }, 4000)
-    } else if (type === 'error') {
-      setVisibleERROR(true)
-      setTimeout(() => {
-        setVisibleERROR(false)
-      }, 4000)
-    }
-  }
-
-  const handleBooleanToStr = (value: string) => {
-    switch (value) {
-      case 'true':
-        return true
-      case 'false':
-        return false
-    }
-  }
-
-  // Buscar o ponto pelo ID do parametro
-  const { id, lat, long } = useLocalSearchParams()
-  const point_id: string = Array.isArray(id) ? id[0] : id
-  const latitude: string = Array.isArray(lat) ? lat[0] : lat
-  const longitude: string = Array.isArray(long) ? long[0] : long
-
-  // GET - Pontos/Offline
-  const { data: point } = useQuery('application/pointsreference/id', () =>
-    findOnePointReferenceByIdOffline(Number(point_id)),
-  )
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await doApplicationOffline(
-        [Number(latitude), Number(longitude)],
-        point.latitude,
-        point.longitude,
-        point.altitude,
-        point.accuracy,
-        data.volumebti,
-        recipienteChecked,
-        fichaChecked,
-        placaChecked,
-        data.observation,
-        data.image,
-        point.contract,
-        Number(point.id),
-        Number(applicator.id),
-        Number(device.id),
-      )
-      showSnackbar('success')
+      const [device] = await findDeviceByFactoryIdQuery(factoryId).execute()
+      const [applicator] = await findOneApplicatorQuery().execute()
+
+      await db.insert(Application).values({
+        latitude,
+        longitude,
+        marker: JSON.stringify([latitude, longitude]),
+        from_txt: 'string',
+        altitude: point.altitude,
+        accuracy: point.accuracy,
+        volume_bti: data.volume_bti,
+        container: data.container,
+        card: data.card,
+        plate: data.plate,
+        observation: data.observation,
+        status: 'Em dia',
+        image: data.image,
+        point_reference: point.id,
+        // FIXME: why can't we use point.device here?
+        device: device.id,
+        // FIXME: why can't we use point.applicator here?
+        applicator: applicator.id,
+        contract: point.contract,
+        created_ondevice_at: new Date().toISOString(),
+        transmission: 'offline',
+      })
+
+      toaster.makeToast({
+        type: 'success',
+        message: 'Aplicação realizada com sucesso.',
+      })
+      startPushData()
+      router.replace('/points-reference')
     } catch (error) {
-      Alert.alert('Erro ao criar uma aplicação: ', error.message)
-      showSnackbar('error')
+      Alert.alert('Erro ao criar uma aplicação: ', (error as Error).message)
     }
   })
 
-  const {
-    data: configScaleVolume,
-    isLoading: configScaleVolumeLoading,
-    isSuccess: configScaleVolumeIsSuccess,
-  } = useQuery('config/configapp/?name="volume_escala"', () =>
-    findConfigAppByNameOffline('volume_escala'),
-  )
-
-  const {
-    data: configScaleVolumeOnline,
-    isLoading: configScaleVolumeOnlineIsLoading,
-    isSuccess: configScaleVolumeOnlineIsSuccess,
-  } = useQuery('config/configapp/online/?name="volume_escala"', () =>
-    findConfigAppByName('volume_escala'),
-  )
-
-  if (
-    configScaleVolumeLoading ||
-    configScaleVolumeOnlineIsLoading ||
-    !configScaleVolumeOnlineIsSuccess ||
-    !configScaleVolumeIsSuccess
-  ) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Carregando...</Text>
-      </View>
-    )
-  }
-
   return (
-    <ScrollView style={{ paddingTop: insets.top }} className="flex-1">
-      <View className="container flex-1 items-center justify-center bg-white">
-        <View className="flex-col justify-between gap-2">
-          <View className="w-full flex-row items-center justify-between">
-            <Text className="text-2xl font-bold">Executar Aplicação</Text>
-            <Pressable
-              onPress={() => {
-                router.navigate('/points-reference')
-              }}
-            >
-              <Text className="text-xl">Voltar</Text>
-            </Pressable>
-          </View>
-          <Divider className="mb-5 mt-2" />
-          <View>
-            <View className="mb-2 flex-col items-center">
-              <Controller
-                control={control}
-                name="container"
-                render={() => (
-                  <View style={{ marginBottom: 10 }}>
-                    <Text className="text-center text-2xl font-bold">
-                      Tem Recipiente?
-                    </Text>
-                    <RadioButton.Group
-                      onValueChange={(value) =>
-                        setRecipienteChecked(handleBooleanToStr(value))
-                      }
-                      value={recipienteChecked.toString()}
-                    >
-                      <View style={{ flexDirection: 'row', marginLeft: 10 }}>
-                        <RadioButton.Item label="SIM" value="true" />
-                        <RadioButton.Item label="NÃO" value="false" />
-                      </View>
-                    </RadioButton.Group>
-                  </View>
-                )}
-              />
-            </View>
-
-            <View className="mb-2 mt-2 flex-col items-center">
-              <Controller
-                control={control}
-                name="card"
-                render={() => (
-                  <View style={{ marginBottom: 10 }}>
-                    <Text className="text-center text-2xl font-bold">
-                      Tem Ficha?
-                    </Text>
-                    <RadioButton.Group
-                      onValueChange={(value) =>
-                        setFichaChecked(handleBooleanToStr(value))
-                      }
-                      value={fichaChecked.toString()}
-                    >
-                      <View style={{ flexDirection: 'row', marginLeft: 10 }}>
-                        <RadioButton.Item label="SIM" value="true" />
-                        <RadioButton.Item label="NÃO" value="false" />
-                      </View>
-                    </RadioButton.Group>
-                  </View>
-                )}
-              />
-            </View>
-            <View className="mb-2 mt-2 flex-col items-center">
-              <Controller
-                control={control}
-                name="plate"
-                render={() => (
-                  <View style={{ marginBottom: 10 }}>
-                    <Text className="text-center text-2xl font-bold">
-                      Tem Placa?
-                    </Text>
-                    <RadioButton.Group
-                      onValueChange={(value) =>
-                        setPlacaChecked(handleBooleanToStr(value))
-                      }
-                      value={placaChecked.toString()}
-                    >
-                      <View style={{ flexDirection: 'row', marginLeft: 10 }}>
-                        <RadioButton.Item label="SIM" value="true" />
-                        <RadioButton.Item label="NÃO" value="false" />
-                      </View>
-                    </RadioButton.Group>
-                  </View>
-                )}
-              />
-            </View>
-
-            <Controller
-              control={control}
-              name="observation"
-              render={({ field: { onChange, value } }) => (
-                <View className="mb-2 border border-zinc-700/20">
-                  <TextInput
-                    className="p-4 text-lg placeholder:text-gray-300"
-                    placeholder="Observação"
-                    onChangeText={onChange}
-                    value={value}
-                  />
-                </View>
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="volumebti"
-              render={({ field: { onChange } }) => (
-                <View className="mb-2 border border-zinc-700/20">
-                  {configScaleVolume && configScaleVolume.id !== undefined ? (
-                    <RNPickerSelect
-                      placeholder={{ label: 'Volume BTI', value: 0 }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      key={configScaleVolume.id}
-                      items={configScaleVolume?.data_config
-                        .split(';')
-                        .map((item) => ({
-                          label: item,
-                          value: Number(item),
-                        }))}
-                    />
-                  ) : (
-                    <RNPickerSelect
-                      placeholder={{ label: 'Volume BTI', value: 0 }}
-                      onValueChange={(value) => {
-                        onChange(value)
-                      }}
-                      key={configScaleVolumeOnline.id}
-                      items={configScaleVolumeOnline?.data_config
-                        .split(';')
-                        .map((item) => ({
-                          label: item,
-                          value: Number(item),
-                        }))}
-                    />
-                  )}
-                </View>
-              )}
-            />
-            {errors.volumebti && (
-              <Text className="p-2 text-red-500">
-                {errors.volumebti ? errors.volumebti.message : null}
-              </Text>
-            )}
-            <Pressable
-              className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-4"
-              onPress={handleImagePick}
-              disabled={images.length !== 0}
-            >
-              <View className="flex-row items-center justify-center gap-2">
-                <Text className="text-2xl font-bold text-white">
-                  Adicionar foto
+    <ScrollView className="flex-1 bg-white p-5">
+      <View className="gap-4">
+        <View className="items-center">
+          <Controller
+            control={control}
+            name="container"
+            render={({ field: { onChange, value } }) => (
+              <>
+                <Text className="text-center text-2xl font-bold">
+                  Tem Recipiente?
                 </Text>
-                <AntDesign name="camerao" size={24} color="white" />
-              </View>
-            </Pressable>
-            {errors.image && (
-              <Text className=" p-2 text-red-500">
-                {errors.image ? errors.image.message : null}
-              </Text>
-            )}
-
-            {images && images.length > 0 && (
-              <View className="items-start justify-between rounded-md border border-zinc-700/20 p-3">
-                <Image
-                  source={{ uri: images[0].uri }}
-                  className="h-[150px] w-full"
-                  alt=""
-                ></Image>
-                <View className="w-full flex-row items-center justify-between bg-zinc-700 p-3">
-                  <View>
-                    <Feather name="image" size={30} color="rgb(242 90 56)" />
+                <RadioButton.Group
+                  value={value.toString()}
+                  onValueChange={(value) => onChange(value === 'true')}
+                >
+                  <View className="flex-row items-center">
+                    <RadioButton.Item label="SIM" value="true" />
+                    <RadioButton.Item label="NÃO" value="false" />
                   </View>
-                  <View>
-                    <Text className="text-zinc-200/50">
-                      {`${images[0].title.slice(0, images[0].title.length / 3)}...${images[0].type}`}
-                    </Text>
-                  </View>
-                  <Pressable
-                    className="bg-transparent"
-                    onPress={handleClearImageToSend}
-                  >
-                    <Feather name="x-circle" size={24} color="white" />
-                  </Pressable>
-                </View>
-              </View>
+                </RadioButton.Group>
+              </>
             )}
-            <Pressable
-              className="mb-10 mt-5 items-center justify-center rounded-md bg-blue-500 p-4 "
-              onPress={onSubmit}
-            >
-              <Text className="text-2xl font-bold text-white">Finalizar</Text>
-            </Pressable>
-          </View>
+          />
+          <Controller
+            control={control}
+            name="card"
+            render={({ field: { onChange, value } }) => (
+              <>
+                <Text className="text-center text-2xl font-bold">
+                  Tem Ficha?
+                </Text>
+                <RadioButton.Group
+                  value={value.toString()}
+                  onValueChange={(value) => onChange(value === 'true')}
+                >
+                  <View className="flex-row items-center">
+                    <RadioButton.Item label="SIM" value="true" />
+                    <RadioButton.Item label="NÃO" value="false" />
+                  </View>
+                </RadioButton.Group>
+              </>
+            )}
+          />
+          <Controller
+            control={control}
+            name="plate"
+            render={({ field: { onChange, value } }) => (
+              <>
+                <Text className="text-center text-2xl font-bold">
+                  Tem Placa?
+                </Text>
+                <RadioButton.Group
+                  value={value.toString()}
+                  onValueChange={(value) => onChange(value === 'true')}
+                >
+                  <View className="flex-row items-center">
+                    <RadioButton.Item label="SIM" value="true" />
+                    <RadioButton.Item label="NÃO" value="false" />
+                  </View>
+                </RadioButton.Group>
+              </>
+            )}
+          />
         </View>
+        <Controller
+          control={control}
+          name="observation"
+          render={({ field: { onChange, value } }) => (
+            <View className="border border-zinc-700/20">
+              <TextInput
+                className="p-4 text-lg placeholder:text-zinc-700/30"
+                placeholder="Observação"
+                onChangeText={onChange}
+                value={value}
+              />
+            </View>
+          )}
+        />
+        <Controller
+          control={control}
+          name="volume_bti"
+          render={({ field: { onChange } }) => (
+            <View className="border border-zinc-700/20">
+              <RNPickerSelect
+                placeholder={{ label: 'Volume BTI' }}
+                onValueChange={(value) => {
+                  onChange(value)
+                }}
+                items={(configScaleVolume?.data_config.split(';') || []).map(
+                  (item) => ({
+                    label: item,
+                    value: Number(item),
+                  }),
+                )}
+              />
+            </View>
+          )}
+        />
+        {!!errors.volume_bti?.message && (
+          <Text className="text-red-500">{errors.volume_bti?.message}</Text>
+        )}
+        <TouchableOpacity
+          className="w-auto rounded-md border border-zinc-700/20 bg-[#7c58d6] p-4 disabled:bg-zinc-700/50"
+          onPress={handleImagePick}
+          disabled={!!image}
+        >
+          <View className="flex-row items-center justify-center gap-2">
+            <Text className="text-2xl font-bold text-white">
+              Adicionar foto
+            </Text>
+            <AntDesign name="camerao" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
+        {!!errors?.image?.message && (
+          <Text className="text-red-500">{errors.image.message}</Text>
+        )}
+        {!!image && (
+          <View className="items-start justify-between rounded-md border border-zinc-700/20 p-3">
+            <Image
+              className="h-[150px] w-full"
+              source={{ uri: image.uri }}
+              alt=""
+            />
+            <View className="flex-row items-center gap-2 bg-zinc-700 p-3">
+              <AntDesign name="picture" size={24} color="rgb(242 90 56)" />
+              <Text
+                className="flex-1 text-zinc-200/50"
+                numberOfLines={1}
+                ellipsizeMode="middle"
+              >
+                {image.title}.{image.type}
+              </Text>
+              <Pressable
+                className="bg-transparent"
+                onPress={handleClearImageToSend}
+              >
+                <AntDesign name="closecircleo" size={20} color="white" />
+              </Pressable>
+            </View>
+          </View>
+        )}
+        <Pressable
+          className="items-center justify-center rounded-md bg-blue-500 p-4 "
+          onPress={onSubmit}
+        >
+          <Text className="text-2xl font-bold text-white">Finalizar</Text>
+        </Pressable>
       </View>
-
-      <Snackbar
-        style={{
-          zIndex: 9999,
-        }}
-        visible={visibleOK}
-        onDismiss={onDismissSnackBarOK}
-        action={{
-          textColor: '#00ff00',
-          maxFontSizeMultiplier: 1,
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-3xl text-zinc-700">
-          Aplicação realizada com sucesso.
-        </Text>
-      </Snackbar>
-      <Snackbar
-        visible={visibleERROR}
-        onDismiss={onDismissSnackBarERROR}
-        action={{
-          textColor: '#ff0000',
-          label: 'Fechar',
-          onPress: () => {
-            setVisibleOK(false)
-          },
-        }}
-      >
-        <Text className="text-3xl text-red-500">
-          Algo deu errado. Tente novamente.
-        </Text>
-      </Snackbar>
     </ScrollView>
   )
 }

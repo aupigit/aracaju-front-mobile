@@ -3,13 +3,13 @@ import { useCallback } from 'react'
 
 import { Device, NewDevice } from '@/db/device'
 import { useDB } from '@/features/database'
-import { FindDeviceDevice } from '@/services/onlineServices/device'
+import { APIDevice } from '@/services/online-services/device'
 
 export const useUpsertDevice = () => {
   const db = useDB()
 
   return useCallback(
-    async (device: FindDeviceDevice) => {
+    async (device: APIDevice) => {
       const deviceData: NewDevice = {
         id: device.id,
         factory_id: device.factory_id,

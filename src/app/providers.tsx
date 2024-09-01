@@ -9,9 +9,13 @@ import { ReactNode } from 'react'
 
 import { UserProvider, ApplicatorProvider } from '@/features/session'
 import { DeviceProvider } from '@/features/device/context'
-import { PointsReferenceProvider } from '@/contexts/PointsReferenceContext'
 import { DatabaseProvider } from '@/features/database'
 import { ToasterProvider } from '@/features/toaster'
+import {
+  UserSelectedCoordinatesProvider,
+  UserSelectedPointProvider,
+  SyncOperationsProvider,
+} from '@/features/data-collection/context'
 
 const queryClient = new QueryClient()
 
@@ -27,9 +31,13 @@ export function Providers({ children }: { children: ReactNode }) {
               <DeviceProvider>
                 <UserProvider>
                   <ApplicatorProvider>
-                    <PointsReferenceProvider>
-                      {children}
-                    </PointsReferenceProvider>
+                    <SyncOperationsProvider>
+                      <UserSelectedPointProvider>
+                        <UserSelectedCoordinatesProvider>
+                          {children}
+                        </UserSelectedCoordinatesProvider>
+                      </UserSelectedPointProvider>
+                    </SyncOperationsProvider>
                   </ApplicatorProvider>
                 </UserProvider>
               </DeviceProvider>

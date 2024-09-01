@@ -6,7 +6,7 @@ export const Tracking = sqliteTable('Tracking', {
   device: integer('device'),
   applicator: integer('applicator'),
   created_ondevice_at: text('created_ondevice_at'),
-  transmition: text('transmition'),
+  transmission: text('transmission'),
   latitude: real('latitude'),
   longitude: real('longitude'),
   altitude: real('altitude'),
@@ -21,3 +21,5 @@ export const Tracking = sqliteTable('Tracking', {
 })
 
 export type SelectTracking = typeof Tracking.$inferSelect
+
+export type NewTracking = typeof Tracking.$inferInsert

@@ -27,7 +27,7 @@ const Home = () => {
 
     const [token] = sessionData.data || []
     if (applicator && user && token) {
-      router.navigate('points-reference')
+      router.replace('points-reference')
     }
   }, [applicator, sessionData.data, sessionData.isLoading, user])
 

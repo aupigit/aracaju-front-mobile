@@ -2,25 +2,26 @@ import { sql } from 'drizzle-orm'
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const Application = sqliteTable('Application', {
+  // FIXME: we need client id and server id
   id: integer('id').primaryKey().unique(),
-  pointreference: integer('pointreference'),
-  device: integer('device'),
-  applicator: integer('applicator'),
+  point_reference: integer('point_reference'),
+  device: integer('device').notNull(),
+  applicator: integer('applicator').notNull(),
   marker: text('marker'),
   from_txt: text('from_txt'),
-  latitude: real('latitude'),
-  longitude: real('longitude'),
-  altitude: real('altitude'),
-  acuracia: real('acuracia'),
-  volumebti: integer('volumebti'),
-  container: integer('container'),
-  card: integer('card'),
-  plate: integer('plate'),
+  latitude: real('latitude').notNull(),
+  longitude: real('longitude').notNull(),
+  altitude: real('altitude').notNull(),
+  accuracy: real('accuracy').notNull(),
+  volume_bti: integer('volume_bti').notNull(),
+  container: integer('container', { mode: 'boolean' }).notNull(),
+  card: integer('card', { mode: 'boolean' }).notNull(),
+  plate: integer('plate', { mode: 'boolean' }).notNull(),
   observation: text('observation'),
-  status: text('status'),
-  image: text('image'),
+  status: text('status').notNull(),
+  image: text('image').notNull(),
   created_ondevice_at: text('created_ondevice_at'),
-  transmition: text('transmition'),
+  transmission: text('transmission'),
   contract: integer('contract'),
   created_at: text('created_at')
     .default(sql`CURRENT_TIMESTAMP`)
@@ -31,3 +32,5 @@ export const Application = sqliteTable('Application', {
 })
 
 export type SelectApplication = typeof Application.$inferSelect
+
+export type NewApplication = typeof Application.$inferInsert

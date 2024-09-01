@@ -69,7 +69,7 @@ export const ToasterProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   return (
-    <Context.Provider value={useMemo(() => ({ makeToast }), [toasts])}>
+    <Context.Provider value={useMemo(() => ({ makeToast }), [makeToast])}>
       {children}
       {toasts.map((toast) => (
         <RenderToast key={toast.id} toast={toast} onCleanup={onCleanup} />
