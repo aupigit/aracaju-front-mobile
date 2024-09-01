@@ -18,20 +18,23 @@ import * as Crypto from 'expo-crypto'
 import RNPickerSelect from 'react-native-picker-select'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { eq } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
-
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useApplicator } from '@/features/session'
-import { useDevice } from '@/features/device'
-import { IImagesProps } from '@/components/PhonePhotos'
+
+import { useDeviceFactoryId } from '@/features/device'
+import { ImageShape } from '@/components/phone-photos'
 import { useToaster } from '@/features/toaster'
-import { PointReference, SelectPointReference } from '@/db/point-reference'
+import { SelectPointReference } from '@/db/point-reference'
 import { useDB } from '@/features/database'
 import { SimpleErrorScreen } from '@/components/simple-error-screen'
-import { db } from '@/lib/database'
 import { Application } from '@/db/application'
 import { useConfigApp } from '@/hooks/use-config-app'
+import { useSyncOperations } from '@/features/data-collection/context'
+import {
+  findDeviceByFactoryIdQuery,
+  findOneApplicatorQuery,
+  findPointReferenceByIdQuery,
+} from '@/features/database/queries'
 
 const applicationSchema = z.object({
   volume_bti: z.number({
@@ -49,19 +52,11 @@ const applicationSchema = z.object({
 type ApplicationFormData = z.infer<typeof applicationSchema>
 
 const Applications = () => {
-  const db = useDB()
   const { id, lat, long } = useLocalSearchParams()
   const pointId = Number(Array.isArray(id) ? id[0] : id)
   const latitude = Number(Array.isArray(lat) ? lat[0] : lat)
   const longitude = Number(Array.isArray(long) ? long[0] : long)
-
-  const query = useLiveQuery(
-    db
-      .select()
-      .from(PointReference)
-      .limit(1)
-      .where(eq(PointReference.id, pointId)),
-  )
+  const query = useLiveQuery(findPointReferenceByIdQuery(pointId))
 
   if (isNaN(pointId) || isNaN(latitude) || isNaN(longitude) || query.error) {
     return <SimpleErrorScreen message="Dados inválidos" />
@@ -86,11 +81,12 @@ const AfterLoadData = ({
   latitude: number
   longitude: number
 }) => {
+  const db = useDB()
   const toaster = useToaster()
+  const factoryId = useDeviceFactoryId()
+  const { startPushData } = useSyncOperations()
   const { volumeEscala: configScaleVolume } = useConfigApp(['volume_escala'])
-  const applicator = useApplicator()!
-  const device = useDevice()
-  const [image, setImage] = useState<IImagesProps | null>(null)
+  const [image, setImage] = useState<ImageShape | null>(null)
   const {
     control,
     handleSubmit,
@@ -157,6 +153,9 @@ const AfterLoadData = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      const [device] = await findDeviceByFactoryIdQuery(factoryId).execute()
+      const [applicator] = await findOneApplicatorQuery().execute()
+
       await db.insert(Application).values({
         latitude,
         longitude,
@@ -185,6 +184,7 @@ const AfterLoadData = ({
         type: 'success',
         message: 'Aplicação realizada com sucesso.',
       })
+      startPushData()
       router.replace('/points-reference')
     } catch (error) {
       Alert.alert('Erro ao criar uma aplicação: ', (error as Error).message)

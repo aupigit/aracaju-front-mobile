@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const Application = sqliteTable('Application', {
+  // FIXME: we need client id and server id
   id: integer('id').primaryKey().unique(),
   point_reference: integer('point_reference'),
   device: integer('device').notNull(),

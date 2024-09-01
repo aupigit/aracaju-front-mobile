@@ -3,13 +3,13 @@ import { useCallback } from 'react'
 
 import { Applicator, NewApplicator } from '@/db/applicator'
 import { useDB } from '@/features/database'
-import { FindApplicatorApplicator } from '@/services/onlineServices/applicator'
+import { APIApplicator } from '@/services/online-services/applicator'
 
 export const useUpsertApplicator = () => {
   const db = useDB()
 
   return useCallback(
-    async (applicator: FindApplicatorApplicator) => {
+    async (applicator: APIApplicator) => {
       const newApplicator: NewApplicator = {
         id: applicator.id,
         contract: applicator.contract,

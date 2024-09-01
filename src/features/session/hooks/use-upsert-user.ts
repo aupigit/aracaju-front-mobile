@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 
 import { NewUser, User } from '@/db/user'
 import { useDB } from '@/features/database'
-import { LoginResponseUser } from '@/services/onlineServices/authenticate'
+import { LoginResponseUser } from '@/services/online-services/authenticate'
 
 export const useUpsertUser = () => {
   const db = useDB()

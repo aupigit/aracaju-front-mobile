@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 
 import {
+  useSyncOperations,
   useUserSelectedCoordinates,
   useUserSelectedPoint,
 } from '@/features/data-collection/context'
@@ -23,6 +24,7 @@ const editPointCoordinateSchema = z.object({
 type EditPointCoordinateFormData = z.infer<typeof editPointCoordinateSchema>
 
 export const ApplicationAdjustPointCoordinatesModal = () => {
+  const { startPushData } = useSyncOperations()
   const { selectedPoint, setSelectedPoint } = useUserSelectedPoint()
   const { selectedCoordinates, setSelectedCoordinates } =
     useUserSelectedCoordinates()
@@ -47,8 +49,10 @@ export const ApplicationAdjustPointCoordinatesModal = () => {
         })
         .where(eq(PointReference.pk, selectedPoint!.pk!))
         .execute()
+
       setSelectedCoordinates(null)
       setSelectedPoint(null)
+      startPushData()
     } catch (error) {
       Alert.alert(
         'Erro ao alterar a localização do ponto: ',

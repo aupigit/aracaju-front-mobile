@@ -9,6 +9,7 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '@/lib/database'
 import { PointReference, SelectPointReference } from '@/db/point-reference'
+import { useSyncOperations } from '@/features/data-collection/context'
 
 type Props = {
   onClose: () => void
@@ -28,6 +29,7 @@ export const ApplicationConfirmInactivePointModal = ({
   onClose,
   selectedPoint,
 }: Props) => {
+  const { startPushData } = useSyncOperations()
   const {
     control,
     handleSubmit,
@@ -49,6 +51,7 @@ export const ApplicationConfirmInactivePointModal = ({
         .where(eq(PointReference.pk, selectedPoint.pk!))
         .execute()
 
+      startPushData()
       onClose()
       router.back()
       reset()

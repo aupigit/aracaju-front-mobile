@@ -4,17 +4,16 @@ import { useQuery } from 'react-query'
 import { ActivityIndicator, Button } from 'react-native-paper'
 import { useEffect } from 'react'
 import { router } from 'expo-router'
-import { eq } from 'drizzle-orm'
 
-import { useDB } from '@/features/database'
 import { useChangeAsyncStore } from '@/hooks'
-import { doLogout } from '@/services/onlineServices/authenticate'
-import { User } from '@/db/user'
-import { Applicator } from '@/db/applicator'
+import { doLogout } from '@/services/online-services/authenticate'
 import { useApplicator, useUser } from '@/features/session'
+import {
+  deleteApplicatorByIdQuery,
+  deleteUserByIdQuery,
+} from '@/features/database/queries'
 
 export const LogoutPage = () => {
-  const db = useDB()
   const asyncStorage = useChangeAsyncStore()
   const user = useUser()
   const applicator = useApplicator()
@@ -36,14 +35,11 @@ export const LogoutPage = () => {
       //  of deletes without wheres, we need to report this and wait for a fix.
       //  in the meantime we'll delete with ids
       if (user) {
-        await db.delete(User).where(eq(User.id, user.id)).execute()
+        await deleteUserByIdQuery(user.id).execute()
       }
 
       if (applicator) {
-        await db
-          .delete(Applicator)
-          .where(eq(Applicator.id, applicator.id))
-          .execute()
+        await deleteApplicatorByIdQuery(applicator.id).execute()
       }
 
       console.info('[logout] all data removed')

@@ -14,6 +14,7 @@ import { ToasterProvider } from '@/features/toaster'
 import {
   UserSelectedCoordinatesProvider,
   UserSelectedPointProvider,
+  SyncOperationsProvider,
 } from '@/features/data-collection/context'
 
 const queryClient = new QueryClient()
@@ -30,11 +31,13 @@ export function Providers({ children }: { children: ReactNode }) {
               <DeviceProvider>
                 <UserProvider>
                   <ApplicatorProvider>
-                    <UserSelectedPointProvider>
-                      <UserSelectedCoordinatesProvider>
-                        {children}
-                      </UserSelectedCoordinatesProvider>
-                    </UserSelectedPointProvider>
+                    <SyncOperationsProvider>
+                      <UserSelectedPointProvider>
+                        <UserSelectedCoordinatesProvider>
+                          {children}
+                        </UserSelectedCoordinatesProvider>
+                      </UserSelectedPointProvider>
+                    </SyncOperationsProvider>
                   </ApplicatorProvider>
                 </UserProvider>
               </DeviceProvider>

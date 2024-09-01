@@ -4,10 +4,7 @@ import { router } from 'expo-router'
 
 import { getConflictPoints } from '@/utils/getConflictPoints'
 import { calculateDistance } from '@/utils/calculateDistance'
-import {
-  useUserCurrentLocation,
-  useUserSelectedPoint,
-} from '@/features/data-collection/context'
+import { useUserCurrentLocation } from '@/features/data-collection/context'
 import { SelectPointReference } from '@/db/point-reference'
 
 type PointInformationButtonProps = {
@@ -20,7 +17,6 @@ export const PointInformationButton = ({
   configPointRadius,
 }: PointInformationButtonProps) => {
   const userLocation = useUserCurrentLocation()
-  const { setSelectedPoint } = useUserSelectedPoint()
 
   const handlePressPointDetails = () => {
     // Verifique se há conflito (usuário dentro do raio de dois pontos)
@@ -36,7 +32,6 @@ export const PointInformationButton = ({
 
       // Use o índice para encontrar o ponto mais próximo
       const closestPoint = conflictPoints[closestPointIndex]
-      setSelectedPoint(closestPoint)
 
       // Abra o modal com o ponto mais próximo
       router.navigate(
@@ -45,7 +40,6 @@ export const PointInformationButton = ({
     } else {
       for (const point of pointsDataOffline) {
         if (calculateDistance(userLocation, point) <= configPointRadius) {
-          setSelectedPoint(point)
           router.navigate(
             `/edit-point/${point.id}/${userLocation.latitude}/${userLocation.longitude}`,
           )

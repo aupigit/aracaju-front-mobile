@@ -1,40 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  View,
-  Text,
-  Alert,
-  DrawerLayoutAndroid,
-  TouchableOpacity,
-} from 'react-native'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { View, Text, DrawerLayoutAndroid, TouchableOpacity } from 'react-native'
 import ReactNativeMaps from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useQuery } from 'react-query'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { FontAwesome6 } from '@expo/vector-icons'
 
 import { calculateDistance } from '@/utils/calculateDistance'
 import isPointInRegion from '@/utils/isPointInRegion'
-import { findManyPointsReferences } from '@/services/onlineServices/points'
 import { ApplicationAdjustPointCoordinatesModal } from '@/components/Modal/ApplicationAdjustPointCoordinatesModal'
-import { useUser, useApplicator } from '@/features/session'
-import {
-  pullPointData,
-  pullPointLastUpdatedAt,
-} from '@/services/pullServices/pointReference'
-import { findConfigApp } from '@/services/onlineServices/configApp'
-import { pullConfigAppData } from '@/services/pullServices/configApp'
-import { syncApplication } from '@/services/syncServices/application'
-import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
-import { syncTrails } from '@/services/syncServices/trail'
-import { syncPoints } from '@/services/syncServices/points'
-import { formatDate, formatDateToDDMMYYYY } from '@/utils/date'
-import { useDevice } from '@/features/device'
-import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
+import { useUser } from '@/features/session'
+import { formatDateToDDMMYYYY } from '@/utils/date'
 import { ApplicationAddPointReferenceModal } from '@/components/Modal/ApplicationAddPointReferenceModal'
-import { upsertPointTypeData } from '@/services/pullServices/point-type'
-import { findManyPointType } from '@/services/onlineServices/point-type'
-import { SyncModal } from '@/components/Modal/SyncModal'
 import { CollectButton } from '@/components/PointsReference/CollectButton'
 import { PointInformationButton } from '@/components/PointsReference/PointInformationButton'
 import { ApplicationButton } from '@/components/PointsReference/ApplicationButton'
@@ -48,30 +25,23 @@ import {
   useUserCurrentLocation,
   useUserSelectedCoordinates,
 } from '@/features/data-collection/context'
-import { useAsyncStoreValues, useChangeAsyncStore } from '@/hooks'
+import { useAsyncStoreValues } from '@/hooks'
 import { PointReference, SelectPointReference } from '@/db/point-reference'
 import { useDB } from '@/features/database'
 import { useConfigApp } from '@/hooks/use-config-app'
 import { numToPointType, PointType } from '@/features/data-collection/constants'
-
-const toNil = () => null
+import { Application } from '@/db/application'
+import { useSyncOperations } from '@/features/data-collection/context/sync-operations'
 
 export const PointsReferencePage = () => {
   const db = useDB()
-  const [pointTypeAction, setPointTypeAction] = useState<PointType | null>(null)
-  const [showPointDetails, setShowPointDetails] = useState(false)
+  const userLocation = useUserCurrentLocation()
+  const user = useUser()!
+  const { startCompleteSync } = useSyncOperations()
   const [modalAddPointReference, setModalAddPointReference] = useState(false)
   const [modalButtonWarning, setModalButtonWarning] = useState(false)
-
   const [lastSync] = useAsyncStoreValues(['last_sync_time']).data || []
-  const changeAsyncStore = useChangeAsyncStore()
-  const [modalSync, setModalSync] = useState(false)
-  const [progress, setProgress] = useState(0)
 
-  const userLocation = useUserCurrentLocation()
-  const device = useDevice()
-  const applicator = useApplicator()!
-  const user = useUser()!
   const { selectedCoordinates } = useUserSelectedCoordinates()
 
   const insets = useSafeAreaInsets()
@@ -104,7 +74,7 @@ export const PointsReferencePage = () => {
           ? eq(PointReference.is_active, true)
           : and(
               eq(PointReference.is_active, true),
-              eq(PointReference.point_type, 1),
+              eq(PointReference.point_type, PointType.APPLICATION),
             ),
       ),
   )
@@ -122,96 +92,36 @@ export const PointsReferencePage = () => {
   }, [configPointRadius])
 
   // GET - Data da última aplicação em determinados pontos/Offline
-  const {
-    data: latestApplicationDates,
-    isLoading: latestApplicationDateLoading,
-  } = useQuery(
-    'application/application/latest',
-    () => {
-      return findLatestApplicationDatesByPointIds(
-        pointReferences.data
-          // FIXME: point coords shouldn't be null!
-          .filter((point) => isPointInRegion(point, userLocation))
-          // FIXME: id shouldn't be null!
-          .map((point) => point.id!),
-      )
-    },
-    { enabled: !!pointReferences.data },
+
+  const pointsIdInUserRegion = useMemo(
+    () =>
+      pointReferences.data
+        // FIXME: point coords shouldn't be null!
+        .filter((point) => isPointInRegion(point, userLocation))
+        // FIXME: id shouldn't be null!
+        .map((point) => point.id!),
+    [pointReferences.data, userLocation],
+  )
+  const latestApplicationDates = useLiveQuery(
+    db
+      .select({
+        id: Application.id,
+        createdAt: Application.created_at,
+      })
+      .from(Application)
+      .where(inArray(Application.point_reference, pointsIdInUserRegion))
+      .orderBy(desc(Application.created_at)),
   )
 
-  const incrementProgress = useCallback(() => {
-    setProgress((prevProgress) => prevProgress + 0.1)
-  }, [setProgress])
+  const { pointTypeAction, showPointDetails } = useMemo(() => {
+    const validPoints = pointReferences.data
+      .filter((point) => isPointInRegion(point, userLocation))
+      .filter(
+        (point) =>
+          calculateDistance(userLocation, point) <= configsOfPointRadius,
+      )
 
-  const handleSyncInformation = async () => {
-    setModalSync(true)
-    setProgress(0)
-
-    console.log('[sync] sending data')
-    try {
-      await syncPoints(applicator.id, device.factory_id)
-      setProgress(0.1)
-      await Promise.all([
-        syncApplication().then(incrementProgress),
-        syncDoAdultCollection().then(incrementProgress),
-        syncTrails().then(incrementProgress),
-      ])
-
-      await changeAsyncStore.multiSet([
-        ['last_sync_time', new Date().toISOString()],
-      ])
-
-      console.log('[sync] fetch started')
-
-      // FIXME: should we do this in parallel?
-      // Points
-      const points = await pullPointLastUpdatedAt()
-        .then((date) => (date ? formatDate(new Date(date)) : null))
-        .catch(toNil)
-        .then((date) => findManyPointsReferences(date))
-        .catch(toNil)
-        .finally(incrementProgress)
-
-      // Config app
-      const configApps = await findConfigApp()
-        .catch(toNil)
-        .finally(incrementProgress)
-
-      // Point type
-      const pointTypes = await findManyPointType()
-        .catch(toNil)
-        .finally(incrementProgress)
-
-      await Promise.all([
-        pullPointData(points ?? []).then(incrementProgress),
-        pullConfigAppData(configApps ?? []).then(incrementProgress),
-        upsertPointTypeData(pointTypes ?? []).then(incrementProgress),
-      ])
-
-      setModalSync(false)
-      console.log('[sync] finished')
-      setProgress(1)
-    } catch (error) {
-      setModalSync(false)
-      console.log('[sync]', error)
-      Alert.alert('Erro na sincronização:', (error as Error).message)
-    }
-  }
-
-  // Ações do usuário
-  useEffect(() => {
-    const validPoints: SelectPointReference[] = []
-    const pointsInRegion = pointReferences.data.filter((point) =>
-      isPointInRegion(point, userLocation),
-    )
-
-    for (const point of pointsInRegion) {
-      if (calculateDistance(userLocation, point) <= configsOfPointRadius) {
-        validPoints.push(point)
-      }
-    }
-
-    if (validPoints.length > 0) {
+    if (validPoints.length) {
       const distances = validPoints.map((point) =>
         calculateDistance(userLocation, point),
       )
@@ -219,29 +129,21 @@ export const PointsReferencePage = () => {
       const closestPointIndex = distances.indexOf(Math.min(...distances))
       const closestPoint = validPoints[closestPointIndex]
 
-      setShowPointDetails(true)
-      setPointTypeAction(numToPointType(closestPoint.point_type))
-    } else {
-      setPointTypeAction(null)
-      setShowPointDetails(false)
+      return {
+        pointTypeAction: numToPointType(closestPoint.point_type),
+        showPointDetails: true,
+      }
+    }
+
+    return {
+      pointTypeAction: null,
+      showPointDetails: false,
     }
   }, [pointReferences.data, userLocation, configsOfPointRadius])
 
-  // Menu lateral
   const navigationView = () => (
     <Sidebar insets={insets} closeDrawer={closeDrawer} />
   )
-
-  // Loading de informações
-  if (latestApplicationDateLoading || !applicator || !device || !user) {
-    return (
-      <View className=" flex-1 flex-col items-center justify-center gap-3">
-        <Text className="w-[60%] text-center text-lg font-bold">
-          Carregando o mapa e os pontos. Aguarde um momento
-        </Text>
-      </View>
-    )
-  }
 
   return (
     <DrawerLayoutAndroid
@@ -253,7 +155,7 @@ export const PointsReferencePage = () => {
       <View className="flex-1 items-center justify-center">
         <PointsReferenceMapView
           mapRef={mapRef}
-          latestApplicationDates={latestApplicationDates || []}
+          latestApplicationDates={latestApplicationDates.data}
           pointsDataOffline={pointReferences.data}
         />
         {user.is_staff && selectedCoordinates && (
@@ -262,13 +164,6 @@ export const PointsReferencePage = () => {
         {user.is_staff && modalAddPointReference && (
           <ApplicationAddPointReferenceModal
             onClose={() => setModalAddPointReference(false)}
-          />
-        )}
-        {modalSync && (
-          <SyncModal
-            onClose={() => setModalSync(false)}
-            progress={progress}
-            pointsLength={0}
           />
         )}
         {modalButtonWarning && (
@@ -280,7 +175,7 @@ export const PointsReferencePage = () => {
           <View className="flex-1 flex-col gap-2">
             <TouchableOpacity
               className="h-12 flex-row items-center justify-center gap-2 rounded-sm bg-blue-500 p-2"
-              onPress={handleSyncInformation}
+              onPress={startCompleteSync}
             >
               <FontAwesome6 name="arrows-rotate" size={16} color="white" />
               <Text className="font-bold uppercase text-white">
@@ -328,7 +223,7 @@ export const PointsReferencePage = () => {
             configPointRadius={configsOfPointRadius}
             pointsDataOffline={pointReferences.data}
             setModalButtonWarning={setModalButtonWarning}
-            latestApplicationDates={latestApplicationDates || []}
+            latestApplicationDates={latestApplicationDates.data}
           />
         )}
         {showPointDetails && user.is_staff && (

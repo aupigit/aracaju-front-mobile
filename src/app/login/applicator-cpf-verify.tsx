@@ -14,10 +14,11 @@ import { router } from 'expo-router'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { findApplicatorByCPF } from '@/services/onlineServices/applicator'
+import { findApplicatorByCPF } from '@/services/online-services/applicator'
 import { maskCPF } from '@/utils/cpfMask'
 import { useToaster } from '@/features/toaster'
 import { useUpsertApplicator } from '@/features/session'
+import { useSyncOperations } from '@/features/data-collection/context'
 
 const applicatorVerifySchema = z.object({
   cpfApplicator: z.string({
@@ -31,6 +32,7 @@ type ApplicatorVerifyData = z.infer<typeof applicatorVerifySchema>
 const ApplicatorCPFVerify = () => {
   const upsertApplicator = useUpsertApplicator()
   const toaster = useToaster()
+  const { startCompleteSync } = useSyncOperations()
 
   const {
     control,
@@ -51,6 +53,7 @@ const ApplicatorCPFVerify = () => {
           type: 'success',
           message: 'Aplicador logado com sucesso.',
         })
+        startCompleteSync()
         router.navigate('/points-reference')
       } else {
         toaster.makeToast({

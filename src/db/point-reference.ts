@@ -7,7 +7,7 @@ export const PointReference = sqliteTable('PointReference', {
   //  we need to test if we can add two points offline (no server id)
   pk: integer('pk').primaryKey(),
   id: integer('id').unique(),
-  contract: integer('contract').notNull(),
+  contract: integer('contract'),
   name: text('name'),
   device: integer('device').notNull(),
   applicator: integer('applicator').notNull(),

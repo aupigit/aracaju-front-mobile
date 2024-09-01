@@ -2,10 +2,7 @@ import { router } from 'expo-router'
 import React from 'react'
 import { Pressable, Text } from 'react-native'
 
-import {
-  useUserCurrentLocation,
-  useUserSelectedPoint,
-} from '@/features/data-collection/context'
+import { useUserCurrentLocation } from '@/features/data-collection/context'
 import { SelectPointReference } from '@/db/point-reference'
 import { calculateDistance } from '@/utils/calculateDistance'
 import { getConflictPoints } from '@/utils/getConflictPoints'
@@ -22,7 +19,6 @@ export const CollectButton = ({
   setModalButtonWarning,
 }: ButtonCollectAdultProps) => {
   const userLocation = useUserCurrentLocation()
-  const { setSelectedPoint } = useUserSelectedPoint()
 
   const handlePressCollectButton = () => {
     const conflictPoints = getConflictPoints(userLocation, pointsDataOffline)
@@ -35,8 +31,6 @@ export const CollectButton = ({
       const closestPointIndex = distances.indexOf(Math.min(...distances))
       const closestPoint = conflictPoints[closestPointIndex]
 
-      setSelectedPoint(closestPoint)
-
       // Abra o modal com o ponto mais próximo
       if (closestPoint === null || closestPoint.id === null) {
         setModalButtonWarning(true)
@@ -48,7 +42,6 @@ export const CollectButton = ({
     } else {
       for (const point of pointsDataOffline || []) {
         if (calculateDistance(userLocation, point) <= configPointRadius) {
-          setSelectedPoint(point)
           // Abra o modal com o ponto mais próximo
           if (point === null || point.id === null) {
             setModalButtonWarning(true)

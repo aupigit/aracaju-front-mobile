@@ -13,16 +13,22 @@ import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import RNPickerSelect from 'react-native-picker-select'
 
-import { useUserCurrentLocation } from '@/features/data-collection/context'
+import {
+  useSyncOperations,
+  useUserCurrentLocation,
+} from '@/features/data-collection/context'
 import { useToaster } from '@/features/toaster'
-import { useApplicator } from '@/features/session'
-import { useDevice } from '@/features/device'
-import { NewPointReference, PointReference } from '@/db/point-reference'
+import { useDeviceFactoryId } from '@/features/device'
+import { PointReference } from '@/db/point-reference'
 import { useDB } from '@/features/database'
 import { useConfigApp } from '@/hooks/use-config-app'
 import { PointType } from '@/db/point-type'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  findDeviceByFactoryIdQuery,
+  findOneApplicatorQuery,
+} from '@/features/database/queries'
 
 const createPointSchema = z.object({
   name: z.string({ required_error: 'Nome do ponto é obrigatório' }),
@@ -45,8 +51,8 @@ export const ApplicationAddPointReferenceModal = ({
   onClose: () => void
 }) => {
   const db = useDB()
-  const applicator = useApplicator()!
-  const device = useDevice()
+  const factoryId = useDeviceFactoryId()
+  const { startPushData } = useSyncOperations()
   const userLocation = useUserCurrentLocation()
   const toaster = useToaster()
   const { volumeEscala: configScaleVolume } = useConfigApp(['volume_escala'])
@@ -78,7 +84,10 @@ export const ApplicationAddPointReferenceModal = ({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const newPointReference: NewPointReference = {
+      const [applicator] = await findOneApplicatorQuery().execute()
+      const [device] = await findDeviceByFactoryIdQuery(factoryId).execute()
+
+      await db.insert(PointReference).values({
         applicator: applicator.id,
         device: device.id,
         name: data.name,
@@ -92,13 +101,12 @@ export const ApplicationAddPointReferenceModal = ({
         transmission: 'offline',
         is_active: true,
         is_new: true,
-      }
-
-      await db.insert(PointReference).values(newPointReference)
+      })
       toaster.makeToast({
         type: 'success',
         message: 'Ponto criado com sucesso',
       })
+      startPushData()
       onClose()
     } catch (error) {
       toaster.makeToast({

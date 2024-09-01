@@ -1,10 +1,6 @@
+import { LatLng } from 'react-native-maps'
+
 // Virtualização de pontos a 1KM de distância
-
-type LatLng = {
-  latitude: number
-  longitude: number
-}
-
 function isPointInRegion(point: LatLng, region: LatLng) {
   if (!region) {
     return true

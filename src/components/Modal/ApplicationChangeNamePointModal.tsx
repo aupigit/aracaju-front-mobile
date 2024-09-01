@@ -8,8 +8,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 import { db } from '@/lib/database'
 import { PointReference, SelectPointReference } from '@/db/point-reference'
+import { useSyncOperations } from '@/features/data-collection/context'
 
-interface ApplicationChangeNamePointModalProps {
+type Props = {
   onClose: () => void
   selectedPoint: SelectPointReference
 }
@@ -27,7 +28,8 @@ type EditPointFormData = z.infer<typeof editPointSchema>
 export const ApplicationChangeNamePointModal = ({
   onClose,
   selectedPoint,
-}: ApplicationChangeNamePointModalProps) => {
+}: Props) => {
+  const { startPushData } = useSyncOperations()
   const {
     control,
     handleSubmit,
@@ -51,6 +53,7 @@ export const ApplicationChangeNamePointModal = ({
         .where(eq(PointReference.pk, selectedPoint.pk!))
         .execute()
 
+      startPushData()
       onClose()
     } catch (error) {
       Alert.alert('Erro ao alterar o nome do ponto: ', (error as Error).message)

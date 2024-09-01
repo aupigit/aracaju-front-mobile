@@ -21,15 +21,19 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { eq } from 'drizzle-orm'
 
-import { useApplicator } from '@/features/session'
-import { useDevice } from '@/features/device'
-import { IImagesProps } from '@/components/PhonePhotos'
+import { ImageShape } from '@/components/phone-photos'
 import { useDB } from '@/features/database'
 import { PointReference, SelectPointReference } from '@/db/point-reference'
 import { SimpleErrorScreen } from '@/components/simple-error-screen'
 import { useConfigApp } from '@/hooks/use-config-app'
 import { useToaster } from '@/features/toaster'
-import { AdultCollection, NewAdultCollection } from '@/db/adultcollection'
+import { AdultCollection, NewAdultCollection } from '@/db/adult-collection'
+import { useSyncOperations } from '@/features/data-collection/context'
+import {
+  findDeviceByFactoryIdQuery,
+  findOneApplicatorQuery,
+} from '@/features/database/queries'
+import { useDeviceFactoryId } from '@/features/device'
 
 const adultCollectionSchema = z.object({
   wind: z.string({
@@ -95,9 +99,9 @@ const AfterLoadData = ({
 }) => {
   const db = useDB()
   const toaster = useToaster()
-  const applicator = useApplicator()!
-  const device = useDevice()
-  const [image, setImage] = useState<IImagesProps | null>(null)
+  const factoryId = useDeviceFactoryId()
+  const { startPushData } = useSyncOperations()
+  const [image, setImage] = useState<ImageShape | null>(null)
   const {
     coletaVento: configWindCollection,
     coletaClima: configClimateWindCollection,
@@ -164,6 +168,9 @@ const AfterLoadData = ({
 
   // TODO - Quando eu crio um ponto novo e realizo uma aplicação o id/pointreference vem como null/0 e por isso da erro 400
   const onSubmit = handleSubmit(async (data) => {
+    const [applicator] = await findOneApplicatorQuery().execute()
+    const [device] = await findDeviceByFactoryIdQuery(factoryId).execute()
+
     try {
       const newAdultCollection: NewAdultCollection = {
         marker: JSON.stringify([latitude, longitude]),
@@ -181,7 +188,8 @@ const AfterLoadData = ({
         device: device.id,
         applicator: applicator.id,
         image: data.image,
-        contract: point.contract,
+        // offline points will not have a contract
+        contract: point.contract!,
         transmission: 'offline',
         humidity: data.humidity,
         created_ondevice_at: new Date().toISOString(),
@@ -191,6 +199,7 @@ const AfterLoadData = ({
 
       await db.insert(AdultCollection).values(newAdultCollection)
 
+      startPushData()
       toaster.makeToast({
         type: 'success',
         message: 'Coleta realizada com sucesso.',

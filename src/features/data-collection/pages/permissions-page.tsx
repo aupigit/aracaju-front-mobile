@@ -1,15 +1,22 @@
 import { View, Text, Linking, Alert } from 'react-native'
 import * as Location from 'expo-location'
 import * as Notifications from 'expo-notifications'
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 
 import { SimpleLoadingScreen } from '@/components/simple-loading-screen'
 import { PermissionSection } from '@/features/data-collection/components'
+import { pushDataBackgroundTask } from '@/features/background-tasks/tasks'
 
 export const PermissionsPage = ({ children }: { children: ReactNode }) => {
   const [foreground, requestForeground] = Location.useForegroundPermissions()
   const [background, requestBackground] = Location.useBackgroundPermissions()
   const [notification, requestNotification] = Notifications.usePermissions()
+  const { mutate: registerPushDataTask } =
+    pushDataBackgroundTask.useRegisterTask()
+
+  useEffect(() => {
+    registerPushDataTask()
+  }, [registerPushDataTask])
 
   const handlePermissionRequest = async (
     request: () => Promise<{ canAskAgain: boolean }>,

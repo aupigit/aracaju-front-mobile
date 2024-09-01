@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query'
-import { findDeviceByFactoryId } from '@/services/onlineServices/device'
+import { findDeviceByFactoryId } from '@/services/online-services/device'
 
 export const useFetchDeviceByFactoryId = (factoryId: string) => {
   return useQuery(['USE_DEVICE_DATA', factoryId], async () => {

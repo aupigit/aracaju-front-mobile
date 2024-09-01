@@ -4,10 +4,7 @@ import { router } from 'expo-router'
 
 import { getConflictPoints } from '@/utils/getConflictPoints'
 import { calculateDistance } from '@/utils/calculateDistance'
-import {
-  useUserCurrentLocation,
-  useUserSelectedPoint,
-} from '@/features/data-collection/context'
+import { useUserCurrentLocation } from '@/features/data-collection/context'
 import { SelectPointReference } from '@/db/point-reference'
 import { isToday } from '@/utils/date'
 
@@ -25,7 +22,6 @@ export const ApplicationButton = ({
   latestApplicationDates,
 }: ApplicationButtonProps) => {
   const userLocation = useUserCurrentLocation()
-  const { setSelectedPoint } = useUserSelectedPoint()
 
   let isApplicationToday = false
   if (latestApplicationDates) {
@@ -51,7 +47,6 @@ export const ApplicationButton = ({
 
       // Use o índice para encontrar o ponto mais próximo
       const closestPoint = conflictPoints[closestPointIndex]
-      setSelectedPoint(closestPoint)
 
       // Abra o modal com o ponto mais próximo
       if (closestPoint === null || closestPoint.id === null) {
@@ -64,8 +59,6 @@ export const ApplicationButton = ({
     } else {
       for (const point of pointsDataOffline || []) {
         if (calculateDistance(userLocation, point) <= configPointRadius) {
-          setSelectedPoint(point)
-
           // Abra o modal com o ponto mais próximo
           if (point === null || point.id === null) {
             setModalButtonWarning(true)

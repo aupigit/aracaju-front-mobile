@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 import { PointReference, SelectPointReference } from '@/db/point-reference'
 import { db } from '@/lib/database'
+import { useSyncOperations } from '@/features/data-collection/context'
 
 type Props = {
   onClose: () => void
@@ -29,6 +30,7 @@ export const ApplicationChangePointCoordinatesToUserLocation = ({
   userLocation,
   selectedPoint,
 }: Props) => {
+  const { startPushData } = useSyncOperations()
   const {
     control,
     handleSubmit,
@@ -50,6 +52,7 @@ export const ApplicationChangePointCoordinatesToUserLocation = ({
         .where(eq(PointReference.pk, selectedPoint.pk!))
         .execute()
 
+      startPushData()
       onClose()
       router.back()
     } catch (error) {

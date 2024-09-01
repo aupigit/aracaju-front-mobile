@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Alert } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
 import { router } from 'expo-router'

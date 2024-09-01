@@ -8,7 +8,7 @@ export const numToPointType = (num: number | null) => {
     case PointType.APPLICATION:
       return PointType.APPLICATION
     case PointType.ADULT_COLLECTION:
-      return PointType.APPLICATION
+      return PointType.ADULT_COLLECTION
     default:
       return null
   }
