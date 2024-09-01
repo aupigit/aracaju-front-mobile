@@ -34,7 +34,7 @@ export const syncPointsReferenceName = async (
           try {
             for (const item of data) {
               const response = await adjustPointReferenceName(
-                item.name,
+                item.name!,
                 'item.description',
                 Number(item.id),
                 applicatorId,
@@ -48,7 +48,9 @@ export const syncPointsReferenceName = async (
                   .execute()
               }
             }
-          } catch (error) {
+          } catch (err) {
+            const error = err as Error
+
             Alert.alert(
               'Erro ao realizar o sync do nome do ponto:',
               error.message,
@@ -87,8 +89,8 @@ export const syncPointsReferenceLocation = async (
           try {
             for (const item of data) {
               const response = await adjustPointReferenceCoordinates(
-                item.longitude,
-                item.latitude,
+                item.longitude!,
+                item.latitude!,
                 'item.description',
                 Number(item.id),
                 applicatorId,
@@ -102,7 +104,9 @@ export const syncPointsReferenceLocation = async (
                   .execute()
               }
             }
-          } catch (error) {
+          } catch (err) {
+            const error = err as Error
+
             Alert.alert(
               'Erro ao realizar o sync da coordenada do ponto:',
               error.message,
@@ -152,7 +156,9 @@ export const syncPointsReferenceStatus = async (
                   .execute()
               }
             }
-          } catch (error) {
+          } catch (err) {
+            const error = err as Error
+
             Alert.alert(
               'Erro ao realizar o sync do status do ponto:',
               error.message,
@@ -189,7 +195,7 @@ export const syncPointsReferenceCreatedOffline = async () => {
             const ten_firsts = data.slice(0, 10)
             const response = await doPointsReference(ten_firsts)
 
-            if (response && response.success) {
+            if (response?.success) {
               for (const item of ten_firsts) {
                 await db
                   .update(PointReference)
@@ -203,7 +209,9 @@ export const syncPointsReferenceCreatedOffline = async () => {
               }
               pullPointData(ten_firsts)
             }
-          } catch (error) {
+          } catch (err) {
+            const error = err as Error
+
             Alert.alert('Erro ao criar um ponto: ', error.message)
             await db.insert(Logs).values({
               error: error.message,

@@ -1,9 +1,30 @@
-import { IDevices } from '@/interfaces/IPoint'
 import { get } from '@/providers/api'
+import { ISODateString } from '@/interfaces/iso-date-string'
+
+export type FindDeviceDevice = {
+  id: number
+  factory_id: string
+  name: string
+  // FIXME: whats the point of asking the user for a token to auth?
+  //  essentially finding the device by factory id lets me login...
+  token: string
+  authorized: true
+  color_line: string
+  description: string | null
+  user: number
+  contract: number
+  applicator: number
+  last_sync: ISODateString
+  created_at: ISODateString
+  updated_at: ISODateString
+}
 
 export const findDeviceByFactoryId = async (
-  factory_id: string | undefined,
-): Promise<IDevices> => {
-  const result = await get(`operation/devices/?factory_id=${factory_id}`)
-  return result[0] as unknown as Promise<IDevices>
+  factoryId: string,
+): Promise<FindDeviceDevice> => {
+  const result = await get<FindDeviceDevice[]>(
+    `operation/devices/?factory_id=${factoryId}`,
+  )
+
+  return result[0]
 }

@@ -1,5 +1,6 @@
 import { IApplicator } from './IApplicator'
 import { IBase } from './IBase'
+import { ISODateString } from '@/interfaces/iso-date-string'
 
 export interface Marker {
   type: string
@@ -27,7 +28,7 @@ export interface IDevices extends IBase {
   factory_id: string
   name: string
   authorized: boolean
-  last_sync: Date
+  last_sync: ISODateString
   color_line: string
   description: string
   applicator: IApplicator

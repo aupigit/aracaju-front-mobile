@@ -20,7 +20,7 @@ const editPointActiveSchema = z.object({
   }),
 })
 
-export type EditPointActiveFormData = z.infer<typeof editPointActiveSchema>
+type EditPointActiveFormData = z.infer<typeof editPointActiveSchema>
 
 const ApplicationConfirmInactivePointModal = ({
   modalVisible,
@@ -43,7 +43,10 @@ const ApplicationConfirmInactivePointModal = ({
       router.navigate('/points-reference')
       reset()
     } catch (error) {
-      Alert.alert('Erro ao alterar o status do ponto: ', error.message)
+      Alert.alert(
+        'Erro ao alterar o status do ponto: ',
+        (error as Error).message,
+      )
       throw error
     }
   })

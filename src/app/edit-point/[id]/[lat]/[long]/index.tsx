@@ -59,7 +59,7 @@ const EditPoint = () => {
               <View className="w-full flex-row gap-2 border border-zinc-900/20 p-4">
                 <Text className="font-bold">Situação do ponto:</Text>
                 <Text>
-                  {point?.is_active === 1 ? ' Ponto Ativo' : ' Ponto Inativo'}
+                  {point?.is_active ? ' Ponto Ativo' : ' Ponto Inativo'}
                 </Text>
               </View>
             </View>

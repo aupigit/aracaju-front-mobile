@@ -16,7 +16,7 @@ interface ApplicationChangeNamePointModalProps {
   setIsEditable: (isEditable: boolean) => void
 }
 
-export const editPointSchema = z.object({
+const editPointSchema = z.object({
   name: z
     .string({
       required_error: 'Nome do ponto é obrigatório',
@@ -29,7 +29,7 @@ export const editPointSchema = z.object({
   }),
 })
 
-export type EditPointFormData = z.infer<typeof editPointSchema>
+type EditPointFormData = z.infer<typeof editPointSchema>
 
 const ApplicationChangeNamePointModal = ({
   modalVisible,

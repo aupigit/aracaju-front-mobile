@@ -23,15 +23,11 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import ApplicationAdjustPointCoordinatesModal from '@/components/Modal/ApplicationAdjustPointCoordinatesModal'
-import { useUser } from '@/contexts/UserContext'
+import { useUser, useApplicator } from '@/features/session'
 import {
   pullPointData,
   pullPointLastUpdatedAt,
 } from '@/services/pullServices/pointReference'
-import { findApplicator } from '@/services/onlineServices/applicator'
-import { pullApplicatorData } from '@/services/pullServices/applicator'
-import { findUser } from '@/services/onlineServices/user'
-import { pullUserData } from '@/services/pullServices/user'
 import {
   findConfigApp,
   findConfigAppByName,
@@ -39,7 +35,6 @@ import {
 import { pullConfigAppData } from '@/services/pullServices/configApp'
 import { syncApplication } from '@/services/syncServices/application'
 import { syncDoAdultCollection } from '@/services/syncServices/doAdultCollection'
-import { useApplicator } from '@/contexts/ApplicatorContext'
 import { syncTrails } from '@/services/syncServices/trail'
 import {
   adjustPointReferenceLocationOffline,
@@ -47,7 +42,7 @@ import {
 } from '@/services/offlineServices/points'
 import { syncPoints } from '@/services/syncServices/points'
 import { formatDate, formatDateToDDMMYYYY } from '@/utils/Date'
-import { useDevice } from '@/contexts/DeviceContext'
+import { useDevice } from '@/features/device'
 import { findLatestApplicationDatesByPointIds } from '@/services/offlineServices/application'
 import { doTrailsOffline } from '@/services/offlineServices/trails'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
@@ -55,12 +50,12 @@ import ApplicationAddPointReferenceModal from '@/components/Modal/ApplicationAdd
 import { pullPointTypeFlatData } from '@/services/pullServices/pointtype'
 import { findManyPointType } from '@/services/onlineServices/pointtype'
 import SyncModal from '@/components/Modal/SyncModal'
-import BtnCollect from '@/components/PointsReference/CollectButton'
+import { CollectButton } from '@/components/PointsReference/CollectButton'
 import BtnPointInformation from '@/components/PointsReference/PointInformationButton'
 import BtnApplication from '@/components/PointsReference/ApplicationButton'
-import MapViewComponent from '@/components/MapView/MapView'
-import Sidebar from '@/components/Sidebar/Sidebar'
-import ButtonActions from '@/components/ButtonActions/ButtonActions'
+import { MapView } from '@/components/MapView'
+import { Sidebar } from '@/components/Sidebar'
+import { ButtonActions } from '@/components/ButtonActions'
 import ButtonWarningModal from '@/components/Modal/ButtonWarningModal'
 import { usePointsReference } from '@/contexts/PointsReferenceContext'
 
@@ -72,9 +67,7 @@ const editPointCoordinateSchema = z.object({
   }),
 })
 
-export type EditPointCoordinateFormData = z.infer<
-  typeof editPointCoordinateSchema
->
+type EditPointCoordinateFormData = z.infer<typeof editPointCoordinateSchema>
 
 const PointsReference = () => {
   const [location, setLocation] = useState<LocationObject | null>(null)
@@ -90,9 +83,9 @@ const PointsReference = () => {
   const [modalSync, setModalSync] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  const { applicator, fetchApplicatorData } = useApplicator()
-  const { device } = useDevice()
-  const { user } = useUser()
+  const device = useDevice()
+  const applicator = useApplicator()!
+  const user = useUser()!
   const {
     pointIsEditable,
     setPointIsEditable,
@@ -112,12 +105,6 @@ const PointsReference = () => {
     drawerRef.current?.closeDrawer()
   }, [])
 
-  useEffect(() => {
-    if (!applicator) {
-      fetchApplicatorData()
-    }
-  }, [applicator, fetchApplicatorData])
-
   // Formulário de ajuste de coordenadas
   const {
     control,
@@ -134,8 +121,8 @@ const PointsReference = () => {
     () => [
       location?.coords.latitude,
       location?.coords.longitude,
-      Number(location?.coords.accuracy.toString().slice(0, 2)),
-      Number(location?.coords.altitude.toString().slice(0, 2)),
+      Number(location?.coords?.accuracy?.toString().slice(0, 2)),
+      Number(location?.coords?.altitude?.toString().slice(0, 2)),
     ],
     [location],
   )
@@ -167,18 +154,6 @@ const PointsReference = () => {
 
     return null
   }, [lastUpdatedAtData])
-
-  // GET - Applicator/Online
-  const { data: applicatorData, isLoading: applicatorLoading } = useQuery(
-    'application/applicator',
-    () => findApplicator(),
-  )
-
-  // GET - User/Online
-  const { data: userData, isLoading: userLoading } = useQuery(
-    'operation/user',
-    () => findUser(),
-  )
 
   // GET - ConfigaApp/Online
   const {
@@ -258,7 +233,7 @@ const PointsReference = () => {
                 longitude: userLocation[1],
               }),
             )
-            .map((point) => point.id),
+            .map((point) => point.id!),
         )
       }
     },
@@ -315,7 +290,7 @@ const PointsReference = () => {
   }, [lastUpdatedAtSuccess, updatedAtParameter])
 
   const incrementProgress = useCallback(() => {
-    setProgress((prevProgress) => prevProgress + 0.1)
+    setProgress((prevProgress) => prevProgress + 1.4)
   }, [setProgress])
 
   const handleSyncInformation = async () => {
@@ -342,8 +317,6 @@ const PointsReference = () => {
       await Promise.all([
         fetchData().then(incrementProgress),
         pullPointData(pointsDataRef.current ?? []).then(incrementProgress),
-        pullApplicatorData(applicatorData ?? []).then(incrementProgress),
-        pullUserData(userData ?? []).then(incrementProgress),
         pullConfigAppData(configAppData ?? []).then(incrementProgress),
         pullPointTypeFlatData(pointTypeData ?? []).then(incrementProgress),
       ])
@@ -356,7 +329,7 @@ const PointsReference = () => {
     } catch (error) {
       setModalSync(false)
       console.log('[sync]', error)
-      Alert.alert('Erro na sincronização:', error.message)
+      Alert.alert('Erro na sincronização:', (error as Error).message)
     }
   }
 
@@ -373,7 +346,10 @@ const PointsReference = () => {
       reset()
       setPreviewCoordinate(null)
     } catch (error) {
-      Alert.alert('Erro ao alterar a localização do ponto: ', error.message)
+      Alert.alert(
+        'Erro ao alterar a localização do ponto: ',
+        (error as Error).message,
+      )
       throw error
     }
   })
@@ -535,8 +511,6 @@ const PointsReference = () => {
 
   // Loading de informações
   if (
-    applicatorLoading ||
-    userLoading ||
     configAppLoading ||
     configPointRadiusLoading ||
     configPushTimeLoading ||
@@ -545,7 +519,8 @@ const PointsReference = () => {
     configPointRadiusIsLoadingOnline ||
     configPushTimeIsLoadingOnline ||
     !applicator ||
-    !device
+    !device ||
+    !user
   ) {
     return (
       <View className=" flex-1 flex-col items-center justify-center gap-3">
@@ -573,7 +548,7 @@ const PointsReference = () => {
         />
 
         <View className="h-screen flex-1 items-center justify-center">
-          <MapViewComponent
+          <MapView
             latestApplicationDates={latestApplicationDates}
             location={location}
             mapRef={mapRef}
@@ -622,10 +597,9 @@ const PointsReference = () => {
             setSelectedPoint={setSelectedPoint}
           />
         </View>
-
         <View className="absolute bottom-0 left-0 items-center justify-center">
-          {user.is_staff && (
-            <BtnCollect
+          {showCollectButton && user.is_staff && (
+            <CollectButton
               configPointRadius={configsOfPointRadius}
               location={location}
               pointsDataOffline={pointsDataOffline}
@@ -653,7 +627,6 @@ const PointsReference = () => {
               userLocation={userLocation}
             />
           )}
-
           {lastSyncTime && (
             <View className="w-screen items-center justify-center bg-white">
               <Text>

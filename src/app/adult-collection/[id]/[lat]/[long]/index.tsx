@@ -15,20 +15,21 @@ import RNPickerSelect from 'react-native-picker-select'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { doAdultCollectionOffline } from '@/services/offlineServices/doAdultCollection'
 import { AntDesign, Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as Crypto from 'expo-crypto'
-import { useApplicator } from '@/contexts/ApplicatorContext'
-import { useDevice } from '@/contexts/DeviceContext'
 import { useQuery } from 'react-query'
+import { router, useLocalSearchParams } from 'expo-router'
+
+import { doAdultCollectionOffline } from '@/services/offlineServices/doAdultCollection'
+import { useApplicator } from '@/features/session'
+import { useDevice } from '@/features/device'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import { findConfigAppByName } from '@/services/onlineServices/configApp'
 import { IImagesProps } from '@/components/PhonePhotos'
-import { router, useLocalSearchParams } from 'expo-router'
 import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
 
-export const adultCollectionSchema = z.object({
+const adultCollectionSchema = z.object({
   wind: z.string(),
   climate: z.string(),
   temperature: z.string(),
@@ -40,13 +41,13 @@ export const adultCollectionSchema = z.object({
   }),
 })
 
-export type AdultCollectionFormData = z.infer<typeof adultCollectionSchema>
+type AdultCollectionFormData = z.infer<typeof adultCollectionSchema>
 
 const AdultCollection = () => {
   const insets = useSafeAreaInsets()
 
-  const { applicator } = useApplicator()
-  const { device } = useDevice()
+  const applicator = useApplicator()!
+  const device = useDevice()
   const [visibleOK, setVisibleOK] = useState(false)
   const [visibleERROR, setVisibleERROR] = useState(false)
   const [isButtonLoading, setIsButtonLoading] = useState(false)
@@ -82,16 +83,16 @@ const AdultCollection = () => {
           {
             title: Crypto.randomUUID(),
             uri: result.assets[0].uri,
-            base64: result.assets[0].base64,
+            base64: result.assets[0].base64!,
             size: result.assets[0].fileSize,
             type: result.assets[0].mimeType,
           },
         ])
 
-        setValue('image', result.assets[0].base64)
+        setValue('image', result.assets[0].base64!)
       }
     } catch (error) {
-      Alert.alert('Error picking image:', error.message)
+      Alert.alert('Error picking image:', (error as Error).message)
     }
   }
 
@@ -152,7 +153,7 @@ const AdultCollection = () => {
       )
       showSnackbar('success')
     } catch (error) {
-      Alert.alert('Erro ao relizar coleta audlto: ', error.message)
+      Alert.alert('Erro ao realizar coleta adulto: ', (error as Error).message)
       showSnackbar('error')
       throw error
     } finally {
@@ -232,12 +233,12 @@ const AdultCollection = () => {
                         onChange(value)
                       }}
                       value={value}
-                      items={configWindCollection?.data_config
-                        .split(';')
-                        .map((wind) => ({
-                          label: wind,
-                          value: wind,
-                        }))}
+                      items={(
+                        configWindCollection?.data_config.split(';') || []
+                      ).map((wind) => ({
+                        label: wind,
+                        value: wind,
+                      }))}
                     />
                   ) : (
                     <RNPickerSelect
@@ -249,12 +250,12 @@ const AdultCollection = () => {
                         onChange(value)
                       }}
                       value={value}
-                      items={configWindCollectionOnline?.data_config
-                        .split(';')
-                        .map((wind) => ({
-                          label: wind,
-                          value: wind,
-                        }))}
+                      items={(
+                        configWindCollectionOnline?.data_config.split(';') || []
+                      ).map((wind) => ({
+                        label: wind,
+                        value: wind,
+                      }))}
                     />
                   )}
                 </View>

@@ -1,21 +1,27 @@
-import { IApplicator } from '@/interfaces/IApplicator'
 import { get } from '@/providers/api'
+import { ISODateString } from '@/interfaces/iso-date-string'
 
-export const findApplicatorByUserId = async (
-  userId: string | undefined,
-): Promise<IApplicator> => {
-  const result = await get(`applications/applicator/?user__id=${userId}`)
-  return result[0] as unknown as Promise<IApplicator>
+export type FindApplicatorApplicator = {
+  id: number
+  name: string
+  cpf: string
+  status: boolean
+  new_marker: boolean
+  edit_marker: boolean
+  description: string | null
+  is_leader: boolean
+  contract: number
+  created_at: ISODateString
+  updated_at: ISODateString
 }
 
-export const findApplicatorById = async (
-  applicator_id: string | undefined,
-): Promise<IApplicator> => {
-  const result = await get(`applications/applicator/${applicator_id}`)
-  return result as unknown as Promise<IApplicator>
-}
+export const findApplicatorByCPF = async (
+  cpf: string,
+): Promise<FindApplicatorApplicator | null> => {
+  const cleanedCpf = cpf.replace(/\D/g, '')
+  const [applicator] = await get<FindApplicatorApplicator[]>(
+    `operation/applicators/?cpf=${cleanedCpf}`,
+  )
 
-export const findApplicator = async (): Promise<IApplicator[]> => {
-  const result = await get(`applications/applicator/`)
-  return result as unknown as Promise<IApplicator[]>
+  return applicator || null
 }

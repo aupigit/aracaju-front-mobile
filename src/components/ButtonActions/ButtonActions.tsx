@@ -1,9 +1,9 @@
 import { View, Text, Pressable } from 'react-native'
 import React from 'react'
 import Feather from '@expo/vector-icons/Feather'
-import { useUser } from '@/contexts/UserContext'
+import { useUser } from '@/features/session'
 
-interface IButtonsActionsProps {
+type ButtonsActionsProps = {
   openDrawer: () => void
   handleSyncInformations: () => void
   syncTimeRemaining: number
@@ -11,13 +11,13 @@ interface IButtonsActionsProps {
   modalAddPointReference: boolean
 }
 
-const ButtonActions = ({
+export const ButtonActions = ({
   handleSyncInformations,
   modalAddPointReference,
   openDrawer,
   setModalAddPointReference,
-}: IButtonsActionsProps) => {
-  const { user } = useUser()
+}: ButtonsActionsProps) => {
+  const user = useUser()!
 
   return (
     <>
@@ -30,7 +30,6 @@ const ButtonActions = ({
           <Feather name="menu" size={24} color="gray" />
         </Pressable>
       </View>
-
       <View className=" absolute left-9 top-[20px] z-10 items-center justify-center">
         <Pressable
           className="
@@ -43,7 +42,6 @@ const ButtonActions = ({
           </View>
         </Pressable>
       </View>
-
       {user.is_staff && (
         <View className=" absolute left-9 top-20 z-10 items-center justify-center">
           <Pressable
@@ -61,5 +59,3 @@ const ButtonActions = ({
     </>
   )
 }
-
-export default ButtonActions

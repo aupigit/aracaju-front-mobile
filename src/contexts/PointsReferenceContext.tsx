@@ -16,10 +16,10 @@ const PointsReferenceContext = createContext<
   PointsReferenceContextData | undefined
 >(undefined)
 
-const PointsReferenceProvider: React.FC<PointsReferenceContextProps> = ({
+export const PointsReferenceProvider: React.FC<PointsReferenceContextProps> = ({
   children,
 }) => {
-  const [pointIsEditable, setPointIsEditable] = useState<boolean>(false)
+  const [pointIsEditable, setPointIsEditable] = useState(false)
   const [selectedPoint, setSelectedPoint] = useState(null)
 
   return (
@@ -36,7 +36,7 @@ const PointsReferenceProvider: React.FC<PointsReferenceContextProps> = ({
   )
 }
 
-const usePointsReference = (): PointsReferenceContextData => {
+export const usePointsReference = (): PointsReferenceContextData => {
   const context = useContext(PointsReferenceContext)
   if (!context) {
     throw new Error(
@@ -45,5 +45,3 @@ const usePointsReference = (): PointsReferenceContextData => {
   }
   return context
 }
-
-export { PointsReferenceProvider, usePointsReference }

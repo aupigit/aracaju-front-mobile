@@ -1,7 +1,14 @@
 import { drizzle } from 'drizzle-orm/expo-sqlite'
 import { openDatabaseSync } from 'expo-sqlite/next'
 
-export const DATABASE_NAME =
-  'aracaju.expo.sqlite.drizzle.version.code.3FKFUUYGKGasdaasddsahiusadhiuhiuodsasdasdUYYUGUYUYFIYUFT23123'
-export const expoDB = openDatabaseSync(DATABASE_NAME)
-export const db = drizzle(expoDB)
+const DATABASE_NAME = 'aracaju-sqlite-drizzle-v1.db'
+
+const LOG_DB = false
+
+export const expoDB = openDatabaseSync(DATABASE_NAME, {
+  enableChangeListener: true,
+})
+
+export const db = drizzle(expoDB, {
+  logger: __DEV__ && LOG_DB,
+})

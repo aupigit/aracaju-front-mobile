@@ -22,9 +22,7 @@ const editPointCoordinatesSchema = z.object({
   }),
 })
 
-export type EditPointCoordinatesFormData = z.infer<
-  typeof editPointCoordinatesSchema
->
+type EditPointCoordinatesFormData = z.infer<typeof editPointCoordinatesSchema>
 
 const ApplicationChangePointCoordinatesToUserLocation = ({
   modalVisible,

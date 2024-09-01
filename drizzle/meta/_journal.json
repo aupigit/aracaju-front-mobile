@@ -1,19 +1,12 @@
 {
-  "version": "5",
+  "version": "7",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
-      "version": "5",
-      "when": 1715890728739,
-      "tag": "0000_broken_zuras",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
       "version": "6",
-      "when": 1720638464958,
-      "tag": "0001_freezing_marauders",
+      "when": 1724515755544,
+      "tag": "0000_romantic_captain_britain",
       "breakpoints": true
     }
   ]

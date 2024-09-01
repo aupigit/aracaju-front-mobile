@@ -19,15 +19,15 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { doApplicationOffline } from '@/services/offlineServices/application'
-import { useApplicator } from '@/contexts/ApplicatorContext'
-import { useDevice } from '@/contexts/DeviceContext'
+import { useApplicator } from '@/features/session'
+import { useDevice } from '@/features/device'
 import { useQuery } from 'react-query'
 import { findConfigAppByNameOffline } from '@/services/offlineServices/configApp'
 import { findConfigAppByName } from '@/services/onlineServices/configApp'
 import { IImagesProps } from '@/components/PhonePhotos'
 import { findOnePointReferenceByIdOffline } from '@/services/offlineServices/points'
 
-export const applicationSchema = z.object({
+const applicationSchema = z.object({
   volumebti: z.number({
     required_error: 'Volume BTI é obrigatório',
   }),
@@ -40,13 +40,13 @@ export const applicationSchema = z.object({
   }),
 })
 
-export type ApplicationFormData = z.infer<typeof applicationSchema>
+type ApplicationFormData = z.infer<typeof applicationSchema>
 
 const Applications = () => {
   const insets = useSafeAreaInsets()
 
-  const { applicator } = useApplicator()
-  const { device } = useDevice()
+  const applicator = useApplicator()
+  const device = useDevice()
   const [recipienteChecked, setRecipienteChecked] = useState(false)
   const [fichaChecked, setFichaChecked] = useState(false)
   const [placaChecked, setPlacaChecked] = useState(false)
@@ -80,7 +80,7 @@ const Applications = () => {
           {
             title: Crypto.randomUUID(),
             uri: result.assets[0].uri,
-            base64: result.assets[0].base64,
+            base64: result.assets[0].base64!,
             size: result.assets[0].fileSize,
             type: result.assets[0].mimeType,
           },

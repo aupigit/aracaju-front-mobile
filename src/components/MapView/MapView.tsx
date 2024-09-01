@@ -1,11 +1,15 @@
 import React from 'react'
-import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
+import ReactNativeMaps, {
+  Circle,
+  Marker,
+  PROVIDER_GOOGLE,
+} from 'react-native-maps'
 import { LocationObject } from 'expo-location'
 import { IPoint } from '@/interfaces/IPoint'
 import isPointInRegion from '@/utils/isPointInRegion'
-import { styles as s } from '@/app/styles/styles'
+import { StyleSheet } from 'react-native'
 
-interface IMapViewProps {
+type MapViewProps = {
   location: LocationObject | null
   pointIsEditable: boolean
   setValue: (name: string, value: number) => void
@@ -19,12 +23,12 @@ interface IMapViewProps {
   pointsDataOffline: IPoint[]
   userLocation: number[]
   previewCoordinate: { latitude: number; longitude: number } | null
-  mapRef: React.RefObject<MapView>
+  mapRef: React.RefObject<ReactNativeMaps>
   latestApplicationDates: { id: string; date: string }[]
   markerVisible: boolean
 }
 
-const MapViewComponent = ({
+export const MapView = ({
   location,
   pointIsEditable,
   pointsDataOffline,
@@ -36,14 +40,14 @@ const MapViewComponent = ({
   latestApplicationDates,
   markerVisible,
   userLocation,
-}: IMapViewProps) => {
+}: MapViewProps) => {
   return (
     <>
       {location && (
-        <MapView
+        <ReactNativeMaps
           ref={mapRef}
           provider={PROVIDER_GOOGLE}
-          style={s.map}
+          style={styles.map}
           initialRegion={{
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
@@ -72,13 +76,13 @@ const MapViewComponent = ({
               }),
             )
             .map((point, index) => {
-              let isToday: boolean
+              let isToday = false
               if (latestApplicationDates) {
                 const latestDateForPoint = latestApplicationDates?.find(
                   (item) => item.id === point.id,
                 )?.date
 
-                const latestDate = new Date(latestDateForPoint)
+                const latestDate = new Date(latestDateForPoint!)
 
                 isToday =
                   latestDate.toDateString() === new Date().toDateString()
@@ -120,10 +124,36 @@ const MapViewComponent = ({
           {previewCoordinate && (
             <Marker coordinate={previewCoordinate} pinColor={'blue'} />
           )}
-        </MapView>
+        </ReactNativeMaps>
       )}
     </>
   )
 }
 
-export default MapViewComponent
+const styles = StyleSheet.create({
+  map: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'blue',
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  navigationContainer: {
+    backgroundColor: '#ecf0f1',
+  },
+  paragraph: {
+    padding: 16,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+})

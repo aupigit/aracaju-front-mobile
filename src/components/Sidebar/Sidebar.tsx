@@ -1,21 +1,16 @@
-import { View, Text, Pressable } from 'react-native'
+import { View, Text, Pressable, Alert } from 'react-native'
 import React from 'react'
 import { Divider } from 'react-native-paper'
-import { useUser } from '@/contexts/UserContext'
-import { useApplicator } from '@/contexts/ApplicatorContext'
+import { router } from 'expo-router'
 
-interface ISidebarProps {
+type SidebarProps = {
   insets: { top: number; bottom: number }
   closeDrawer: () => void
 }
 
-const Sidebar = ({ insets, closeDrawer }: ISidebarProps) => {
-  const { logoutUser } = useUser()
-  const { logoutApplicator } = useApplicator()
-
-  const handleLogout = () => {
-    logoutUser()
-    logoutApplicator()
+export const Sidebar = ({ insets, closeDrawer }: SidebarProps) => {
+  const handleLogout = async () => {
+    router.replace('/logout')
   }
 
   return (
@@ -46,5 +41,3 @@ const Sidebar = ({ insets, closeDrawer }: ISidebarProps) => {
     </View>
   )
 }
-
-export default Sidebar

@@ -3,37 +3,28 @@ import { IPoint } from '@/interfaces/IPoint'
 import { get, patch, post } from '@/providers/api'
 import { Alert } from 'react-native'
 
-export const findManyPointsReferences = async (
+export const findManyPointsReferences = (
   updated_at: string | null,
 ): Promise<IPoint[]> => {
-  const result = await get(
-    `applications/pointreference/?updated_at=${updated_at}`,
-  )
-  return result as unknown as Promise<IPoint[]>
+  return get<IPoint[]>(`applications/pointreference/?updated_at=${updated_at}`)
 }
 
-export const adjustPointReferenceName = async (
+export const adjustPointReferenceName = (
   name: string,
   description: string,
   pointId: number,
   applicatorId: string,
   deviceId: string,
 ): Promise<IPoint> => {
-  const body = {
-    name,
-    description,
-  }
-
-  const result = await patch(
+  return patch<IPoint>(
     `applications/pointreference/${pointId}/edit_name/?device_factory_id=${deviceId}&applicator_id=${applicatorId}`,
     {
-      body,
+      body: { name, description },
     },
   )
-  return result as unknown as Promise<IPoint>
 }
 
-export const adjustPointReferenceCoordinates = async (
+export const adjustPointReferenceCoordinates = (
   longitude: number,
   latitude: number,
   description: string,
@@ -41,39 +32,26 @@ export const adjustPointReferenceCoordinates = async (
   applicatorId: string,
   deviceId: string,
 ): Promise<IPoint> => {
-  const body = {
-    longitude,
-    latitude,
-    description,
-  }
-
-  const result = await patch(
+  return patch<IPoint>(
     `applications/pointreference/${pointId}/edit_location/?device_factory_id=${deviceId}&applicator_id=${applicatorId}`,
     {
-      body,
+      body: { longitude, latitude, description },
     },
   )
-  return result as unknown as Promise<IPoint>
 }
 
-export const adjustPointStatus = async (
+export const adjustPointStatus = (
   pointId: number,
   description: string,
   applicatorId: string,
   deviceId: string,
 ): Promise<IPoint> => {
-  const body = {
-    is_active: false,
-    description,
-  }
-
-  const result = await patch(
+  return patch(
     `applications/pointreference/${pointId}/edit_status/?device_factory_id=${deviceId}&applicator_id=${applicatorId}`,
     {
-      body,
+      body: { is_active: false, description },
     },
   )
-  return result as unknown as Promise<IPoint>
 }
 
 export const doPointsReference = async (data: Array<SelectPointReference>) => {
@@ -89,7 +67,7 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
     accuracy: item.accuracy,
     volumebti: item.volumebti,
     observation: item.observation,
-    created_ondevice_at: new Date(item.created_ondevice_at),
+    created_ondevice_at: new Date(item.created_ondevice_at!),
     situation: 'Em dia',
     is_active: item.is_active,
     is_new: item.is_new,
@@ -99,12 +77,11 @@ export const doPointsReference = async (data: Array<SelectPointReference>) => {
   }))
 
   try {
-    const result = await post('applications/pointreference/push/', {
+    return post<{ success: boolean }>('applications/pointreference/push/', {
       body: newData,
     })
-    return result
   } catch (error) {
-    Alert.alert('Erro ao enviar os dados de ponto: ', error.message)
+    Alert.alert('Erro ao enviar os dados de ponto: ', (error as Error).message)
     throw error
   }
 }
