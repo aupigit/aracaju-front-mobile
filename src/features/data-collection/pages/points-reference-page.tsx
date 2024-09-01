@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, DrawerLayoutAndroid, TouchableOpacity } from 'react-native'
 import ReactNativeMaps from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -26,14 +26,20 @@ import {
   useUserSelectedCoordinates,
 } from '@/features/data-collection/context'
 import { useAsyncStoreValues } from '@/hooks'
-import { PointReference, SelectPointReference } from '@/db/point-reference'
+import { PointReference } from '@/db/point-reference'
 import { useDB } from '@/features/database'
 import { useConfigApp } from '@/hooks/use-config-app'
 import { numToPointType, PointType } from '@/features/data-collection/constants'
 import { Application } from '@/db/application'
 import { useSyncOperations } from '@/features/data-collection/context/sync-operations'
+import { locationUpdateBackgroundTask } from '@/features/background-tasks/tasks'
+import { useToaster } from '@/features/toaster'
 
 export const PointsReferencePage = () => {
+  const insets = useSafeAreaInsets()
+  const toaster = useToaster()
+  const mapRef = useRef<ReactNativeMaps>(null)
+
   const db = useDB()
   const userLocation = useUserCurrentLocation()
   const user = useUser()!
@@ -41,11 +47,16 @@ export const PointsReferencePage = () => {
   const [modalAddPointReference, setModalAddPointReference] = useState(false)
   const [modalButtonWarning, setModalButtonWarning] = useState(false)
   const [lastSync] = useAsyncStoreValues(['last_sync_time']).data || []
-
   const { selectedCoordinates } = useUserSelectedCoordinates()
+  const { data: isTracking } = locationUpdateBackgroundTask.useIsTracking()
+  const { mutate: disableLocationTrack } =
+    locationUpdateBackgroundTask.useDisableTracking()
+  const { mutate: enableLocationTrack } =
+    locationUpdateBackgroundTask.useEnableTracking()
 
-  const insets = useSafeAreaInsets()
-  const mapRef = useRef<ReactNativeMaps>(null)
+  useEffect(() => {
+    enableLocationTrack()
+  }, [enableLocationTrack])
 
   // Ações do Drawer
   const drawerRef = useRef<DrawerLayoutAndroid>(null)
@@ -91,12 +102,9 @@ export const PointsReferencePage = () => {
     return 15
   }, [configPointRadius])
 
-  // GET - Data da última aplicação em determinados pontos/Offline
-
   const pointsIdInUserRegion = useMemo(
     () =>
       pointReferences.data
-        // FIXME: point coords shouldn't be null!
         .filter((point) => isPointInRegion(point, userLocation))
         // FIXME: id shouldn't be null!
         .map((point) => point.id!),
@@ -171,8 +179,8 @@ export const PointsReferencePage = () => {
         )}
       </View>
       <TopOverlay>
-        <View className="flex-row p-2">
-          <View className="flex-1 flex-col gap-2">
+        <View className="flex-row px-4 pt-2">
+          <View className="flex-1 flex-col gap-3">
             <TouchableOpacity
               className="h-12 flex-row items-center justify-center gap-2 rounded-sm bg-blue-500 p-2"
               onPress={startCompleteSync}
@@ -196,16 +204,47 @@ export const PointsReferencePage = () => {
           </View>
           <View className="flex-1 flex-col items-end gap-3">
             <TouchableOpacity
-              className="h-12 w-12 flex-row items-center justify-center rounded-sm border-zinc-700/20 bg-zinc-100/70 p-3"
+              className="h-12 w-12 flex-row items-center justify-center rounded-sm border-zinc-700/20 bg-zinc-100/70"
               onPress={openDrawer}
             >
-              <FontAwesome6 name="bars" size={18} color="gray" />
+              <FontAwesome6 name="bars" size={22} color="gray" />
             </TouchableOpacity>
             <TouchableOpacity
-              className="h-12 w-12 flex-row items-center justify-center rounded-sm border-zinc-700/20 bg-zinc-100/70 p-3"
+              className="h-12 w-12 flex-row items-center justify-center rounded-sm border-zinc-700/20 bg-zinc-100/70"
               onPress={focusOnUser}
             >
-              <FontAwesome6 name="location-crosshairs" size={18} color="gray" />
+              <FontAwesome6 name="location-crosshairs" size={22} color="gray" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="h-12 w-12 flex-row items-center justify-center rounded-sm border-zinc-700/20 bg-zinc-100/70"
+              onPress={() => {
+                if (isTracking) {
+                  disableLocationTrack()
+                } else {
+                  enableLocationTrack()
+                }
+                toaster.makeToast({
+                  type: 'success',
+                  message: isTracking
+                    ? 'Rastreamento de percurso desativado'
+                    : 'Rastreamento de percurso ativado',
+                })
+              }}
+              onLongPress={() => {
+                toaster.makeToast({
+                  type: 'error',
+                  message: isTracking
+                    ? 'Desabilitar rastreamento de percurso'
+                    : 'Ativar rastreamento de percurso',
+                })
+              }}
+            >
+              <FontAwesome6
+                name="magnifying-glass-location"
+                size={24}
+                color={isTracking ? 'rgb(22 163 74)' : 'gray'}
+              />
             </TouchableOpacity>
           </View>
         </View>

@@ -22,9 +22,12 @@ import {
 
 const toNil = () => null
 
-const Context = createContext({
-  startPushData: noop,
-  startCompleteSync: noop,
+const Context = createContext<{
+  startPushData: () => Promise<void>
+  startCompleteSync: () => Promise<void>
+}>({
+  startPushData: () => Promise.resolve(),
+  startCompleteSync: () => Promise.resolve(),
 })
 
 export const SyncOperationsProvider = ({
@@ -78,8 +81,8 @@ export const SyncOperationsProvider = ({
   return (
     <Context.Provider
       value={{
-        startPushData: pushData.mutate,
-        startCompleteSync: handleCompleteSync.mutate,
+        startPushData: pushData.mutateAsync,
+        startCompleteSync: handleCompleteSync.mutateAsync,
       }}
     >
       {children}

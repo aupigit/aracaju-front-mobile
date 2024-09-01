@@ -21,7 +21,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { eq } from 'drizzle-orm'
 
-import { ImageShape } from '@/components/phone-photos'
+import { PhonePhoto } from '@/types/phone-photo'
 import { useDB } from '@/features/database'
 import { PointReference, SelectPointReference } from '@/db/point-reference'
 import { SimpleErrorScreen } from '@/components/simple-error-screen'
@@ -101,7 +101,7 @@ const AfterLoadData = ({
   const toaster = useToaster()
   const factoryId = useDeviceFactoryId()
   const { startPushData } = useSyncOperations()
-  const [image, setImage] = useState<ImageShape | null>(null)
+  const [image, setImage] = useState<PhonePhoto | null>(null)
   const {
     coletaVento: configWindCollection,
     coletaClima: configClimateWindCollection,

@@ -1,6 +1,6 @@
 import { SelectPointReference } from '@/db/point-reference'
 import { get, patch, post } from '@/providers/api'
-import { ISODateString } from '@/interfaces/iso-date-string'
+import { ISODateString } from '@/types/iso-date-string'
 
 export type APIPointReference = {
   id: number

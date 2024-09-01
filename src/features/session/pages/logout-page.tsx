@@ -7,16 +7,20 @@ import { router } from 'expo-router'
 
 import { useChangeAsyncStore } from '@/hooks'
 import { doLogout } from '@/services/online-services/authenticate'
-import { useApplicator, useUser } from '@/features/session'
 import {
   deleteApplicatorByIdQuery,
   deleteUserByIdQuery,
+  findOneApplicatorQuery,
+  findOneUserQuery,
 } from '@/features/database/queries'
+import { locationUpdateBackgroundTask } from '@/features/background-tasks/tasks'
+import { useSyncOperations } from '@/features/data-collection/context'
 
 export const LogoutPage = () => {
   const asyncStorage = useChangeAsyncStore()
-  const user = useUser()
-  const applicator = useApplicator()
+  const { startCompleteSync } = useSyncOperations()
+  const { mutateAsync: disableLocationTrack } =
+    locationUpdateBackgroundTask.useDisableTracking()
 
   const removalRequest = useQuery(['LOGOUT'], async () => {
     try {
@@ -31,16 +35,24 @@ export const LogoutPage = () => {
     }
 
     try {
+      // try a sync
+      await startCompleteSync().catch(noop)
+
       // FIXME: drizzle has a bug where live queries don't get notified
       //  of deletes without wheres, we need to report this and wait for a fix.
       //  in the meantime we'll delete with ids
+      const [user] = await findOneUserQuery().execute()
       if (user) {
         await deleteUserByIdQuery(user.id).execute()
       }
 
+      const [applicator] = await findOneApplicatorQuery().execute()
       if (applicator) {
         await deleteApplicatorByIdQuery(applicator.id).execute()
       }
+
+      // FIXME: what else to delete?
+      await disableLocationTrack().catch(noop)
 
       console.info('[logout] all data removed')
     } catch (error) {

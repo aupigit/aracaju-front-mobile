@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 export { isSameDay, isToday } from 'date-fns'
 
-export function formatDate(date) {
+export function formatDate(date: Date) {
   date = new Date(date.getTime())
   date.setHours(date.getHours() - 12) // Subtract twelve hour
 

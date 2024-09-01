@@ -22,7 +22,7 @@ import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import { useDeviceFactoryId } from '@/features/device'
-import { ImageShape } from '@/components/phone-photos'
+import { PhonePhoto } from '@/types/phone-photo'
 import { useToaster } from '@/features/toaster'
 import { SelectPointReference } from '@/db/point-reference'
 import { useDB } from '@/features/database'
@@ -86,7 +86,7 @@ const AfterLoadData = ({
   const factoryId = useDeviceFactoryId()
   const { startPushData } = useSyncOperations()
   const { volumeEscala: configScaleVolume } = useConfigApp(['volume_escala'])
-  const [image, setImage] = useState<ImageShape | null>(null)
+  const [image, setImage] = useState<PhonePhoto | null>(null)
   const {
     control,
     handleSubmit,

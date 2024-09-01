@@ -1,7 +1,7 @@
 import { SelectApplication } from '@/db/application'
-import { Marker } from '@/interfaces/marker'
+import { Marker } from '@/types/marker'
 import { post } from '@/providers/api'
-import { ISODateString } from '@/interfaces/iso-date-string'
+import { ISODateString } from '@/types/iso-date-string'
 
 type APIApplication = {
   id: number

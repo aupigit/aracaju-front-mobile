@@ -35,7 +35,7 @@ export const ApplicationButton = ({
     const conflictPoints = getConflictPoints(userLocation, pointsDataOffline)
 
     // FIXME: user should always conflict with at least one point
-    //  so we probably can remove this branching and always take the closes point?
+    //  so we probably can remove this branching and always take the closest point?
     if (conflictPoints.length >= 2) {
       // Calcule a distância entre a localização atual e cada ponto de conflito
       const distances = conflictPoints.map((point) =>

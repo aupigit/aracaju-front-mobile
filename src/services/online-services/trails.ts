@@ -1,10 +1,22 @@
 import { SelectTracking } from '@/db/tracking'
-import { ITrails } from '@/interfaces/ITrails'
 import { post } from '@/providers/api'
+import { ISODateString } from '@/types/iso-date-string'
 
-export const createTrails = (
-  data: Array<SelectTracking>,
-): Promise<ITrails | null> => {
+type APITrail = {
+  id: number
+  created_at: ISODateString
+  updated_at: ISODateString
+  created_ondevice_at: ISODateString | null
+  local_timestamp: ISODateString | null
+  latitude: number
+  longitude: number
+  altitude: number
+  accuracy: number
+  device: number
+  applicator: number
+}
+
+export const createTrails = (data: Array<SelectTracking>) => {
   const newData = data.map((item) => {
     const timestamp = item.local_timestamp!
     const date = new Date(timestamp)
@@ -12,7 +24,8 @@ export const createTrails = (
     return { ...item, local_timestamp: date }
   })
 
-  return post<ITrails>('applications/trails/push/', {
-    body: newData,
-  })
+  return post<{
+    success: boolean
+    data: APITrail[]
+  }>('applications/trails/push/', { body: newData })
 }

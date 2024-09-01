@@ -78,9 +78,9 @@ export const SyncModal = ({
           <Divider className="my-5" />
           <View className="w-full gap-3">
             {syncStatus(pushData, {
-              isLoading: 'Enviando dados',
-              isSuccess: 'Dados enviados',
-              isError: 'Erro ao enviar dados',
+              isLoading: 'Enviando dados offline ',
+              isSuccess: 'Dados offline enviados',
+              isError: 'Erro ao enviar dados offline',
             })}
             {syncStatus(
               {

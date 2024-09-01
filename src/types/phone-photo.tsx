@@ -1,5 +1,4 @@
-// FIXME: we need to find the proper file for this
-export type ImageShape = {
+export type PhonePhoto = {
   title: string
   uri: string
   base64: string

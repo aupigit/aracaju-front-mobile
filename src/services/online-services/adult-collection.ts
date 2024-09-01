@@ -1,7 +1,7 @@
 import { SelectAdultCollection } from '@/db/adult-collection'
 import { post } from '@/providers/api'
-import { ISODateString } from '@/interfaces/iso-date-string'
-import { Marker } from '@/interfaces/marker'
+import { ISODateString } from '@/types/iso-date-string'
+import { Marker } from '@/types/marker'
 
 type APIAdultCollection = {
   id: number

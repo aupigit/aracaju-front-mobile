@@ -26,6 +26,8 @@ TaskManager.defineTask(TASK_NAME, async () => {
     console.info('[push-offline-data] no device or applicator found, skipping')
 
     return BackgroundFetch.BackgroundFetchResult.NoData
+  } else {
+    console.info('[push-offline-data] data push running')
   }
 
   await pushOfflineData(device, applicator)
@@ -35,7 +37,7 @@ TaskManager.defineTask(TASK_NAME, async () => {
 
 function registerTask() {
   return BackgroundFetch.registerTaskAsync(TASK_NAME, {
-    minimumInterval: 60 * 5, // 5 minutes
+    minimumInterval: 60 * 2, // 2 minutes
     stopOnTerminate: false,
     startOnBoot: true,
   })
