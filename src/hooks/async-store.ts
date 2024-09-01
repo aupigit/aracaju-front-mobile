@@ -50,10 +50,16 @@ export const useChangeAsyncStore = () => {
   }
 }
 
-export const asyncStoreSetItem = (key: AvailableKey, value: string) => {
-  return AsyncStorage.setItem(key, value)
+export const asyncStoreSetItem = async (key: AvailableKey, value: string) => {
+  const data = await AsyncStorage.setItem(key, value)
+  listeners.forEach((listener) => listener([key]))
+
+  return data
 }
 
-export const asyncStoreGetItem = (key: AvailableKey) => {
-  return AsyncStorage.getItem(key)
+export const asyncStoreGetItem = async (key: AvailableKey) => {
+  const data = await AsyncStorage.getItem(key)
+  listeners.forEach((listener) => listener([key]))
+
+  return data
 }
